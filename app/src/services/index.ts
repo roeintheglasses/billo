@@ -9,6 +9,7 @@ import supabase, * as supabaseService from './supabase';
 import storageService from './storage';
 import categoryService from './categoryService';
 import subscriptionService from './subscriptionService';
+import transactionService from './transactionService';
 
 export {
   authService,
@@ -16,7 +17,8 @@ export {
   supabaseService,
   storageService,
   categoryService,
-  subscriptionService
+  subscriptionService,
+  transactionService
 };
 
 export default {
@@ -24,5 +26,6 @@ export default {
   supabase,
   storage: storageService,
   category: categoryService,
-  subscription: subscriptionService
+  subscription: subscriptionService,
+  transaction: transactionService
 }; 
