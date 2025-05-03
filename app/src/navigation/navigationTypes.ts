@@ -11,6 +11,7 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  ResetPassword: undefined;
 };
 
 // Tab navigator types
@@ -20,6 +21,7 @@ export type TabParamList = {
   Add: undefined;
   Calendar: undefined;
   Settings: undefined;
+  ChangePassword: undefined;
 };
 
 // Root navigator types that includes both Auth and Tabs

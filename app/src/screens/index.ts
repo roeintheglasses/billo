@@ -3,4 +3,7 @@ export * from './HomeScreen';
 export * from './AuthScreen';
 export * from './SettingsScreen';
 export * from './RegisterScreen';
-export * from './LoginScreen'; 
+export * from './LoginScreen';
+export * from './ForgotPasswordScreen';
+export * from './ResetPasswordScreen';
+export * from './ChangePasswordScreen'; 

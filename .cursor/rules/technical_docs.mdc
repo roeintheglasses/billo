@@ -72,3 +72,26 @@ alwaysApply: true
   - Maintain a changelog for major components and services
   - Document migration paths for breaking changes
   - Use context7 to check for latest documentation changes in technologies used
+
+- **Project Structure Documentation**
+  - Always reference files using the correct path relative to the app directory
+  - Document the location of configuration files in the `app/` directory
+  - When providing import examples, use paths that reflect the actual directory structure
+  - Example:
+    ```typescript
+    // ✅ DO: Use correct import paths
+    import { MyComponent } from '../components/MyComponent';
+    
+    // ❌ DON'T: Use incorrect paths that don't match project structure
+    import { MyComponent } from '../../app/src/components/MyComponent';
+    ```
+  - When documenting installation steps, specify they should be run from the `app/` directory
+  - Refer to [`project_structure.mdc`](mdc:.cursor/rules/project_structure.mdc) for details on the project organization
+  - Follow the established directory conventions when creating new files
+  - Ensure that all package/dependency references reflect installation within the `app/` directory
+
+- **Path Resolution and Import Documentation**
+  - Document the module resolution strategy used by the project
+  - Explain how imports work within the app directory structure
+  - Document any path aliases configured in tsconfig.json
+  - Provide clear examples of absolute vs. relative imports based on the project configuration

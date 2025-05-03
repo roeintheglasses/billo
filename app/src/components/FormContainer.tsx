@@ -9,6 +9,7 @@ interface FormContainerProps {
   scrollable?: boolean;
   keyboardAvoiding?: boolean;
   style?: object;
+  showTitle?: boolean;
 }
 
 /**
@@ -23,6 +24,7 @@ export const FormContainer: React.FC<FormContainerProps> = ({
   scrollable = true,
   keyboardAvoiding = true,
   style,
+  showTitle = true,
 }) => {
   const { theme } = useTheme();
   const { colors, spacing, typography } = theme;
@@ -42,7 +44,7 @@ export const FormContainer: React.FC<FormContainerProps> = ({
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {title && (
+      {title && showTitle && (
         <Text
           style={[
             styles.title,

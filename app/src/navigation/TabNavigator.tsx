@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { HomeScreen, SettingsScreen } from '../screens';
+import { HomeScreen, SettingsScreen, ChangePasswordScreen } from '../screens';
 import { TabParamList } from './navigationTypes';
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -57,6 +57,16 @@ export const TabNavigator = () => {
         component={HomeScreen} // Temporary, will be replaced with CalendarScreen 
       />
       <Tab.Screen name="Settings" component={SettingsScreen} />
+      
+      {/* Hidden screens - not shown in tab bar */}
+      <Tab.Screen 
+        name="ChangePassword" 
+        component={ChangePasswordScreen} 
+        options={{ 
+          tabBarButton: () => null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
     </Tab.Navigator>
   );
 }; 

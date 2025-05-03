@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Settings Screen Component
@@ -11,6 +13,12 @@ import { ThemeToggle } from '../components/ThemeToggle';
 export const SettingsScreen = () => {
   const { theme } = useTheme();
   const { colors, spacing } = theme;
+  const navigation = useNavigation();
+  const { signOut } = useAuth();
+  
+  const handleSignOut = async () => {
+    await signOut();
+  };
   
   return (
     <ScrollView 
@@ -51,6 +59,12 @@ export const SettingsScreen = () => {
           { borderBottomColor: colors.border.light }
         ]}>
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.option, { borderBottomColor: colors.border.light }]}
+          onPress={() => navigation.navigate('ChangePassword' as never)}
+        >
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Change Password</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[
           styles.option,
@@ -143,10 +157,10 @@ export const SettingsScreen = () => {
         </TouchableOpacity>
       </View>
       
-      <TouchableOpacity style={[
-        styles.logoutButton,
-        { backgroundColor: colors.error }
-      ]}>
+      <TouchableOpacity 
+        style={[styles.logoutButton, { backgroundColor: colors.error }]}
+        onPress={handleSignOut}
+      >
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
       
@@ -199,12 +213,12 @@ const styles = StyleSheet.create({
   logoutText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   versionText: {
+    textAlign: 'center',
     marginTop: 20,
     marginBottom: 30,
-    textAlign: 'center',
-    fontSize: 14,
+    fontSize: 12,
   },
 }); 
