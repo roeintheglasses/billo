@@ -17,6 +17,10 @@ alwaysApply: true
 - **Application Structure (`app/`)**
   - `src/` - Source code directory
     - `components/` - Reusable UI components
+      - `atoms/` - Smallest reusable components
+        - `visualization/` - Data visualization components (charts, progress indicators)
+      - `molecules/` - Composite components built from atoms
+      - `organisms/` - Complex components combining multiple molecules
     - `screens/` - Screen components for navigation
     - `contexts/` - React Context providers
     - `hooks/` - Custom React hooks
@@ -59,7 +63,7 @@ alwaysApply: true
   
 - **Maintenance Requirements**
   - **Update this documentation after completing any task that modifies the project structure**
-  - Document new directories or files that alter the organization
+  - Document new directories or files that alter the project organization
   - Update import path examples when module resolution changes
   - Keep the directory listings current as the project evolves
   - Document any changes to how dependencies are managed

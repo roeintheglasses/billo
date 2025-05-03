@@ -52,6 +52,14 @@ alwaysApply: true
   - Document accessibility considerations
   - Note any performance implications
 
+- **Data Visualization Components**
+  - All data visualization must use react-native-gifted-charts (not Victory Native)
+  - Document the data format required for each chart type
+  - Include theme integration examples
+  - Provide accessibility best practices for charts
+  - Explain performance considerations for large datasets
+  - Refer to [`visualization.mdc`](mdc:.cursor/rules/visualization.mdc) for detailed guidelines
+
 - **Supabase-Specific Documentation**
   - Document database schema with relationships
   - Include security rules and access patterns

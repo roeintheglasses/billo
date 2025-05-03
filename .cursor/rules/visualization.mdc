@@ -1,0 +1,112 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+# Data Visualization Components
+
+- **Library Selection**
+  - **Use react-native-gifted-charts for all chart components**
+    - The project uses react-native-gifted-charts (not Victory Native)
+    - All chart-related components should use this library for consistency
+    - Required dependencies: `react-native-gifted-charts` and `react-native-svg`
+    - Example:
+    ```typescript
+    import { LineChart as GiftedLineChart } from 'react-native-gifted-charts';
+    ```
+
+- **Component Structure**
+  - **Visualization components are located in `src/components/atoms/visualization/`**
+    - All visualization components inherit from ChartContainer
+    - Components use a consistent prop interface pattern
+    - Available components:
+      - `ChartContainer`: Base wrapper for all chart types
+      - `LineChart`: For time series and trend visualization
+      - `BarChart`: For categorical comparisons
+      - `PieChart`: For part-to-whole relationships
+      - `ProgressCircle`: For percentage/completion visualization
+      - `ProgressBar`: For horizontal progress indicators
+
+- **Theme Integration**
+  - **All visualization components must use the app's theme context**
+    - Import the theme using: `import { useTheme } from '../../../contexts/ThemeContext';`
+    - Use theme colors for chart elements (bars, lines, etc.)
+    - Support both light and dark themes
+    - Example:
+    ```typescript
+    const { theme } = useTheme();
+    const { colors } = theme;
+    
+    // Apply theme colors to chart elements
+    const lineColor = color || colors.primary;
+    ```
+
+- **Accessibility Requirements**
+  - **All charts must have proper accessibility attributes**
+    - Include appropriate labels and ARIA roles
+    - Ensure content is readable by screen readers
+    - Provide alternative text descriptions for complex visualizations
+    - Consider color blindness by using distinguishable patterns
+
+- **Performance Considerations**
+  - **Charts should be optimized for performance**
+    - Use `useMemo` for computed properties and styles
+    - Keep re-renders to a minimum
+    - Apply lazy loading for complex charts
+    - Consider using `React.memo` for pure chart components
+    - Be careful with large datasets (consider data aggregation)
+
+- **Responsive Design**
+  - **All charts must be responsive**
+    - Support different screen sizes and orientations
+    - Use relative dimensions when possible
+    - Consider accessibility in small screens
+    - Test on various device sizes
+
+- **Examples and Usage**
+  ```typescript
+  // Basic line chart
+  import { LineChart } from '../components/atoms/visualization';
+  
+  const MyComponent = () => {
+    const data = [
+      { value: 15, label: 'Jan' },
+      { value: 36, label: 'Feb' },
+      { value: 22, label: 'Mar' },
+    ];
+    
+    return (
+      <LineChart
+        data={data}
+        title="Monthly Sales"
+        subtitle="Q1 2023"
+        height={250}
+        areaChart={true}
+        curved={true}
+      />
+    );
+  };
+  
+  // Progress indicator
+  import { ProgressCircle } from '../components/atoms/visualization';
+  
+  const ProgressComponent = () => {
+    return (
+      <ProgressCircle
+        value={75}
+        size={120}
+        thickness={10}
+        showValue={true}
+      />
+    );
+  };
+  ```
+
+- **Extension Guidelines**
+  - When creating new visualization components:
+    - Extend from ChartContainer for consistency
+    - Follow the established prop pattern
+    - Support theme integration
+    - Include thorough JSDoc comments
+    - Consider performance for large datasets
+    - Add export to `index.ts`
