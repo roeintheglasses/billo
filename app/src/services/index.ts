@@ -10,6 +10,7 @@ import storageService from './storage';
 import categoryService from './categoryService';
 import subscriptionService from './subscriptionService';
 import transactionService from './transactionService';
+import notificationService from './notificationService';
 
 export {
   authService,
@@ -18,7 +19,8 @@ export {
   storageService,
   categoryService,
   subscriptionService,
-  transactionService
+  transactionService,
+  notificationService
 };
 
 export default {
@@ -27,5 +29,6 @@ export default {
   storage: storageService,
   category: categoryService,
   subscription: subscriptionService,
-  transaction: transactionService
+  transaction: transactionService,
+  notification: notificationService
 }; 

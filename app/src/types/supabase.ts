@@ -188,6 +188,9 @@ export interface Database {
           message: string;
           type: string;
           is_read: boolean;
+          priority: string;
+          link_url?: string;
+          metadata?: Json;
           created_at: string;
           updated_at: string;
         };
@@ -198,6 +201,9 @@ export interface Database {
           message: string;
           type: string;
           is_read?: boolean;
+          priority?: string;
+          link_url?: string;
+          metadata?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -208,6 +214,9 @@ export interface Database {
           message?: string;
           type?: string;
           is_read?: boolean;
+          priority?: string;
+          link_url?: string;
+          metadata?: Json;
           created_at?: string;
           updated_at?: string;
         };
