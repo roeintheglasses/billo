@@ -14,46 +14,16 @@ import {
   Category
 } from '../types/supabase';
 import { getCategoryById } from './categoryService';
+import { validateSubscription } from '../utils/validationUtils';
+import errorHandler from '../utils/errorHandler';
+import logger from '../utils/logger';
+import { NotFoundError, DatabaseError } from '../utils/errors';
 
 /**
  * Supported billing cycle values
  */
 export const BILLING_CYCLES = ['monthly', 'yearly', 'weekly', 'quarterly', 'biannually'] as const;
 export type BillingCycle = typeof BILLING_CYCLES[number];
-
-/**
- * Validates that the billing cycle is a supported value
- * 
- * @param cycle The billing cycle to validate
- * @returns True if the billing cycle is valid
- */
-export const isValidBillingCycle = (cycle: string): boolean => {
-  return BILLING_CYCLES.includes(cycle as BillingCycle);
-};
-
-/**
- * Validates that the amount is a positive number
- * 
- * @param amount The amount to validate
- * @returns True if the amount is valid
- */
-export const isValidAmount = (amount: number): boolean => {
-  return !isNaN(amount) && amount > 0;
-};
-
-/**
- * Validates a date string is in a valid format (YYYY-MM-DD)
- * 
- * @param dateString The date string to validate
- * @returns True if the date format is valid
- */
-export const isValidDateFormat = (dateString: string): boolean => {
-  // Accept empty/null values
-  if (!dateString) return true;
-  
-  // Check for valid ISO date format (YYYY-MM-DD)
-  return /^\d{4}-\d{2}-\d{2}$/.test(dateString) && !isNaN(Date.parse(dateString));
-};
 
 /**
  * Calculates the next billing date based on the start date and billing cycle
@@ -76,10 +46,6 @@ export const calculateNextBillingDate = (
     throw new Error('Invalid date provided');
   }
   
-  if (!isValidBillingCycle(billingCycle)) {
-    throw new Error(`Invalid billing cycle: ${billingCycle}`);
-  }
-  
   // If the start date is in the future, it's the next billing date
   if (start > reference) {
     return start;
@@ -88,102 +54,49 @@ export const calculateNextBillingDate = (
   // Clone the start date
   const nextDate = new Date(start);
   
-  // Calculate time elapsed since start
-  const elapsedMs = reference.getTime() - start.getTime();
-  
-  // Calculate the cycle length in milliseconds
-  let cycleLengthMs: number;
-  
+  // Calculate the cycle length and next date
   switch (billingCycle) {
     case 'weekly':
-      cycleLengthMs = 7 * 24 * 60 * 60 * 1000;
-      break;
+      // Calculate time elapsed since start
+      const elapsedMs = reference.getTime() - start.getTime();
+      const cycleLengthMs = 7 * 24 * 60 * 60 * 1000;
+      // Calculate how many cycles have passed
+      const cyclesPassed = Math.ceil(elapsedMs / cycleLengthMs);
+      // Add that many cycles to the start date
+      nextDate.setTime(start.getTime() + (cyclesPassed * cycleLengthMs));
+      return nextDate;
+      
     case 'monthly':
       // Move forward month by month to handle variable month lengths
       while (nextDate < reference) {
         nextDate.setMonth(nextDate.getMonth() + 1);
       }
       return nextDate;
+      
     case 'quarterly':
       // Move forward 3 months at a time
       while (nextDate < reference) {
         nextDate.setMonth(nextDate.getMonth() + 3);
       }
       return nextDate;
+      
     case 'biannually':
       // Move forward 6 months at a time
       while (nextDate < reference) {
         nextDate.setMonth(nextDate.getMonth() + 6);
       }
       return nextDate;
+      
     case 'yearly':
       // Move forward year by year
       while (nextDate < reference) {
         nextDate.setFullYear(nextDate.getFullYear() + 1);
       }
       return nextDate;
+      
     default:
       throw new Error(`Unhandled billing cycle: ${billingCycle}`);
   }
-  
-  // For fixed-length cycles (like weekly)
-  if (cycleLengthMs) {
-    // Calculate how many cycles have passed
-    const cyclesPassed = Math.ceil(elapsedMs / cycleLengthMs);
-    
-    // Add that many cycles to the start date
-    nextDate.setTime(start.getTime() + (cyclesPassed * cycleLengthMs));
-    
-    return nextDate;
-  }
-  
-  throw new Error('Failed to calculate next billing date');
-};
-
-/**
- * Validates a subscription object
- * 
- * @param subscription The subscription object to validate
- * @returns An object with isValid and error properties
- */
-export const validateSubscription = async (
-  subscription: Partial<SubscriptionInsert> | Partial<SubscriptionUpdate>
-): Promise<{ isValid: boolean; error?: string }> => {
-  // Validate required fields for new subscriptions
-  if ('name' in subscription && !subscription.name) {
-    return { isValid: false, error: 'Subscription name is required' };
-  }
-  
-  if ('amount' in subscription && subscription.amount !== undefined) {
-    if (!isValidAmount(subscription.amount)) {
-      return { isValid: false, error: 'Amount must be a positive number' };
-    }
-  }
-  
-  if ('billing_cycle' in subscription && subscription.billing_cycle) {
-    if (!isValidBillingCycle(subscription.billing_cycle)) {
-      return { 
-        isValid: false, 
-        error: `Invalid billing cycle. Valid values are: ${BILLING_CYCLES.join(', ')}` 
-      };
-    }
-  }
-  
-  if ('start_date' in subscription && subscription.start_date) {
-    if (!isValidDateFormat(subscription.start_date)) {
-      return { isValid: false, error: 'Invalid start date format. Use YYYY-MM-DD' };
-    }
-  }
-  
-  // Validate category relationship if provided
-  if (subscription.category_id) {
-    const category = await getCategoryById(subscription.category_id);
-    if (!category) {
-      return { isValid: false, error: 'Invalid category ID' };
-    }
-  }
-  
-  return { isValid: true };
 };
 
 /**
@@ -191,8 +104,8 @@ export const validateSubscription = async (
  * 
  * @returns Promise resolving to an array of Subscription objects
  */
-export const getSubscriptions = async (): Promise<Subscription[]> => {
-  try {
+export const getSubscriptions = errorHandler.withErrorHandling(
+  async (): Promise<Subscription[]> => {
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -201,19 +114,17 @@ export const getSubscriptions = async (): Promise<Subscription[]> => {
     if (error) throw error;
     
     return data || [];
-  } catch (error: any) {
-    console.error('Error fetching subscriptions:', error.message);
-    throw new Error(`Failed to fetch subscriptions: ${error.message}`);
-  }
-};
+  },
+  'Subscription'
+);
 
 /**
  * Get all subscriptions with their associated categories
  * 
  * @returns Promise resolving to an array of SubscriptionWithCategory objects
  */
-export const getSubscriptionsWithCategories = async (): Promise<SubscriptionWithCategory[]> => {
-  try {
+export const getSubscriptionsWithCategories = errorHandler.withErrorHandling(
+  async (): Promise<SubscriptionWithCategory[]> => {
     const { data, error } = await supabase
       .from('subscriptions')
       .select(`
@@ -225,20 +136,19 @@ export const getSubscriptionsWithCategories = async (): Promise<SubscriptionWith
     if (error) throw error;
     
     return data || [];
-  } catch (error: any) {
-    console.error('Error fetching subscriptions with categories:', error.message);
-    throw new Error(`Failed to fetch subscriptions with categories: ${error.message}`);
-  }
-};
+  },
+  'Subscription'
+);
 
 /**
  * Get a single subscription by ID
  * 
  * @param id The ID of the subscription to retrieve
  * @returns Promise resolving to a Subscription object or null if not found
+ * @throws NotFoundError if the subscription doesn't exist
  */
-export const getSubscriptionById = async (id: string): Promise<Subscription | null> => {
-  try {
+export const getSubscriptionById = errorHandler.withErrorHandling(
+  async (id: string): Promise<Subscription> => {
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -247,26 +157,25 @@ export const getSubscriptionById = async (id: string): Promise<Subscription | nu
     
     if (error) {
       if (error.code === 'PGRST116') { // "Not found" error code
-        return null;
+        throw new NotFoundError('Subscription', id);
       }
       throw error;
     }
     
-    return data;
-  } catch (error: any) {
-    console.error(`Error fetching subscription with id ${id}:`, error.message);
-    throw new Error(`Failed to fetch subscription: ${error.message}`);
-  }
-};
+    return errorHandler.checkRecordFound(data, 'Subscription', id);
+  },
+  'Subscription'
+);
 
 /**
- * Get a single subscription with its category
+ * Get a single subscription with its category by ID
  * 
  * @param id The ID of the subscription to retrieve
- * @returns Promise resolving to a SubscriptionWithCategory object or null if not found
+ * @returns Promise resolving to a SubscriptionWithCategory object
+ * @throws NotFoundError if the subscription doesn't exist
  */
-export const getSubscriptionWithCategoryById = async (id: string): Promise<SubscriptionWithCategory | null> => {
-  try {
+export const getSubscriptionWithCategoryById = errorHandler.withErrorHandling(
+  async (id: string): Promise<SubscriptionWithCategory> => {
     const { data, error } = await supabase
       .from('subscriptions')
       .select(`
@@ -278,26 +187,24 @@ export const getSubscriptionWithCategoryById = async (id: string): Promise<Subsc
     
     if (error) {
       if (error.code === 'PGRST116') { // "Not found" error code
-        return null;
+        throw new NotFoundError('Subscription', id);
       }
       throw error;
     }
     
-    return data;
-  } catch (error: any) {
-    console.error(`Error fetching subscription with id ${id}:`, error.message);
-    throw new Error(`Failed to fetch subscription with category: ${error.message}`);
-  }
-};
+    return errorHandler.checkRecordFound(data, 'Subscription', id);
+  },
+  'Subscription'
+);
 
 /**
- * Get subscriptions by category ID
+ * Get all subscriptions for a specific category
  * 
- * @param categoryId The ID of the category to filter by
+ * @param categoryId The ID of the category
  * @returns Promise resolving to an array of Subscription objects
  */
-export const getSubscriptionsByCategory = async (categoryId: string): Promise<Subscription[]> => {
-  try {
+export const getSubscriptionsByCategory = errorHandler.withErrorHandling(
+  async (categoryId: string): Promise<Subscription[]> => {
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -307,26 +214,25 @@ export const getSubscriptionsByCategory = async (categoryId: string): Promise<Su
     if (error) throw error;
     
     return data || [];
-  } catch (error: any) {
-    console.error(`Error fetching subscriptions for category ${categoryId}:`, error.message);
-    throw new Error(`Failed to fetch subscriptions by category: ${error.message}`);
-  }
-};
+  },
+  'Subscription'
+);
 
 /**
- * Get upcoming subscriptions due in the next X days
+ * Get upcoming subscriptions that are due within a specified number of days
  * 
  * @param days Number of days to look ahead (default: 7)
  * @returns Promise resolving to an array of SubscriptionWithCategory objects
  */
-export const getUpcomingSubscriptions = async (days: number = 7): Promise<SubscriptionWithCategory[]> => {
-  try {
+export const getUpcomingSubscriptions = errorHandler.withErrorHandling(
+  async (days: number = 7): Promise<SubscriptionWithCategory[]> => {
+    // Calculate the date range
     const today = new Date();
-    const futureDate = new Date(today);
+    const futureDate = new Date();
     futureDate.setDate(today.getDate() + days);
     
-    const todayFormatted = today.toISOString().split('T')[0];
-    const futureDateFormatted = futureDate.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+    const futureDateStr = futureDate.toISOString().split('T')[0];
     
     const { data, error } = await supabase
       .from('subscriptions')
@@ -334,40 +240,45 @@ export const getUpcomingSubscriptions = async (days: number = 7): Promise<Subscr
         *,
         category:categories(*)
       `)
-      .gte('next_billing_date', todayFormatted)
-      .lte('next_billing_date', futureDateFormatted)
+      .gte('next_billing_date', todayStr)
+      .lte('next_billing_date', futureDateStr)
       .order('next_billing_date');
     
     if (error) throw error;
     
     return data || [];
-  } catch (error: any) {
-    console.error('Error fetching upcoming subscriptions:', error.message);
-    throw new Error(`Failed to fetch upcoming subscriptions: ${error.message}`);
-  }
-};
+  },
+  'Subscription'
+);
 
 /**
  * Create a new subscription
  * 
  * @param subscription The subscription data to insert
  * @returns Promise resolving to the created Subscription
+ * @throws ValidationError if validation fails
  */
-export const createSubscription = async (subscription: SubscriptionInsert): Promise<Subscription> => {
-  try {
+export const createSubscription = errorHandler.withErrorHandling(
+  async (subscription: SubscriptionInsert): Promise<Subscription> => {
     // Validate the subscription data
-    const validation = await validateSubscription(subscription);
-    if (!validation.isValid) {
-      throw new Error(validation.error);
-    }
+    errorHandler.validateOrThrow(
+      subscription, 
+      validateSubscription, 
+      'Subscription'
+    );
     
-    // Calculate next billing date if not provided
-    if (!subscription.next_billing_date && subscription.start_date && subscription.billing_cycle) {
-      const nextDate = calculateNextBillingDate(
-        subscription.start_date,
-        subscription.billing_cycle
-      );
-      subscription.next_billing_date = nextDate.toISOString().split('T')[0];
+    // Calculate next billing date if needed
+    if (subscription.start_date && subscription.billing_cycle && !subscription.next_billing_date) {
+      try {
+        const nextDate = calculateNextBillingDate(
+          subscription.start_date,
+          subscription.billing_cycle
+        );
+        subscription.next_billing_date = nextDate.toISOString().split('T')[0];
+      } catch (err) {
+        logger.warn('Failed to calculate next billing date', err);
+        // Continue without setting next_billing_date
+      }
     }
     
     const { data, error } = await supabase
@@ -378,16 +289,11 @@ export const createSubscription = async (subscription: SubscriptionInsert): Prom
     
     if (error) throw error;
     
-    if (!data) {
-      throw new Error('Failed to create subscription: No data returned');
-    }
-    
+    logger.info('Subscription created successfully', { id: data.id });
     return data;
-  } catch (error: any) {
-    console.error('Error creating subscription:', error.message);
-    throw new Error(`Failed to create subscription: ${error.message}`);
-  }
-};
+  },
+  'Subscription'
+);
 
 /**
  * Update an existing subscription
@@ -395,34 +301,42 @@ export const createSubscription = async (subscription: SubscriptionInsert): Prom
  * @param id The ID of the subscription to update
  * @param updates The subscription data to update
  * @returns Promise resolving to the updated Subscription
+ * @throws ValidationError if validation fails
+ * @throws NotFoundError if the subscription doesn't exist
  */
-export const updateSubscription = async (id: string, updates: SubscriptionUpdate): Promise<Subscription> => {
-  try {
-    // Validate the updates
-    const validation = await validateSubscription(updates);
-    if (!validation.isValid) {
-      throw new Error(validation.error);
-    }
+export const updateSubscription = errorHandler.withErrorHandling(
+  async (id: string, updates: SubscriptionUpdate): Promise<Subscription> => {
+    // Validate the subscription updates
+    errorHandler.validateOrThrow(
+      updates, 
+      validateSubscription, 
+      'Subscription'
+    );
     
-    // If start_date or billing_cycle changed, recalculate next_billing_date
-    const currentSubscription = await getSubscriptionById(id);
-    if (!currentSubscription) {
-      throw new Error(`Subscription with ID ${id} not found`);
-    }
+    // Check if the subscription exists
+    await getSubscriptionById(id);
     
-    const updatedSubscription = { ...currentSubscription, ...updates };
-    
-    // Recalculate next billing date if start date or billing cycle changed
+    // Recalculate next billing date if billing information changed
     if (
-      (updates.start_date || updates.billing_cycle) &&
-      updatedSubscription.start_date &&
-      updatedSubscription.billing_cycle
+      (updates.start_date || updates.billing_cycle) && 
+      !updates.next_billing_date
     ) {
-      const nextDate = calculateNextBillingDate(
-        updatedSubscription.start_date,
-        updatedSubscription.billing_cycle
-      );
-      updates.next_billing_date = nextDate.toISOString().split('T')[0];
+      // Get the current subscription data
+      const currentSubscription = await getSubscriptionById(id);
+      
+      // Determine the start date and billing cycle to use for calculation
+      const startDate = updates.start_date || currentSubscription.start_date;
+      const billingCycle = updates.billing_cycle || currentSubscription.billing_cycle;
+      
+      if (startDate && billingCycle) {
+        try {
+          const nextDate = calculateNextBillingDate(startDate, billingCycle);
+          updates.next_billing_date = nextDate.toISOString().split('T')[0];
+        } catch (err) {
+          logger.warn('Failed to recalculate next billing date during update', err);
+          // Continue without updating next_billing_date
+        }
+      }
     }
     
     const { data, error } = await supabase
@@ -435,24 +349,27 @@ export const updateSubscription = async (id: string, updates: SubscriptionUpdate
     if (error) throw error;
     
     if (!data) {
-      throw new Error(`Subscription with ID ${id} not found`);
+      throw new NotFoundError('Subscription', id);
     }
     
+    logger.info('Subscription updated successfully', { id });
     return data;
-  } catch (error: any) {
-    console.error(`Error updating subscription with id ${id}:`, error.message);
-    throw new Error(`Failed to update subscription: ${error.message}`);
-  }
-};
+  },
+  'Subscription'
+);
 
 /**
- * Delete a subscription by ID
+ * Delete a subscription
  * 
  * @param id The ID of the subscription to delete
- * @returns Promise resolving to true if the deletion was successful
+ * @returns Promise resolving to a boolean indicating success
+ * @throws NotFoundError if the subscription doesn't exist
  */
-export const deleteSubscription = async (id: string): Promise<boolean> => {
-  try {
+export const deleteSubscription = errorHandler.withErrorHandling(
+  async (id: string): Promise<boolean> => {
+    // Check if the subscription exists
+    await getSubscriptionById(id);
+    
     const { error } = await supabase
       .from('subscriptions')
       .delete()
@@ -460,82 +377,31 @@ export const deleteSubscription = async (id: string): Promise<boolean> => {
     
     if (error) throw error;
     
+    logger.info('Subscription deleted successfully', { id });
     return true;
-  } catch (error: any) {
-    console.error(`Error deleting subscription with id ${id}:`, error.message);
-    throw new Error(`Failed to delete subscription: ${error.message}`);
-  }
-};
+  },
+  'Subscription'
+);
 
 /**
- * Calculate total monthly spending across all subscriptions
+ * Calculate the total monthly spending on subscriptions
  * 
- * @returns Promise resolving to the total monthly spend
+ * @returns Promise resolving to the total monthly amount
  */
-export const calculateTotalMonthlySpend = async (): Promise<number> => {
-  try {
+export const calculateTotalMonthlySpend = errorHandler.withErrorHandling(
+  async (): Promise<number> => {
     const subscriptions = await getSubscriptions();
     
-    let monthlyTotal = 0;
-    
-    for (const subscription of subscriptions) {
-      switch (subscription.billing_cycle) {
-        case 'weekly':
-          monthlyTotal += subscription.amount * 4.33; // Average weeks in a month
-          break;
-        case 'monthly':
-          monthlyTotal += subscription.amount;
-          break;
-        case 'quarterly':
-          monthlyTotal += subscription.amount / 3;
-          break;
-        case 'biannually':
-          monthlyTotal += subscription.amount / 6;
-          break;
-        case 'yearly':
-          monthlyTotal += subscription.amount / 12;
-          break;
-      }
-    }
-    
-    return parseFloat(monthlyTotal.toFixed(2));
-  } catch (error: any) {
-    console.error('Error calculating total monthly spend:', error.message);
-    throw new Error(`Failed to calculate total monthly spend: ${error.message}`);
-  }
-};
-
-/**
- * Calculate total spending by category
- * 
- * @returns Promise resolving to an array of { category, amount } objects
- */
-export const calculateSpendingByCategory = async (): Promise<{ category: Category, amount: number }[]> => {
-  try {
-    const subscriptionsWithCategories = await getSubscriptionsWithCategories();
-    
-    const categorySpending: Record<string, { category: Category, amount: number }> = {};
-    
-    for (const subscription of subscriptionsWithCategories) {
-      if (!subscription.category) continue;
-      
-      const categoryId = subscription.category.id;
-      
-      if (!categorySpending[categoryId]) {
-        categorySpending[categoryId] = {
-          category: subscription.category,
-          amount: 0
-        };
-      }
-      
-      let monthlyAmount = 0;
+    return subscriptions.reduce((total, subscription) => {
+      // Convert all billing cycles to monthly equivalent
+      let monthlyAmount = subscription.amount;
       
       switch (subscription.billing_cycle) {
         case 'weekly':
           monthlyAmount = subscription.amount * 4.33; // Average weeks in a month
           break;
-        case 'monthly':
-          monthlyAmount = subscription.amount;
+        case 'yearly':
+          monthlyAmount = subscription.amount / 12;
           break;
         case 'quarterly':
           monthlyAmount = subscription.amount / 3;
@@ -543,23 +409,80 @@ export const calculateSpendingByCategory = async (): Promise<{ category: Categor
         case 'biannually':
           monthlyAmount = subscription.amount / 6;
           break;
-        case 'yearly':
-          monthlyAmount = subscription.amount / 12;
-          break;
+        // Monthly is already correct
       }
       
-      categorySpending[categoryId].amount += monthlyAmount;
+      return total + monthlyAmount;
+    }, 0);
+  },
+  'Subscription'
+);
+
+/**
+ * Calculate spending by category
+ * 
+ * @returns Promise resolving to an array of categories with their total amounts
+ */
+export const calculateSpendingByCategory = errorHandler.withErrorHandling(
+  async (): Promise<{ category: Category, amount: number }[]> => {
+    const subscriptionsWithCategories = await getSubscriptionsWithCategories();
+    
+    // Group subscriptions by category
+    const categoryMap = new Map<string, { category: Category, subscriptions: SubscriptionWithCategory[] }>();
+    
+    // First pass: organize subscriptions by category
+    for (const subscription of subscriptionsWithCategories) {
+      if (subscription.category) {
+        const categoryId = subscription.category.id;
+        
+        if (!categoryMap.has(categoryId)) {
+          categoryMap.set(categoryId, {
+            category: subscription.category,
+            subscriptions: []
+          });
+        }
+        
+        categoryMap.get(categoryId)?.subscriptions.push(subscription);
+      }
     }
     
-    return Object.values(categorySpending).map(({ category, amount }) => ({
-      category,
-      amount: parseFloat(amount.toFixed(2))
-    }));
-  } catch (error: any) {
-    console.error('Error calculating spending by category:', error.message);
-    throw new Error(`Failed to calculate spending by category: ${error.message}`);
-  }
-};
+    // Second pass: calculate amounts for each category
+    const result: { category: Category, amount: number }[] = [];
+    
+    for (const { category, subscriptions } of categoryMap.values()) {
+      const totalAmount = subscriptions.reduce((sum, subscription) => {
+        // Convert to monthly amount
+        let monthlyAmount = subscription.amount;
+        
+        switch (subscription.billing_cycle) {
+          case 'weekly':
+            monthlyAmount = subscription.amount * 4.33;
+            break;
+          case 'yearly':
+            monthlyAmount = subscription.amount / 12;
+            break;
+          case 'quarterly':
+            monthlyAmount = subscription.amount / 3;
+            break;
+          case 'biannually':
+            monthlyAmount = subscription.amount / 6;
+            break;
+        }
+        
+        return sum + monthlyAmount;
+      }, 0);
+      
+      result.push({
+        category,
+        amount: totalAmount
+      });
+    }
+    
+    // Sort by amount (highest first)
+    return result.sort((a, b) => b.amount - a.amount);
+  },
+  'Subscription'
+);
 
 export default {
   getSubscriptions,
@@ -571,12 +494,8 @@ export default {
   createSubscription,
   updateSubscription,
   deleteSubscription,
-  calculateNextBillingDate,
   calculateTotalMonthlySpend,
   calculateSpendingByCategory,
-  validateSubscription,
-  isValidAmount,
-  isValidBillingCycle,
-  isValidDateFormat,
+  calculateNextBillingDate,
   BILLING_CYCLES
 }; 
