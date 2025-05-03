@@ -1,0 +1,66 @@
+---
+description: Project Structure Documentation
+globs: 
+alwaysApply: false
+---
+# Project Structure
+
+- **Root Project Structure**
+  - `app/` - Main application code directory
+    - Contains all React Native/Expo app code
+    - Has its own `package.json` and `node_modules`
+    - Entry point is `App.tsx`
+  - `scripts/` - Task Master and utility scripts
+  - `tasks/` - Task management files
+  - `.cursor/` - IDE rules and configuration
+
+- **Application Structure (`app/`)**
+  - `src/` - Source code directory
+    - `components/` - Reusable UI components
+    - `screens/` - Screen components for navigation
+    - `contexts/` - React Context providers
+    - `hooks/` - Custom React hooks
+    - `services/` - API and external service interfaces
+    - `utils/` - Utility functions and helpers
+    - `types/` - TypeScript type definitions
+    - `assets/` - Static assets (may be different from root assets)
+  - `assets/` - Static assets (images, fonts)
+  - `node_modules/` - Dependencies (installed at app level)
+  - Configuration files (`package.json`, `tsconfig.json`, etc.)
+
+- **Module Resolution**
+  - Dependencies must be installed in `app/node_modules/`
+  - Run npm/yarn commands from within the `app/` directory
+  - All imports should reference modules installed in `app/`
+
+- **Development Rules**
+  - Always change directory to `app/` before running npm/yarn commands
+  - Any new dependencies must be added to `app/package.json`
+  - For configuration changes, modify files within the `app/` directory
+  - Reference the correct path when importing project files
+    ```typescript
+    // ✅ DO: Use correct paths relative to app directory
+    import Component from '../components/Component';
+    
+    // ❌ DON'T: Reference paths outside the app directory
+    import Component from '../../app/src/components/Component';
+    ```
+
+- **Task Management**
+  - Task files remain in the root `tasks/` directory
+  - Development workflow should acknowledge the project structure
+  - When executing task commands, be aware of which directory you're in
+
+- **Best Practices**
+  - Keep related files close together in the directory structure
+  - Maintain clear boundaries between different parts of the application
+  - Follow the established pattern for new feature additions
+  - Consider the project structure when determining import paths
+  
+- **Maintenance Requirements**
+  - **Update this documentation after completing any task that modifies the project structure**
+  - Document new directories or files that alter the organization
+  - Update import path examples when module resolution changes
+  - Keep the directory listings current as the project evolves
+  - Document any changes to how dependencies are managed
+  - Cross-reference with relevant rules that may be affected by structural changes

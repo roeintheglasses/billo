@@ -1,0 +1,210 @@
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
+import { ThemeToggle } from '../components/ThemeToggle';
+
+/**
+ * Settings Screen Component
+ * 
+ * Displays user settings and configuration options.
+ */
+export const SettingsScreen = () => {
+  const { theme } = useTheme();
+  const { colors, spacing } = theme;
+  
+  return (
+    <ScrollView 
+      style={[
+        styles.container, 
+        { backgroundColor: colors.background.primary }
+      ]}
+    >
+      <View style={[
+        styles.header,
+        { 
+          backgroundColor: colors.background.primary,
+          borderBottomColor: colors.border.light 
+        }
+      ]}>
+        <Text style={[
+          styles.headerTitle,
+          { color: colors.text.primary }
+        ]}>Settings</Text>
+      </View>
+      
+      <View style={[
+        styles.section,
+        { 
+          backgroundColor: colors.background.primary,
+          borderColor: colors.border.light 
+        }
+      ]}>
+        <Text style={[
+          styles.sectionTitle,
+          { 
+            color: colors.text.secondary,
+            backgroundColor: colors.background.secondary 
+          }
+        ]}>Account</Text>
+        <TouchableOpacity style={[
+          styles.option,
+          { borderBottomColor: colors.border.light }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[
+          styles.option,
+          { borderBottomColor: colors.border.light }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Subscription Plan</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[
+          styles.option,
+          { borderBottomColor: colors.border.light }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Payment Methods</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={[
+        styles.section,
+        { 
+          backgroundColor: colors.background.primary,
+          borderColor: colors.border.light 
+        }
+      ]}>
+        <Text style={[
+          styles.sectionTitle,
+          { 
+            color: colors.text.secondary,
+            backgroundColor: colors.background.secondary 
+          }
+        ]}>Preferences</Text>
+        
+        {/* Theme toggle component */}
+        <View style={[
+          styles.option,
+          { 
+            borderBottomColor: colors.border.light,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Theme</Text>
+          <ThemeToggle />
+        </View>
+        
+        <TouchableOpacity style={[
+          styles.option,
+          { borderBottomColor: colors.border.light }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Notifications</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[
+          styles.option,
+          { borderBottomColor: colors.border.light }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Currency</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={[
+        styles.section,
+        { 
+          backgroundColor: colors.background.primary,
+          borderColor: colors.border.light 
+        }
+      ]}>
+        <Text style={[
+          styles.sectionTitle,
+          { 
+            color: colors.text.secondary,
+            backgroundColor: colors.background.secondary 
+          }
+        ]}>Support</Text>
+        <TouchableOpacity style={[
+          styles.option,
+          { borderBottomColor: colors.border.light }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Help & Support</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[
+          styles.option,
+          { borderBottomColor: colors.border.light }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Privacy Policy</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[
+          styles.option,
+          { borderBottomColor: colors.border.light }
+        ]}>
+          <Text style={[styles.optionText, { color: colors.text.primary }]}>Terms of Service</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <TouchableOpacity style={[
+        styles.logoutButton,
+        { backgroundColor: colors.error }
+      ]}>
+        <Text style={styles.logoutText}>Log Out</Text>
+      </TouchableOpacity>
+      
+      <Text style={[
+        styles.versionText,
+        { color: colors.text.tertiary }
+      ]}>Version 1.0.0</Text>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    padding: 20,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  section: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+  },
+  sectionTitle: {
+    padding: 10,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  option: {
+    padding: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+  },
+  optionText: {
+    fontSize: 16,
+  },
+  logoutButton: {
+    marginTop: 30,
+    marginHorizontal: 20,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  logoutText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  versionText: {
+    marginTop: 20,
+    marginBottom: 30,
+    textAlign: 'center',
+    fontSize: 14,
+  },
+}); 

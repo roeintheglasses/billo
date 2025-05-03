@@ -1,107 +1,123 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Screen } from '../components/templates/Screen';
-import { Text } from '../components/atoms/Text';
-import { Button } from '../components/atoms/Button';
-import { FormField } from '../components/molecules/FormField';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 /**
- * Home screen component for testing our atomic design components
+ * HomeScreen Component
  * 
- * @returns {React.ReactElement} The home screen
+ * Main dashboard screen for the application.
  */
 export const HomeScreen = () => {
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = () => {
-    // Basic email validation
-    if (!email || !email.includes('@')) {
-      setEmailError('Please enter a valid email address');
-      return;
-    }
-    
-    setEmailError('');
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      alert(`Welcome! Email submitted: ${email}`);
-    }, 1500);
-  };
-
+  const { theme } = useTheme();
+  const { colors, spacing, typography } = theme;
+  
   return (
-    <Screen 
-      headerTitle="Billo" 
-      scrollable
-      safeArea
+    <ScrollView 
+      style={[styles.container, { backgroundColor: colors.background.primary }]}
+      contentContainerStyle={{ padding: spacing.screenPadding }}
     >
-      <View style={styles.container}>
-        <Text 
-          variant="heading1" 
-          weight="bold" 
-          align="center"
-          style={styles.title}
-        >
-          Welcome to Billo
+      <Text style={[
+        styles.title, 
+        { color: colors.text.primary }
+      ]}>
+        Welcome to Billo
+      </Text>
+      
+      <Text style={[
+        styles.subtitle,
+        { color: colors.text.secondary }
+      ]}>
+        Manage your subscriptions in one place
+      </Text>
+      
+      <View style={[
+        styles.card, 
+        { 
+          backgroundColor: colors.background.secondary,
+          borderColor: colors.border.light 
+        }
+      ]}>
+        <Text style={[
+          styles.cardTitle,
+          { color: colors.text.primary }
+        ]}>
+          Quick Stats
         </Text>
         
-        <Text 
-          variant="body" 
-          align="center"
-          style={styles.subtitle}
-        >
-          Your subscription management app
-        </Text>
+        <View style={styles.stat}>
+          <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+            Active Subscriptions
+          </Text>
+          <Text style={[styles.statValue, { color: colors.primary }]}>
+            0
+          </Text>
+        </View>
         
-        <View style={styles.formContainer}>
-          <FormField
-            label="Email Address"
-            placeholder="your@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-            error={emailError}
-            helperText="We'll send you updates and notifications"
-            required
-          />
-          
-          <Button
-            title="Get Started"
-            variant="primary"
-            size="large"
-            onPress={handleSubmit}
-            isLoading={loading}
-            style={styles.button}
-          />
+        <View style={styles.stat}>
+          <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+            Monthly Spending
+          </Text>
+          <Text style={[styles.statValue, { color: colors.primary }]}>
+            $0.00
+          </Text>
+        </View>
+        
+        <View style={styles.stat}>
+          <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+            Next Payment
+          </Text>
+          <Text style={[styles.statValue, { color: colors.primary }]}>
+            None
+          </Text>
         </View>
       </View>
-    </Screen>
+      
+      <View style={styles.themeToggleContainer}>
+        <ThemeToggle />
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
   },
   title: {
+    fontSize: 28,
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   subtitle: {
-    marginBottom: 40,
-    color: '#666',
+    fontSize: 16,
+    marginBottom: 24,
   },
-  formContainer: {
-    width: '100%',
-    maxWidth: 400,
+  card: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 16,
   },
-  button: {
-    marginTop: 16,
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
   },
+  stat: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  statLabel: {
+    fontSize: 16,
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  themeToggleContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  }
 }); 

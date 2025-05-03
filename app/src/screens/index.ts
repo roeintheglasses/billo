@@ -1,2 +1,5 @@
 // Export all screens
-export * from './HomeScreen'; 
+export * from './HomeScreen';
+export * from './AuthScreen';
+export * from './SettingsScreen';
+export * from './RegisterScreen'; 

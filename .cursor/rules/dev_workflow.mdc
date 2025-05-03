@@ -3,7 +3,6 @@ description: Guide for using Task Master to manage task-driven development workf
 globs: **/*
 alwaysApply: true
 ---
-
 # Task Master Development Workflow
 
 This guide outlines the typical process for using Task Master to manage software development projects.
@@ -189,6 +188,11 @@ Once a task has been broken down into subtasks using `expand_task` or similar me
 7.  **Review & Update Rules (Post-Implementation):**
     *   Once the implementation for the subtask is functionally complete, review all code changes and the relevant chat history.
     *   Identify any new or modified code patterns, conventions, or best practices established during the implementation.
+    *   **Update project structure documentation** if your changes introduced:
+        *   New directories or files that alter the project organization
+        *   Modified file/component organization
+        *   New module resolution or import patterns
+        *   Changes to how dependencies are managed
     *   Create new or update existing Cursor rules in the `.cursor/rules/` directory to capture these patterns, following the guidelines in [`cursor_rules.mdc`](mdc:.cursor/rules/cursor_rules.mdc) and [`self_improve.mdc`](mdc:.cursor/rules/self_improve.mdc).
 
 8.  **Mark Task Complete:**
@@ -210,6 +214,32 @@ Once a task has been broken down into subtasks using `expand_task` or similar me
     - Use grep/ripgrep to find exported functions/constants:
       `rg "export (async function|function|const) \w+"` or similar patterns.
     - Can help compare functions between files during migrations or identify potential naming conflicts.
+
+## Project Structure Considerations
+
+- **Understanding the App Directory Structure**
+  - The main application code resides in the `app/` directory
+  - Node modules are installed within the `app/` directory, not at the root level
+  - Configuration files (package.json, tsconfig.json, etc.) are in the `app/` directory
+  - The app structure follows a typical React Native/TypeScript organization:
+    - `app/src/` contains the core application code (components, screens, utils, etc.)
+    - `app/assets/` houses static assets like images and fonts
+  - See [`project_structure.mdc`](mdc:.cursor/rules/project_structure.mdc) for detailed information
+
+- **Development Environment Setup**
+  - Always change directory to `app/` before running npm/yarn commands: `cd app`
+  - Install dependencies inside the app directory: `cd app && npm install <package-name>`
+  - Run the application from within the app directory: `cd app && npm start`
+  - Reference the correct paths when importing files, relative to the app directory structure
+
+- **Task Management with Project Structure**
+  - Task files remain in the root `tasks/` directory
+  - When implementing tasks, be aware that code changes should be made within the `app/` directory
+  - When referencing files or paths in task details, ensure they reflect the correct structure
+  - When running scripts or commands as part of task implementation, execute them from the appropriate directory
+  - **Always update project structure documentation after completing a task that modifies the structure**
+  - When adding new files or directories, ensure they follow the established conventions
+  - Document any changes to the import patterns or module resolution strategy
 
 ---
 *This workflow provides a general guideline. Adapt it based on your specific project needs and team practices.*

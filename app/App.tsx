@@ -1,18 +1,23 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { HomeScreen } from './src/screens/HomeScreen';
+import { AppNavigator } from './src/navigation';
+import { ThemeProvider } from './src/contexts/ThemeContext';
+import { AuthProvider } from './src/contexts/AuthContext';
 
 /**
  * Main App component
+ * 
+ * Wraps the application with necessary providers:
+ * - ThemeProvider: For theming and dark/light mode support
+ * - AuthProvider: For authentication state management
  * 
  * @returns {React.ReactElement} The root App component
  */
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <HomeScreen />
-    </SafeAreaProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

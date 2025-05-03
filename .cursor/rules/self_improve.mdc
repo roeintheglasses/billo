@@ -3,13 +3,13 @@ description: Guidelines for continuously improving Cursor rules based on emergin
 globs: **/*
 alwaysApply: true
 ---
-
 - **Rule Improvement Triggers:**
   - New code patterns not covered by existing rules
   - Repeated similar implementations across files
   - Common error patterns that could be prevented
   - New libraries or tools being used consistently
   - Emerging best practices in the codebase
+  - **Changes to project structure** (new directories, file organization, etc.)
 
 - **Analysis Process:**
   - Compare new code with existing rules
@@ -57,6 +57,8 @@ alwaysApply: true
   - Update rules after major refactors
   - Add links to relevant documentation
   - Cross-reference related rules
+  - **Update project structure documentation after completing each task**
+  - Review changes to ensure directory structures are accurately documented
 
 - **Rule Deprecation:**
   - Mark outdated patterns as deprecated
