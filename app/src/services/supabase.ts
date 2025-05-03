@@ -140,4 +140,34 @@ export const signOut = async (): Promise<void> => {
   }
 };
 
+/**
+ * Test the connection to the Supabase database
+ * 
+ * @returns {Promise<{success: boolean, message: string}>} Result of the connection test
+ */
+export const testConnection = async (): Promise<{success: boolean, message: string}> => {
+  try {
+    // Try to fetch a single row from the users table to verify connection
+    const { data, error } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+    
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      success: true,
+      message: 'Connection to Supabase successful'
+    };
+  } catch (error: any) {
+    console.error('Supabase connection test failed:', error.message);
+    return {
+      success: false,
+      message: `Connection failed: ${error?.message || 'Unknown error'}`
+    };
+  }
+};
+
 export default supabase; 

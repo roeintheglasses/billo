@@ -75,6 +75,169 @@ export interface Database {
           updated_at?: string;
         };
       };
+      categories: {
+        Row: {
+          id: string;
+          name: string;
+          icon: string | null;
+          color: string | null;
+          user_id: string | null;
+          is_default: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          icon?: string | null;
+          color?: string | null;
+          user_id?: string | null;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          icon?: string | null;
+          color?: string | null;
+          user_id?: string | null;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          amount: number;
+          billing_cycle: string;
+          start_date: string;
+          category_id: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          amount: number;
+          billing_cycle: string;
+          start_date: string;
+          category_id?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          amount?: number;
+          billing_cycle?: string;
+          start_date?: string;
+          category_id?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      transactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          subscription_id: string | null;
+          amount: number;
+          date: string;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          subscription_id?: string | null;
+          amount: number;
+          date: string;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          subscription_id?: string | null;
+          amount?: number;
+          date?: string;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          message: string;
+          type: string;
+          is_read: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          message: string;
+          type: string;
+          is_read?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          message?: string;
+          type?: string;
+          is_read?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      dark_patterns: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          category: string;
+          examples: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description: string;
+          category: string;
+          examples?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          category?: string;
+          examples?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -112,4 +275,38 @@ export interface Session {
   access_token: string;
   refresh_token: string;
   expires_at: number;
+}
+
+// Category-related types
+export type Category = Database['public']['Tables']['categories']['Row'];
+export type CategoryInsert = Database['public']['Tables']['categories']['Insert'];
+export type CategoryUpdate = Database['public']['Tables']['categories']['Update'];
+
+// Subscription-related types
+export type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+export type SubscriptionInsert = Database['public']['Tables']['subscriptions']['Insert'];
+export type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update'];
+
+// Transaction-related types
+export type Transaction = Database['public']['Tables']['transactions']['Row'];
+export type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
+export type TransactionUpdate = Database['public']['Tables']['transactions']['Update'];
+
+// Notification-related types
+export type Notification = Database['public']['Tables']['notifications']['Row'];
+export type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
+export type NotificationUpdate = Database['public']['Tables']['notifications']['Update'];
+
+// Dark Pattern-related types
+export type DarkPattern = Database['public']['Tables']['dark_patterns']['Row'];
+export type DarkPatternInsert = Database['public']['Tables']['dark_patterns']['Insert'];
+export type DarkPatternUpdate = Database['public']['Tables']['dark_patterns']['Update'];
+
+// Extended types for joined data
+export interface SubscriptionWithCategory extends Subscription {
+  category?: Category;
+}
+
+export interface SubscriptionWithTransactions extends Subscription {
+  transactions?: Transaction[];
 } 
