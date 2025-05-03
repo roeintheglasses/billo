@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-03T00:56:43.061Z",
+    "tasksAnalyzed": 10,
+    "thresholdScore": 5,
+    "projectName": "Your Project Name",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Setup Development Environment and Project Structure",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the development environment setup task into specific subtasks covering project initialization, code quality tools, folder structure implementation, navigation setup, and theming configuration with Supabase integration.",
+      "reasoning": "This task involves multiple technical configurations that are foundational but moderately complex. It requires setting up various tools and establishing architecture patterns that will impact the entire project."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Implement Authentication System with Supabase",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Divide the authentication system implementation into subtasks covering user registration flow, login functionality, password management, secure token handling, profile management, and Supabase security configuration.",
+      "reasoning": "Authentication is a critical security feature with multiple screens and complex state management. It requires secure token handling, form validation, and proper Supabase configuration with row-level security policies."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Develop Core Data Models and CRUD Operations",
+      "complexityScore": 8,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the data model implementation into subtasks for each core model (Subscription, Category, Transaction, Notification, Dark Pattern), including schema creation, TypeScript interfaces, service layer development, and relationship configuration.",
+      "reasoning": "This task involves designing and implementing multiple related data models with proper relationships, validation, and service methods. It's highly complex as it forms the data foundation for the entire application."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Create UI Component Library",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Divide the UI component library creation into subtasks covering basic input components, subscription-specific components, form validation components, data visualization elements, animation implementation, and accessibility features.",
+      "reasoning": "Building a comprehensive component library requires significant design and development effort across multiple component types. The complexity is increased by requirements for animations, theming, and accessibility support."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Implement Manual Subscription Management",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the subscription management implementation into subtasks covering subscription listing/filtering, creation form, detailed view, edit/delete functionality, and category management.",
+      "reasoning": "This task involves creating multiple interactive screens with complex forms and state management. It's a core feature of the app that requires careful UX consideration and integration with the data models."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Develop Dashboard with Total Subscription Spend",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the dashboard development into subtasks covering total spend calculation, monthly breakdown visualization, category distribution charts, upcoming payments section, and trend analysis implementation.",
+      "reasoning": "Creating an effective dashboard requires implementing multiple data visualizations and calculations. The complexity comes from ensuring accurate data aggregation and creating responsive, interactive charts."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Implement SMS Scanning for Subscription Detection",
+      "complexityScore": 9,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the SMS scanning feature into subtasks covering permissions handling, SMS reading implementation, pattern recognition algorithms, data extraction logic, confirmation flow, background service setup, and duplicate detection.",
+      "reasoning": "This is one of the most complex tasks as it involves system permissions, pattern recognition algorithms, and background processing. It requires careful handling of user data and robust error management."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Develop Notification System",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Divide the notification system implementation into subtasks covering data model creation, scheduling engine, push notification handling, user preference controls, notification types, and in-app notification center.",
+      "reasoning": "Building a notification system involves complex scheduling logic, platform-specific push notification handling, and user preference management. It requires background processing and careful timing implementation."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Implement Calendar View of Recurring Bills",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the calendar implementation into subtasks covering monthly view setup, payment date marking logic, visual indicators for payments, category color-coding, and detailed day view implementation.",
+      "reasoning": "This task involves integrating and customizing calendar components with specific visual indicators. While moderately complex, it builds on existing calendar libraries and focuses on visualization rather than complex logic."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement Spend Forecasting and Advanced Insights",
+      "complexityScore": 9,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Divide the forecasting feature into subtasks covering projection algorithm implementation, forecasting visualization, what-if scenario modeling, savings detection, comparison visualizations, budget alignment, and optimization recommendations.",
+      "reasoning": "This is a highly complex feature involving predictive algorithms, advanced data visualization, and sophisticated analysis. It requires statistical modeling and complex UI interactions for scenario planning."
+    }
+  ]
+}

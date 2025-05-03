@@ -1,0 +1,756 @@
+<context>
+# Overview  
+Billo is a comprehensive subscription management application for Android devices that helps users track, manage, and optimize their recurring payments. In today's subscription economy, consumers often lose track of their numerous subscriptions across entertainment, software, utilities, and other categories, leading to unnecessary spending and unwanted charges. Billo solves this problem by automatically detecting subscriptions through SMS scanning, providing insightful spending analytics, and offering proactive notifications for upcoming charges and cancellation deadlines. The app targets budget-conscious consumers who want better control over their recurring expenses in an increasingly subscription-based world.
+
+# Core Features  
+## SMS Subscription Detection
+- What it does: Automatically scans user SMS messages to identify recurring payment patterns and subscription confirmations.
+- Why it's important: Eliminates the tedious process of manual entry and ensures no subscription goes untracked.
+- How it works: Uses pattern recognition to identify payment confirmation messages, extracts relevant details (amount, service name, date), and creates subscription entries.
+
+## Manual Subscription Management
+- What it does: Allows users to manually add, edit, and categorize subscription details.
+- Why it's important: Provides flexibility for subscriptions not detected automatically or for planning future subscriptions.
+- How it works: Simple form-based entry with templates for popular services, bulk import options, and customizable fields.
+
+## Calendar View of Recurring Bills
+- What it does: Visualizes upcoming payments in a calendar interface.
+- Why it's important: Helps users see timing of expenses and identify payment clusters.
+- How it works: Interactive calendar showing payment dates with color-coding by category and amount indicators.
+
+## Smart Notifications
+- What it does: Sends customizable alerts for upcoming payments and cancellation deadlines.
+- Why it's important: Prevents unexpected charges and missed cancellation windows.
+- How it works: Push notification system with user-defined preferences for timing and frequency.
+
+## Spend Forecasting
+- What it does: Projects future subscription expenses based on current subscriptions.
+- Why it's important: Enables financial planning and helps users understand long-term commitment costs.
+- How it works: Algorithmic projection using subscription data to create visual spending forecasts.
+
+## Dark Patterns Detector
+- What it does: Identifies subscriptions with potentially deceptive practices or difficult cancellation processes.
+- Why it's important: Protects users from subscription traps and hidden fees.
+- How it works: Database of known problematic services coupled with analysis of terms and community reports.
+
+## Smart Insights Dashboard
+- What it does: Provides analytical breakdown of subscription spending with the "Total Subscription Spend" as the core metric.
+- Why it's important: Offers visibility into spending patterns and opportunities for optimization.
+- How it works: Data aggregation and visualization showing spending by category, trends, and potential savings.
+
+## Auto-categorization
+- What it does: Automatically assigns subscriptions to appropriate categories.
+- Why it's important: Enables meaningful analysis and comparison of spending areas.
+- How it works: Rule-based classification system with machine learning improvements over time.
+
+## Subscription Cost Optimization
+- What it does: Identifies opportunities to save money on subscriptions.
+- Why it's important: Delivers tangible financial benefits to users.
+- How it works: Analyzes usage patterns, compares plans, and identifies redundant or underused services.
+
+## Shared Subscription Management
+- What it does: Facilitates tracking and splitting of shared subscription costs.
+- Why it's important: Addresses the growing trend of family and group subscriptions.
+- How it works: Invitation system for shared access, split calculations, and payment tracking.
+
+# User Experience  
+## User Personas
+
+### Alex (Primary Persona)
+- 32-year-old professional
+- Has 15-20 subscriptions across entertainment, software, and services
+- Pain points: Losing track of subscriptions, unexpected charges, difficulty cancelling
+- Goals: Reduce unnecessary spending, better budget planning
+- Tech comfort: Medium-high
+
+### Jordan (Secondary Persona)
+- 26-year-old recent graduate
+- Budget-conscious, primarily uses free trials and basic plans
+- Pain points: Forgetting to cancel trials, unexpected price increases
+- Goals: Maximize value from limited subscription budget
+- Tech comfort: High
+
+### Taylor (Tertiary Persona)
+- 45-year-old parent managing family subscriptions
+- Manages subscriptions for multiple family members
+- Pain points: Tracking who uses what, family plan value assessment
+- Goals: Fair cost distribution, eliminating unused services
+- Tech comfort: Medium
+
+## Key User Flows
+
+### First-Time Setup Flow
+1. Download and install app
+2. View engaging walkthrough explaining key features
+3. Create account / authenticate with Supabase
+4. Grant SMS permissions with clear explanation
+5. Initial scan of SMS messages for subscription detection
+6. Review detected subscriptions and confirm/modify details
+7. Add any missing subscriptions manually
+8. Set notification preferences
+9. View initial dashboard with Total Subscription Spend
+
+### Subscription Management Flow
+1. Receive notification of new subscription detected
+2. Review details and confirm accuracy
+3. Assign category or accept suggested categorization
+4. Set custom notification preferences for this subscription
+5. View updated Total Subscription Spend
+
+### Cancellation Flow
+1. Decide to cancel a subscription
+2. View cancellation information and potential savings
+3. Set cancellation reminder
+4. Receive guidance on cancellation process
+5. Mark subscription as cancelled or scheduled for cancellation
+6. View updated spending forecasts
+
+## UI/UX Considerations
+
+### Design Principles
+- Soft, rounded UI elements for approachable feel
+- Calm color palette (mint green, navy, soft orange) to reduce financial anxiety
+- Consistent icons and visual language
+- Buttery smooth animations for transitions and interactions
+- Minimalist approach that reduces cognitive load
+
+### Accessibility
+- High contrast text options
+- Screen reader compatibility
+- Support for system-level font size adjustments
+- Color schemes tested for color blindness visibility
+
+### Interaction Patterns
+- Swipe gestures for quick actions
+- Haptic feedback for important actions
+- Single-hand operation optimization
+- Clear visual hierarchy prioritizing Total Subscription Spend
+</context>
+<PRD>
+# Technical Architecture  
+## System Components
+### Frontend Components
+1. **React Native Mobile Application**
+   - Cross-platform compatibility with primary focus on Android
+   - Expo framework for accelerated development
+   - Component-based architecture following atomic design principles
+   - State management using React Context API or Redux
+   - Navigation using React Navigation with tab and stack navigators
+
+2. **UI Component Library**
+   - Custom themed components for consistent branding
+   - Animation system using React Native Reanimated
+   - Responsive layouts that adapt to different screen sizes
+   - Shared components for lists, cards, buttons, and input fields
+   - Theme provider for dark/light mode switching
+
+3. **Local Processing Engine**
+   - SMS scanning module with pattern recognition capabilities
+   - Local caching for offline functionality
+   - Background processes for notification scheduling
+   - Analytics calculation engine for insights generation
+
+### Backend Components
+1. **Supabase Backend**
+   - User authentication and authorization
+   - Data storage and synchronization
+   - Real-time subscriptions updates
+   - Security rules and row-level security
+
+2. **Analytics Processing**
+   - Aggregation services for user insights
+   - Spend forecasting algorithms
+   - Category detection and suggestion engine
+   - Dark patterns identification system
+
+3. **Notification Service**
+   - Scheduled notification delivery
+   - Push notification management
+   - Custom notification settings handling
+   - Silent updates for background processing
+
+## Data Models
+
+### User Model
+```
+users {
+  id: UUID (primary key)
+  email: string
+  created_at: timestamp
+  updated_at: timestamp
+  notification_preferences: JSON
+  currency: string
+  theme_preference: string
+  total_monthly_spend: number (calculated)
+  last_sync: timestamp
+}
+```
+
+### Subscription Model
+```
+subscriptions {
+  id: UUID (primary key)
+  user_id: UUID (foreign key)
+  name: string
+  amount: number
+  currency: string
+  billing_period: enum (monthly, quarterly, annual, custom)
+  category_id: UUID (foreign key)
+  next_payment_date: date
+  created_at: timestamp
+  updated_at: timestamp
+  payment_method: string
+  auto_detected: boolean
+  detection_source: string
+  cancellation_url: string
+  difficulty_score: number
+  notes: string
+  status: enum (active, cancelled, paused)
+  shared_with: array of user_ids
+}
+```
+
+### Category Model
+```
+categories {
+  id: UUID (primary key)
+  name: string
+  color: string
+  icon: string
+  is_default: boolean
+  created_at: timestamp
+  updated_at: timestamp
+}
+```
+
+### Transaction History Model
+```
+transactions {
+  id: UUID (primary key)
+  subscription_id: UUID (foreign key)
+  amount: number
+  date: timestamp
+  status: enum (pending, processed, failed)
+  source: string
+  created_at: timestamp
+}
+```
+
+### Notification Model
+```
+notifications {
+  id: UUID (primary key)
+  user_id: UUID (foreign key)
+  subscription_id: UUID (foreign key)
+  type: enum (payment_reminder, cancellation_reminder, price_change, etc.)
+  scheduled_for: timestamp
+  status: enum (pending, sent, dismissed)
+  title: string
+  body: string
+  action_url: string
+  created_at: timestamp
+}
+```
+
+### Dark Pattern Database Model
+```
+dark_patterns {
+  id: UUID (primary key)
+  service_name: string
+  pattern_type: array of strings
+  difficulty_score: number
+  cancellation_steps: JSON
+  reported_by: number
+  verified: boolean
+  created_at: timestamp
+  updated_at: timestamp
+}
+```
+
+## APIs and Integrations
+
+### Internal APIs
+1. **Authentication API**
+   - User registration, login, password reset
+   - OAuth integration for social logins
+   - Session management and token refresh
+
+2. **Subscription Management API**
+   - CRUD operations for subscriptions
+   - Bulk operations for import/export
+   - Filtering and searching capabilities
+
+3. **Analytics API**
+   - Spending summaries and breakdowns
+   - Trend analysis and forecasting
+   - Category-based insights
+   - Optimization recommendations
+
+4. **Notification API**
+   - Notification creation and scheduling
+   - Preference management
+   - Delivery status tracking
+
+### External Integrations
+1. **SMS Access Integration**
+   - Native SMS permission handling
+   - SMS content provider access
+   - Message parsing and analysis
+
+2. **Calendar Integration**
+   - Export subscription dates to device calendar
+   - Calendar reminder synchronization
+   - iCal format support
+
+3. **Future Potential Integrations**
+   - Banking API connections (for direct transaction tracking)
+   - Email scanning capabilities (for subscription receipts)
+   - Export to financial management software
+
+## Infrastructure Requirements
+
+### Development Environment
+1. **Frontend Development**
+   - React Native development setup
+   - Expo CLI and development tools
+   - Mobile device testing lab (virtual and physical devices)
+   - Component storybook for UI development
+
+2. **Backend Development**
+   - Supabase project environment
+   - PostgreSQL database instance
+   - Backend functions development environment
+   - API testing tools
+
+### Production Environment
+1. **App Deployment**
+   - Google Play Store developer account
+   - CI/CD pipeline for build and deployment
+   - App bundle signing and release management
+   - Version management strategy
+
+2. **Backend Infrastructure**
+   - Supabase production instance
+   - Database scaling strategy
+   - Backup and disaster recovery plan
+   - Monitoring and alerting system
+
+3. **Security Infrastructure**
+   - End-to-end encryption for sensitive data
+   - Permission-based access control
+   - Regular security audits
+   - Compliance with financial data regulations
+
+### Testing Infrastructure
+1. **Automated Testing**
+   - Unit testing framework
+   - Integration test suite
+   - End-to-end testing environment
+   - Performance testing tools
+
+2. **User Testing**
+   - Beta testing distribution platform
+   - User feedback collection system
+   - Analytics implementation for usage tracking
+   - A/B testing capabilities
+
+# Development Roadmap  
+## Phase 1: Foundation MVP
+### Core Authentication and Data Structure
+- Implement Supabase authentication system
+- Create basic user profiles and preferences
+- Establish core data models for subscriptions and categories
+- Implement secure data storage and synchronization
+
+### Basic Subscription Management
+- Develop manual subscription entry interface
+- Create subscription list and detail views
+- Implement basic CRUD operations for subscriptions
+- Add simple category assignment
+
+### Essential UI Framework
+- Implement app navigation structure
+- Create splash screen and onboarding flow
+- Develop core UI components with consistent styling
+- Implement light/dark mode theming
+
+### Total Subscription Spend Dashboard
+- Create basic dashboard showing total monthly spend
+- Implement simple category breakdown visualization
+- Add upcoming payment indicators
+- Design and implement subscription cards
+
+## Phase 2: Core Functionality Enhancement
+### SMS Scanning Module
+- Request and handle SMS permissions
+- Develop pattern recognition for payment messages
+- Create confirmation flow for detected subscriptions
+- Implement subscription data extraction logic
+
+### Notification System
+- Build notification scheduling system
+- Create payment reminder notifications
+- Implement user preference controls for notifications
+- Add basic cancellation reminders
+
+### Calendar Integration
+- Develop calendar view of upcoming payments
+- Implement month navigation and viewing options
+- Add color-coding for categories
+- Create payment amount visualization
+
+### Enhanced Insights
+- Expand dashboard with spending trends
+- Add category distribution visualizations
+- Implement basic monthly comparison
+- Create unused subscription identification
+
+## Phase 3: Advanced Features
+### Spend Forecasting
+- Develop 12-month projection algorithms
+- Create visual forecasting interface
+- Implement what-if scenario modeling
+- Add budget alignment visualization
+
+### Dark Patterns Detection
+- Build dark pattern identification system
+- Create database of known problematic services
+- Implement warning system for difficult cancellations
+- Develop education materials about subscription tricks
+
+### Shared Subscriptions
+- Create subscription sharing infrastructure
+- Implement invitation system
+- Develop cost splitting calculator
+- Add group payment tracking
+
+### Enhanced Categorization
+- Improve auto-categorization accuracy
+- Add machine learning for service recognition
+- Implement custom category creation
+- Develop multi-tag support
+
+## Phase 4: User Experience Enhancement
+### Animation and Interaction Polish
+- Implement smooth transitions between screens
+- Add micro-interactions for common actions
+- Create animated charts and visualizations
+- Optimize performance for buttery smooth experience
+
+### Smart Assistant (BilloBot)
+- Develop recommendation engine for cost savings
+- Create conversational interface for subscription advice
+- Implement usage-based suggestions
+- Add cancellation assistance workflows
+
+### Advanced Calendar and Timeline
+- Enhance calendar with interactive elements
+- Add drag-and-drop subscription management
+- Implement timeline view for historical tracking
+- Create payment cluster visualization
+
+### Comprehensive Settings and Customization
+- Expand notification customization options
+- Add personalization features for dashboard
+- Implement advanced currency and region settings
+- Create accessibility enhancements
+
+## Phase 5: Platform Expansion
+### Export and Reporting
+- Develop comprehensive export functionality
+- Create PDF and spreadsheet reports
+- Implement subscription history tracking
+- Add financial year summary reports
+
+### Advanced Analytics
+- Enhance spending analysis with benchmarking
+- Implement advanced trend detection
+- Create predictive analytics for price increases
+- Add visualization of saving opportunities
+
+### Performance Optimization
+- Optimize SMS scanning for battery efficiency
+- Implement advanced caching strategies
+- Reduce network usage and improve offline capabilities
+- Enhance data synchronization efficiency
+
+# Logical Dependency Chain
+## Foundation Layer
+1. **Authentication & User Profile**
+   - User registration and login
+   - Basic profile creation
+   - Preference storage
+   - Dependency for: All user data storage and personalization
+
+2. **Core Data Architecture**
+   - Subscription data model implementation
+   - Category structure
+   - Basic CRUD operations
+   - Dependency for: All subscription-related features
+
+3. **Basic UI Framework**
+   - Navigation structure
+   - Theme implementation
+   - Core components
+   - Dependency for: All user-facing features
+
+## Minimum Viable Experience Layer
+1. **Manual Subscription Management**
+   - Form for adding subscriptions
+   - List view of existing subscriptions
+   - Basic editing capabilities
+   - Dependency for: Testing core functionality without SMS
+
+2. **Total Subscription Spend Dashboard**
+   - Core metric calculation
+   - Simple visualization
+   - Category breakdown
+   - Dependency for: Providing immediate value to users
+
+3. **Simple Notification System**
+   - Basic reminder structure
+   - Permission handling
+   - Simple scheduled notifications
+   - Dependency for: User re-engagement
+
+## Core Functionality Layer
+1. **SMS Detection System**
+   - Permission handling and setup
+   - Basic pattern recognition
+   - Subscription creation from SMS
+   - Enhances: Manual entry with automation
+
+2. **Enhanced Dashboard Insights**
+   - More detailed spending breakdowns
+   - Category comparison
+   - Monthly trends
+   - Enhances: Basic dashboard with more value
+
+3. **Calendar View Implementation**
+   - Payment date visualization
+   - Navigation between time periods
+   - Visual indicators for amounts
+   - Enhances: Subscription overview with temporal context
+
+## Advanced Feature Layer
+1. **Spend Forecasting System**
+   - Projection algorithms
+   - Interactive visualization
+   - Scenario modeling
+   - Builds on: Core subscription data and insights
+
+2. **Dark Pattern Detection**
+   - Pattern database integration
+   - Warning system implementation
+   - Educational content
+   - Builds on: Subscription management system
+
+3. **Shared Subscription Handling**
+   - Multi-user access control
+   - Cost splitting algorithms
+   - Invitation system
+   - Builds on: Core subscription model and user system
+
+## Experience Enhancement Layer
+1. **Animation and Interaction Refinement**
+   - Transition improvements
+   - Micro-interaction implementation
+   - Performance optimization
+   - Enhances: All existing UI components
+
+2. **Smart Assistant Implementation**
+   - Recommendation engine
+   - Conversational interface
+   - Personalized suggestions
+   - Builds on: Insights and forecasting systems
+
+3. **Advanced Calendar Features**
+   - Interactive elements
+   - Historical view
+   - Enhanced visualization
+   - Enhances: Basic calendar implementation
+
+## Feature Dependencies and Build Order Logic
+- Authentication and data architecture must be built first as they are dependencies for all other features
+- Manual subscription management should precede SMS detection to enable testing without SMS permissions
+- Basic dashboard should be prioritized to deliver immediate value
+- Notification system should be implemented early for user engagement
+- More complex features like forecasting and dark pattern detection can be built once core functionality is stable
+- UI polish and animations should be integrated throughout but finalized after core functionality is working
+- Each feature should be implemented with a minimum viable version first, then enhanced iteratively
+
+# Risks and Mitigations  
+## Technical Challenges
+
+### SMS Access Limitations
+**Risk**: Android may restrict SMS access permissions or change APIs in future updates.
+**Mitigation**: 
+- Design system with modularity to separate SMS functionality
+- Implement alternative methods for subscription detection
+- Keep up with Android developer documentation and beta programs
+- Plan for graceful degradation if permissions are denied
+
+### Data Security Concerns
+**Risk**: Handling financial data raises security and privacy concerns.
+**Mitigation**:
+- Implement end-to-end encryption for sensitive data
+- Process SMS data locally whenever possible
+- Clearly communicate privacy practices to users
+- Regular security audits and penetration testing
+- Comply with relevant financial data regulations
+
+### Performance Optimization
+**Risk**: SMS scanning and analytics could impact device performance and battery life.
+**Mitigation**:
+- Implement efficient batch processing for SMS scanning
+- Optimize background tasks with proper scheduling
+- Use incremental processing instead of full scans
+- Add user controls for scan frequency
+- Monitor and optimize battery usage
+
+## MVP Scope Risks
+
+### Feature Creep
+**Risk**: Adding too many features to the MVP could delay launch.
+**Mitigation**:
+- Clearly define MVP as manual subscription tracking + SMS detection + basic notifications
+- Implement staged development approach with clear feature gates
+- Use analytics to prioritize subsequent features based on user needs
+- Create a parking lot for good ideas that aren't critical for launch
+
+### User Adoption Barriers
+**Risk**: Users may hesitate to grant SMS permissions, limiting core functionality.
+**Mitigation**:
+- Design app to be useful even without SMS permissions
+- Create clear, transparent permission requests that explain benefits
+- Offer manual entry as a fully-featured alternative
+- Provide educational content about privacy and data usage
+
+### Technical Debt
+**Risk**: Rushing to implement features could lead to architecture problems.
+**Mitigation**:
+- Establish coding standards and architecture guidelines early
+- Implement code reviews and quality gates
+- Schedule regular refactoring sprints
+- Build with modularity and extensibility in mind
+
+## Resource Constraints
+
+### Development Complexity
+**Risk**: Some features (ML for categorization, forecasting) require specialized skills.
+**Mitigation**:
+- Start with rule-based implementation before ML enhancements
+- Use existing libraries where possible
+- Break complex features into smaller, manageable components
+- Consider phased approach for advanced features
+
+### Testing Challenges
+**Risk**: SMS detection requires extensive testing across different messaging apps and formats.
+**Mitigation**:
+- Create a test suite with diverse SMS examples
+- Implement a feedback mechanism for users to report missed subscriptions
+- Use progressive rollout to identify edge cases
+- Build self-learning capability to improve detection over time
+
+### Backend Scalability
+**Risk**: Growth in user base could strain backend resources.
+**Mitigation**:
+- Design for horizontal scaling from the beginning
+- Implement proper database indexing and query optimization
+- Use caching strategies to reduce database load
+- Monitor performance metrics and set up auto-scaling
+
+# Appendix  
+## Market Research Findings
+
+### Subscription Economy Growth
+- Average consumer manages 12+ subscription services
+- 84% of consumers underestimate their monthly subscription spend
+- Subscription market growing at 17% annually
+- 55% of consumers report experiencing "subscription fatigue"
+
+### Competitor Analysis
+1. **Subscription Trackers**
+   - Most focus on manual entry without automation
+   - Few leverage SMS data for detection
+   - Limited forecasting capabilities
+   - Basic notification systems
+
+2. **Financial Apps**
+   - Broader focus dilutes subscription management features
+   - Better data visualization but less subscription-specific insights
+   - Stronger security features that could be adapted
+
+3. **Market Gap**
+   - No comprehensive solution combining automated detection, insights, and proactive management
+   - Opportunity for differentiation through dark pattern detection
+   - Need for more user-friendly visualization of long-term subscription costs
+
+### User Research Highlights
+- 72% of users forget about at least one active subscription
+- 63% have experienced unexpected charges from forgotten free trials
+- 81% want better visibility into their total subscription spend
+- 58% find cancelling subscriptions unnecessarily difficult
+- 77% would value automatic detection of subscription payments
+
+## Technical Specifications
+
+### SMS Processing Algorithm
+1. **Pattern Recognition Approach**
+   - Regular expression patterns for common payment confirmation formats
+   - Named entity recognition for service names and amounts
+   - Date extraction for billing cycle determination
+   - Confidence scoring for subscription identification
+
+2. **Machine Learning Enhancement (Future)**
+   - Training data requirements
+   - Feature extraction methodology
+   - Classification approach
+   - Accuracy metrics and thresholds
+
+### Notification System Architecture
+1. **Scheduling Engine**
+   - Time-based triggers (days before payment)
+   - Event-based triggers (price changes, unusual activity)
+   - User preference incorporation
+   - Delivery optimization
+
+2. **Action Framework**
+   - Deep linking to relevant screens
+   - Quick action buttons
+   - Notification grouping logic
+   - Persistence and dismissal behavior
+
+### Forecasting Algorithm Specifications
+1. **Projection Methodology**
+   - Time series analysis approach
+   - Handling of variable billing dates
+   - Incorporation of historical price changes
+   - Confidence interval calculation
+
+2. **Scenario Modeling**
+   - Parameter adjustment capabilities
+   - Subscription addition/removal impact
+   - Category-based what-if analysis
+   - Visualization approach
+
+## User Experience Research
+
+### Onboarding Optimization
+- Testing reveals optimal permission request timing is after demonstrating value
+- Users prefer 3-5 screen walkthrough with skip option
+- Success metrics show highest completion when core value (total spend) is shown early
+- Permission grant rates increase by 40% when benefits are clearly explained
+
+### Notification Effectiveness
+- Testing shows payment reminders 24 hours in advance have highest action rate
+- Users prefer batched notifications for multiple same-day payments
+- Including subscription logo increases recognition by 35%
+- Action buttons directly in notifications increase user engagement by 42%
+
+### UI Testing Results
+- Card-based interfaces perform better than list views for subscription management
+- Users strongly prefer visual representations of spending over tables
+- Color-coding categories improves information processing speed by 28%
+- Dark mode usage peaks in evening hours (8pm-11pm)
+</PRD>

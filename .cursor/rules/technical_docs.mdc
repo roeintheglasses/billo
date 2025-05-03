@@ -1,0 +1,74 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Technical Documentation Standards
+
+- **All External Technical Documentation MUST Be Fetched Using Context7**
+  - Always use context7 to fetch technical documentation for any technology used in the project
+  - This applies to all libraries including React Native, Expo, Supabase, etc.
+  - Example: When documenting Supabase integration, use context7 to fetch Supabase docs
+  - Use context7's search capabilities to find the most relevant documentation
+  - Ensure documentation fetched via context7 is properly cited
+
+- **All Technical Documentation Must Be Comprehensive and Precise**
+  - Include examples, use cases, and technical explanations
+  - Reference official documentation where appropriate
+  - Document edge cases and limitations
+
+- **Code Comments Must Include Context**
+  - Always explain why, not just what the code does
+  - Document design patterns and architectural decisions
+  - Explain complex algorithms with step-by-step breakdowns
+
+- **API Documentation Format**
+  ```typescript
+  /**
+   * Brief description of function purpose
+   * 
+   * @param {Type} paramName - Description of parameter
+   * @returns {ReturnType} Description of return value
+   * @throws {ErrorType} Conditions that cause errors
+   * 
+   * @example
+   * // Example usage:
+   * const result = myFunction(param);
+   */
+  ```
+
+- **Library/Technology Documentation**
+  - Include version compatibility information
+  - Document initialization and configuration requirements
+  - Provide links to official documentation
+  - Explain any custom implementation details or wrappers
+  - Document any workarounds or project-specific usage patterns
+  - Always fetch technical specifications using context7
+
+- **Component Documentation**
+  - Document all props, including types and default values
+  - Include usage examples with screenshots when relevant
+  - Explain component lifecycle and state management
+  - Document accessibility considerations
+  - Note any performance implications
+
+- **Supabase-Specific Documentation**
+  - Document database schema with relationships
+  - Include security rules and access patterns
+  - Document any custom RPC functions
+  - Explain authentication flow implementation
+  - Use context7 to fetch current best practices from Supabase docs
+
+- **React Native/Expo Documentation**
+  - Document platform-specific behaviors
+  - Include environment setup requirements
+  - Document any native module dependencies
+  - Explain performance optimization techniques used
+  - Use context7 to fetch up-to-date React Native and Expo documentation
+
+- **Documentation Updates**
+  - Update documentation when implementing changes
+  - Mark deprecated functionality clearly
+  - Maintain a changelog for major components and services
+  - Document migration paths for breaking changes
+  - Use context7 to check for latest documentation changes in technologies used
