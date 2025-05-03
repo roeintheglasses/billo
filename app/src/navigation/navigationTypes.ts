@@ -20,6 +20,7 @@ export type TabParamList = {
   Subscriptions: undefined;
   Add: undefined;
   Calendar: undefined;
+  Profile: undefined;
   Settings: undefined;
   ChangePassword: undefined;
 };

@@ -54,10 +54,10 @@ export const SettingsScreen = () => {
             backgroundColor: colors.background.secondary 
           }
         ]}>Account</Text>
-        <TouchableOpacity style={[
-          styles.option,
-          { borderBottomColor: colors.border.light }
-        ]}>
+        <TouchableOpacity 
+          style={[styles.option, { borderBottomColor: colors.border.light }]}
+          onPress={() => navigation.navigate('Profile' as never)}
+        >
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Profile</Text>
         </TouchableOpacity>
         <TouchableOpacity 

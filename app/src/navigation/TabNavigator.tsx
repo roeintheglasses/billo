@@ -3,6 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen, SettingsScreen, ChangePasswordScreen } from '../screens';
 import { TabParamList } from './navigationTypes';
+import { useTheme } from '../contexts/ThemeContext';
+import { ProfileScreen } from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -12,6 +14,9 @@ const Tab = createBottomTabNavigator<TabParamList>();
  * Handles the main app navigation with bottom tabs for the primary sections.
  */
 export const TabNavigator = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
+  
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -30,13 +35,19 @@ export const TabNavigator = () => {
             iconName = focused ? 'calendar' : 'calendar-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
           }
           
           // Return the Ionicons component
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.text.secondary,
+        tabBarStyle: {
+          backgroundColor: colors.background.primary,
+          borderTopColor: colors.border.light,
+        },
         headerShown: false,
       })}
     >
@@ -57,6 +68,7 @@ export const TabNavigator = () => {
         component={HomeScreen} // Temporary, will be replaced with CalendarScreen 
       />
       <Tab.Screen name="Settings" component={SettingsScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
       
       {/* Hidden screens - not shown in tab bar */}
       <Tab.Screen 
