@@ -2,4 +2,5 @@
 export * from './HomeScreen';
 export * from './AuthScreen';
 export * from './SettingsScreen';
-export * from './RegisterScreen'; 
+export * from './RegisterScreen';
+export * from './LoginScreen'; 
