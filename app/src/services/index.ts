@@ -5,4 +5,5 @@
  */
 
 export * from './supabase';
-export * from './auth'; 
+export * from './auth';
+export * from './storage'; 

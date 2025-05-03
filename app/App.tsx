@@ -2,6 +2,7 @@ import React from 'react';
 import { AppNavigator } from './src/navigation';
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
+import { SessionTimeoutDialog } from './src/components';
 
 /**
  * Main App component
@@ -10,6 +11,8 @@ import { AuthProvider } from './src/contexts/AuthContext';
  * - ThemeProvider: For theming and dark/light mode support
  * - AuthProvider: For authentication state management
  * 
+ * Also includes the SessionTimeoutDialog for handling expiring sessions.
+ * 
  * @returns {React.ReactElement} The root App component
  */
 export default function App() {
@@ -17,6 +20,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <AppNavigator />
+        <SessionTimeoutDialog />
       </AuthProvider>
     </ThemeProvider>
   );

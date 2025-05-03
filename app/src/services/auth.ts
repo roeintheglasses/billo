@@ -6,6 +6,7 @@
  */
 
 import { supabase } from './supabase';
+import { secureStorage, STORAGE_KEYS } from './storage';
 import { User, UserInsert, ProfileInsert } from '../types/supabase';
 
 /**
@@ -36,6 +37,11 @@ export const registerUser = async (
     if (!authData.user) {
       console.error('No user returned from registration');
       return null;
+    }
+
+    // Store session data in secure storage
+    if (authData.session) {
+      await secureStorage.storeSession(authData.session);
     }
 
     // Create user record in the users table
@@ -102,6 +108,11 @@ export const loginWithEmail = async (
     if (error) {
       console.error('Error during login:', error.message);
       return false;
+    }
+
+    // Store session in secure storage
+    if (data.session) {
+      await secureStorage.storeSession(data.session);
     }
 
     return !!data.session;
@@ -200,6 +211,89 @@ export const updateUserProfile = async (
 };
 
 /**
+ * Refresh the authentication session
+ * 
+ * @returns {Promise<boolean>} True if successful, false otherwise
+ */
+export const refreshSession = async (): Promise<boolean> => {
+  try {
+    // Use the stored refresh token
+    const refreshToken = await secureStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    
+    if (!refreshToken) {
+      console.error('No refresh token available');
+      return false;
+    }
+    
+    const { data, error } = await supabase.auth.refreshSession({
+      refresh_token: refreshToken,
+    });
+    
+    if (error) {
+      console.error('Error refreshing session:', error.message);
+      return false;
+    }
+    
+    if (data.session) {
+      // Store the new session data
+      await secureStorage.storeSession(data.session);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Unexpected error refreshing session:', error);
+    return false;
+  }
+};
+
+/**
+ * Check if the session is expired or about to expire
+ * 
+ * @param {number} bufferSeconds Number of seconds before actual expiry to consider as "expired"
+ * @returns {Promise<boolean>} True if session is expired or about to expire
+ */
+export const isSessionExpired = async (bufferSeconds = 300): Promise<boolean> => {
+  const session = await secureStorage.getSession();
+  
+  if (!session || !session.expires_at) {
+    return true;
+  }
+  
+  // Check if token is expired or about to expire (within buffer time)
+  const expiresAt = session.expires_at;
+  const now = Math.floor(Date.now() / 1000);
+  
+  return now + bufferSeconds >= expiresAt;
+};
+
+/**
+ * Sign out the current user and clear storage
+ * 
+ * @returns {Promise<boolean>} True if signed out successfully
+ */
+export const signOut = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    
+    // Always clear local storage regardless of whether the API call succeeded
+    await secureStorage.clearSession();
+    
+    if (error) {
+      console.error('Error signing out from Supabase:', error.message);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Unexpected error during sign out:', error);
+    // Still clear local storage
+    await secureStorage.clearSession();
+    return false;
+  }
+};
+
+/**
  * Set up auth state change listener
  * 
  * @param callback Function to call when auth state changes
@@ -209,6 +303,20 @@ export const onAuthStateChange = (
   callback: (event: 'SIGNED_IN' | 'SIGNED_OUT' | 'USER_UPDATED', session: any) => void
 ) => {
   return supabase.auth.onAuthStateChange((event, session) => {
+    // When user signs in or session is updated, store the session data
+    if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+      secureStorage.storeSession(session).catch(error => {
+        console.error('Error storing session during auth state change:', error);
+      });
+    }
+    
+    // When user signs out, clear the session data
+    if (event === 'SIGNED_OUT') {
+      secureStorage.clearSession().catch(error => {
+        console.error('Error clearing session during auth state change:', error);
+      });
+    }
+    
     callback(event as any, session);
   });
 }; 
