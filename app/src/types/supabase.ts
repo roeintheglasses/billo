@@ -115,6 +115,7 @@ export interface Database {
           amount: number;
           billing_cycle: string;
           start_date: string;
+          next_billing_date: string | null;
           category_id: string | null;
           notes: string | null;
           created_at: string;
@@ -127,6 +128,7 @@ export interface Database {
           amount: number;
           billing_cycle: string;
           start_date: string;
+          next_billing_date?: string | null;
           category_id?: string | null;
           notes?: string | null;
           created_at?: string;
@@ -139,6 +141,7 @@ export interface Database {
           amount?: number;
           billing_cycle?: string;
           start_date?: string;
+          next_billing_date?: string | null;
           category_id?: string | null;
           notes?: string | null;
           created_at?: string;
