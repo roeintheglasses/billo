@@ -1,120 +1,108 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
-import { ThemeProvider as StyledThemeProvider } from 'styled-components/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Appearance, ColorSchemeName, useColorScheme } from 'react-native';
+import { useReduceMotion } from '../utils/accessibilityUtils';
+import { lightTheme, darkTheme, Theme, ThemeMode } from '../theme';
 
-import { ThemeMode, Theme, getTheme, lightTheme, darkTheme } from '../theme';
-
-// Theme storage key for persisting user preference
-const THEME_STORAGE_KEY = 'billo_theme_mode';
-
-// Define context value type
-interface ThemeContextValue {
+interface ThemeContextType {
   theme: Theme;
-  themeMode: ThemeMode;
-  isDarkMode: boolean;
-  toggleTheme: () => void;
-  setThemeMode: (mode: ThemeMode) => void;
+  mode: ThemeMode;
+  setMode: (mode: ThemeMode | 'system') => void;
+  toggleMode: () => void;
+  systemTheme: ColorSchemeName;
+  isHighContrastEnabled: boolean;
+  toggleHighContrast: () => void;
+  isReducedMotionEnabled: boolean;
 }
 
-// Create context with default values
-const ThemeContext = createContext<ThemeContextValue>({
+const ThemeContext = createContext<ThemeContextType>({
   theme: lightTheme,
-  themeMode: 'light',
-  isDarkMode: false,
-  toggleTheme: () => {},
-  setThemeMode: () => {},
+  mode: 'light',
+  setMode: () => {},
+  toggleMode: () => {},
+  systemTheme: Appearance.getColorScheme(),
+  isHighContrastEnabled: false,
+  toggleHighContrast: () => {},
+  isReducedMotionEnabled: false,
 });
 
-// Provider props
-interface ThemeProviderProps {
-  children: ReactNode;
-}
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Get system theme
+  const systemTheme = useColorScheme() as ThemeMode | null;
+  const isReducedMotionEnabled = useReduceMotion();
+  
+  // Initial theme mode (default to light if system theme is null)
+  const [mode, setModeState] = useState<ThemeMode>(systemTheme || 'light');
+  const [isSystemTheme, setIsSystemTheme] = useState<boolean>(true);
+  const [isHighContrastEnabled, setIsHighContrastEnabled] = useState<boolean>(false);
 
-/**
- * Theme Provider Component
- * 
- * Manages theme state and provides theme context to the app.
- * This includes automatic system theme detection, user preferences,
- * and theme toggling functionality.
- */
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  // Get device color scheme
-  const deviceTheme = useColorScheme();
-  
-  // Theme state
-  const [themeMode, setThemeMode] = useState<ThemeMode>('light');
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Current theme based on mode
-  const theme = getTheme(themeMode);
-  const isDarkMode = themeMode === 'dark';
-  
-  // Load saved theme preference
+  // Update theme mode when system theme changes, if following system
   useEffect(() => {
-    const loadSavedTheme = async () => {
-      try {
-        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        if (savedTheme) {
-          setThemeMode(savedTheme as ThemeMode);
-        } else {
-          // Use device theme as default if no saved preference
-          setThemeMode(deviceTheme as ThemeMode || 'light');
-        }
-      } catch (error) {
-        console.error('Error loading theme preference:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadSavedTheme();
-  }, [deviceTheme]);
-  
-  // Save theme preference when it changes
-  useEffect(() => {
-    const saveThemePreference = async () => {
-      try {
-        await AsyncStorage.setItem(THEME_STORAGE_KEY, themeMode);
-      } catch (error) {
-        console.error('Error saving theme preference:', error);
-      }
-    };
-    
-    if (!isLoading) {
-      saveThemePreference();
+    if (isSystemTheme && systemTheme) {
+      setModeState(systemTheme);
     }
-  }, [themeMode, isLoading]);
-  
-  // Toggle between light and dark themes
-  const toggleTheme = () => {
-    setThemeMode(prevMode => (prevMode === 'light' ? 'dark' : 'light'));
+  }, [systemTheme, isSystemTheme]);
+
+  // Set theme mode (or follow system)
+  const setMode = (newMode: ThemeMode | 'system') => {
+    if (newMode === 'system') {
+      setIsSystemTheme(true);
+      setModeState(systemTheme || 'light');
+    } else {
+      setIsSystemTheme(false);
+      setModeState(newMode);
+    }
   };
-  
-  // Context value
-  const contextValue: ThemeContextValue = {
+
+  // Toggle between light and dark modes (without affecting system setting)
+  const toggleMode = () => {
+    setIsSystemTheme(false);
+    setModeState(prevMode => (prevMode === 'light' ? 'dark' : 'light'));
+  };
+
+  // Toggle high contrast mode
+  const toggleHighContrast = () => {
+    setIsHighContrastEnabled(prev => !prev);
+  };
+
+  // Get the current theme object based on mode and high contrast setting
+  const getThemeWithContrast = (): Theme => {
+    const baseTheme = mode === 'light' ? { ...lightTheme } : { ...darkTheme };
+    baseTheme.useHighContrast = isHighContrastEnabled;
+    
+    // If high contrast is enabled, modify the colors for better contrast
+    if (isHighContrastEnabled) {
+      if (mode === 'light') {
+        // Increase contrast in light mode
+        baseTheme.colors.text.primary = '#000000';
+        baseTheme.colors.text.secondary = '#222222';
+        baseTheme.colors.background.primary = '#FFFFFF';
+      } else {
+        // Increase contrast in dark mode
+        baseTheme.colors.text.primary = '#FFFFFF';
+        baseTheme.colors.text.secondary = '#F0F0F0';
+        baseTheme.colors.background.primary = '#000000';
+      }
+    }
+    
+    return baseTheme;
+  };
+
+  const theme = getThemeWithContrast();
+
+  const value = {
     theme,
-    themeMode,
-    isDarkMode,
-    toggleTheme,
-    setThemeMode,
+    mode,
+    setMode,
+    toggleMode,
+    systemTheme,
+    isHighContrastEnabled,
+    toggleHighContrast,
+    isReducedMotionEnabled,
   };
-  
-  // Use styled-components ThemeProvider to provide theme to styled components
-  return (
-    <ThemeContext.Provider value={contextValue}>
-      <StyledThemeProvider theme={theme}>
-        {children}
-      </StyledThemeProvider>
-    </ThemeContext.Provider>
-  );
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
-/**
- * Custom hook for accessing theme context
- * 
- * @returns {ThemeContextValue} Theme context with current theme and related functions
- */
-export const useTheme = (): ThemeContextValue => useContext(ThemeContext);
+export const useTheme = () => useContext(ThemeContext);
 
 export default ThemeContext; 
