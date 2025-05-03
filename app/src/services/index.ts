@@ -11,6 +11,7 @@ import categoryService from './categoryService';
 import subscriptionService from './subscriptionService';
 import transactionService from './transactionService';
 import notificationService from './notificationService';
+import relationshipService from './relationshipService';
 
 export {
   authService,
@@ -20,7 +21,8 @@ export {
   categoryService,
   subscriptionService,
   transactionService,
-  notificationService
+  notificationService,
+  relationshipService
 };
 
 export default {
@@ -30,5 +32,6 @@ export default {
   category: categoryService,
   subscription: subscriptionService,
   transaction: transactionService,
-  notification: notificationService
+  notification: notificationService,
+  relationship: relationshipService
 }; 

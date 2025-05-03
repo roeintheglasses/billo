@@ -321,4 +321,36 @@ export interface SubscriptionWithCategory extends Subscription {
 
 export interface SubscriptionWithTransactions extends Subscription {
   transactions?: Transaction[];
+}
+
+// Add new interface types for cross-model relationships
+export interface SubscriptionWithCategoryAndTransactions extends Subscription {
+  category?: Category;
+  transactions?: Transaction[];
+}
+
+export interface CategoryWithSubscriptions extends Category {
+  subscriptions?: Subscription[];
+}
+
+export interface UserWithSubscriptionsAndTransactions {
+  user: User;
+  subscriptions?: SubscriptionWithCategoryAndTransactions[];
+}
+
+export interface SpendingAnalytics {
+  totalAmount: number;
+  averageAmount: number;
+  subscriptionCount: number;
+  transactionCount: number;
+  categoryBreakdown: {
+    categoryId: string;
+    categoryName: string;
+    amount: number;
+    percentage: number;
+  }[];
+  timeSeriesData?: {
+    period: string;
+    amount: number;
+  }[];
 } 
