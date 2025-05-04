@@ -14,7 +14,7 @@ interface PermissionExplainerProps {
 
 /**
  * PermissionExplainer Component
- * 
+ *
  * Displays educational UI about permission usage with appropriate actions
  * based on the current permission state
  */
@@ -34,26 +34,30 @@ export const PermissionExplainer: React.FC<PermissionExplainerProps> = ({
       case PermissionType.SMS:
         return {
           title: 'SMS Scanning',
-          description: 'Billo can automatically detect subscriptions by scanning your SMS messages for payment confirmations and renewal notices.',
+          description:
+            'Billo can automatically detect subscriptions by scanning your SMS messages for payment confirmations and renewal notices.',
           benefits: [
             'Automatic detection of subscription services',
             'No manual entry needed for common subscriptions',
             'Detection of billing amounts and renewal dates',
-            'Timely notification of subscription renewals'
+            'Timely notification of subscription renewals',
           ],
-          privacyNote: 'Your messages are scanned locally on your device. No message content is stored or transmitted.',
+          privacyNote:
+            'Your messages are scanned locally on your device. No message content is stored or transmitted.',
           icon: 'mail-outline',
         };
       case PermissionType.CAMERA:
         return {
           title: 'Camera Access',
-          description: 'Billo can use your camera to scan subscription documents and payment receipts.',
+          description:
+            'Billo can use your camera to scan subscription documents and payment receipts.',
           benefits: [
             'Quickly capture payment receipts',
             'Scan QR codes for subscription information',
-            'Import subscription details from documents'
+            'Import subscription details from documents',
           ],
-          privacyNote: 'Photos taken in the app are processed locally and aren\'t stored unless you specifically save them.',
+          privacyNote:
+            "Photos taken in the app are processed locally and aren't stored unless you specifically save them.",
           icon: 'camera-outline',
         };
       default:
@@ -108,36 +112,29 @@ export const PermissionExplainer: React.FC<PermissionExplainerProps> = ({
       </View>
 
       <ScrollView style={styles.content}>
-        <Text style={[styles.description, { color: colors.text.secondary }]}>
-          {description}
-        </Text>
+        <Text style={[styles.description, { color: colors.text.secondary }]}>{description}</Text>
 
         <View style={[styles.benefitsContainer, { borderColor: colors.border.light }]}>
-          <Text style={[styles.benefitsTitle, { color: colors.text.primary }]}>
-            Benefits:
-          </Text>
+          <Text style={[styles.benefitsTitle, { color: colors.text.primary }]}>Benefits:</Text>
           {benefits.map((benefit, index) => (
             <View key={index} style={styles.benefitRow}>
               <Ionicons name="checkmark-circle-outline" size={20} color={colors.success} />
-              <Text style={[styles.benefitText, { color: colors.text.secondary }]}>
-                {benefit}
-              </Text>
+              <Text style={[styles.benefitText, { color: colors.text.secondary }]}>{benefit}</Text>
             </View>
           ))}
         </View>
 
         <View style={[styles.privacyContainer, { backgroundColor: colors.background.secondary }]}>
           <Ionicons name="shield-checkmark-outline" size={24} color={colors.primary} />
-          <Text style={[styles.privacyText, { color: colors.text.secondary }]}>
-            {privacyNote}
-          </Text>
+          <Text style={[styles.privacyText, { color: colors.text.secondary }]}>{privacyNote}</Text>
         </View>
 
         {isDeniedPermanently && (
           <View style={[styles.warningContainer, { backgroundColor: colors.background.tertiary }]}>
             <Ionicons name="alert-circle-outline" size={24} color={colors.warning} />
             <Text style={[styles.warningText, { color: colors.text.secondary }]}>
-              You've previously denied this permission. Please open your device settings to enable it.
+              You've previously denied this permission. Please open your device settings to enable
+              it.
             </Text>
           </View>
         )}
@@ -168,7 +165,7 @@ export const PermissionExplainer: React.FC<PermissionExplainerProps> = ({
           style={[
             styles.primaryButton,
             { backgroundColor: isGranted ? colors.success : colors.primary },
-            isGranted && { opacity: 0.7 }
+            isGranted && { opacity: 0.7 },
           ]}
           onPress={actionButton.action}
           disabled={isGranted}
@@ -289,4 +286,4 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 16,
   },
-}); 
+});

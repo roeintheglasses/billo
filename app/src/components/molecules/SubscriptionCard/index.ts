@@ -7,4 +7,4 @@ export { default as SubscriptionStatusBadge } from './SubscriptionStatusBadge';
 
 // Export types
 export type { SubscriptionStatus } from './SubscriptionCard';
-export type { SubscriptionCycle } from './SubscriptionCardDetails'; 
+export type { SubscriptionCycle } from './SubscriptionCardDetails';

@@ -24,7 +24,7 @@ export const formatDate = (date: Date): string => {
  */
 export const getNextBillingDate = (startDate: Date, billingCycle: BillingCycle): Date => {
   const nextDate = new Date(startDate);
-  
+
   switch (billingCycle) {
     case 'monthly':
       nextDate.setMonth(nextDate.getMonth() + 1);
@@ -45,6 +45,6 @@ export const getNextBillingDate = (startDate: Date, billingCycle: BillingCycle):
       // Default to monthly if unknown
       nextDate.setMonth(nextDate.getMonth() + 1);
   }
-  
+
   return nextDate;
-}; 
+};

@@ -41,10 +41,7 @@ export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScr
 >;
 
 // Tab screen props
-export type TabScreenProps<T extends keyof TabParamList> = BottomTabScreenProps<
-  TabParamList,
-  T
->;
+export type TabScreenProps<T extends keyof TabParamList> = BottomTabScreenProps<TabParamList, T>;
 
 // Root stack screen props
 export type RootScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
@@ -57,4 +54,4 @@ declare global {
   namespace ReactNavigation {
     interface RootParamList extends RootStackParamList {}
   }
-} 
+}

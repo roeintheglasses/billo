@@ -33,7 +33,7 @@ export interface ModalProps {
 
 /**
  * Modal component for displaying content as an overlay
- * 
+ *
  * @param {boolean} visible - Whether the modal is visible
  * @param {function} onClose - Function to call when modal is closed
  * @param {ReactNode} children - Content to display in the modal
@@ -42,13 +42,13 @@ export interface ModalProps {
  * @param {object} contentContainerStyle - Additional styles for the modal content container
  * @param {string} animationType - Type of animation when modal opens/closes
  * @returns {React.ReactElement} A modal component
- * 
+ *
  * @example
  * // Basic usage
  * <Modal visible={isVisible} onClose={() => setIsVisible(false)}>
  *   <Text>Modal content</Text>
  * </Modal>
- * 
+ *
  * // Custom size and non-dismissable
  * <Modal
  *   visible={isVisible}
@@ -73,7 +73,7 @@ export const Modal: React.FC<ModalProps> = ({
   const { theme } = useTheme();
   const { colors } = theme;
   const { width, height } = useWindowDimensions();
-  
+
   // Animation state
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
@@ -214,4 +214,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Modal; 
+export default Modal;

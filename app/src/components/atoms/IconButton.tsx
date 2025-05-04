@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  TouchableOpacity, 
-  StyleSheet, 
-  ActivityIndicator, 
+import {
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
   TouchableOpacityProps,
-  ViewStyle
+  ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -23,14 +23,14 @@ export interface IconButtonProps extends TouchableOpacityProps {
 
 /**
  * IconButton component for displaying clickable icons
- * 
+ *
  * @param {string} name - Icon name from Ionicons set
  * @param {string} variant - Button style variant
  * @param {string} size - Button size
  * @param {boolean} isLoading - Shows loading indicator when true
  * @param {string} accessibilityLabel - Accessibility label for screen readers
  * @returns {React.ReactElement} A styled icon button component
- * 
+ *
  * @example
  * // Basic usage
  * <IconButton
@@ -38,7 +38,7 @@ export interface IconButtonProps extends TouchableOpacityProps {
  *   onPress={() => handleLike()}
  *   accessibilityLabel="Like"
  * />
- * 
+ *
  * // With variant and size
  * <IconButton
  *   name="trash"
@@ -60,7 +60,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
-  
+
   // Get icon and container size based on the size prop
   const getSize = () => {
     switch (size) {
@@ -81,7 +81,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
         };
     }
   };
-  
+
   // Get variant specific styles
   const getVariantStyles = (): { container: ViewStyle; iconColor: string } => {
     switch (variant) {
@@ -93,7 +93,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
           },
           iconColor: '#FFFFFF',
         };
-        
+
       case 'secondary':
         return {
           container: {
@@ -102,7 +102,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
           },
           iconColor: '#FFFFFF',
         };
-        
+
       case 'outline':
         return {
           container: {
@@ -112,7 +112,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
           },
           iconColor: colors.primary,
         };
-        
+
       case 'ghost':
         return {
           container: {
@@ -121,7 +121,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
           },
           iconColor: colors.primary,
         };
-      
+
       default:
         return {
           container: {
@@ -132,13 +132,13 @@ export const IconButton: React.FC<IconButtonProps> = ({
         };
     }
   };
-  
+
   const dimensions = getSize();
   const variantStyles = getVariantStyles();
-  
+
   // Spinner color based on variant
   const spinnerColor = variant === 'outline' || variant === 'ghost' ? colors.primary : '#FFFFFF';
-  
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -160,11 +160,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
       {isLoading ? (
         <ActivityIndicator color={spinnerColor} size="small" />
       ) : (
-        <Ionicons 
-          name={name} 
-          size={dimensions.icon} 
-          color={variantStyles.iconColor} 
-        />
+        <Ionicons name={name} size={dimensions.icon} color={variantStyles.iconColor} />
       )}
     </TouchableOpacity>
   );
@@ -178,4 +174,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default IconButton; 
+export default IconButton;

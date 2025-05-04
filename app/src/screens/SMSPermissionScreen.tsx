@@ -9,7 +9,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 /**
  * SMSPermissionScreen Component
- * 
+ *
  * A screen that explains and requests SMS permissions
  */
 const SMSPermissionScreen: React.FC = () => {
@@ -17,7 +17,7 @@ const SMSPermissionScreen: React.FC = () => {
   const { theme } = useTheme();
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const {
     smsPermissionState,
     checkSMSPermission,
@@ -90,4 +90,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SMSPermissionScreen; 
+export default SMSPermissionScreen;

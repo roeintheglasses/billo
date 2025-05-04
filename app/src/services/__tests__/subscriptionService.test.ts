@@ -4,15 +4,15 @@ import { supabase } from '../supabase';
 // Mock supabase
 jest.mock('../supabase', () => ({
   supabase: {
-    from: jest.fn()
-  }
+    from: jest.fn(),
+  },
 }));
 
 // Mock logger
 jest.mock('../../utils/logger', () => ({
   info: jest.fn(),
   warn: jest.fn(),
-  error: jest.fn()
+  error: jest.fn(),
 }));
 
 describe('Subscription Service', () => {
@@ -65,7 +65,7 @@ describe('Subscription Service', () => {
         updated_at: '2023-01-01',
         next_billing_date: '2023-02-01',
         category_id: 'cat1',
-        notes: null
+        notes: null,
       },
       {
         id: '2',
@@ -78,7 +78,7 @@ describe('Subscription Service', () => {
         updated_at: '2023-01-15',
         next_billing_date: '2023-02-15',
         category_id: 'cat2',
-        notes: null
+        notes: null,
       },
       {
         id: '3',
@@ -91,8 +91,8 @@ describe('Subscription Service', () => {
         updated_at: '2023-01-01',
         next_billing_date: '2024-01-01',
         category_id: 'cat1',
-        notes: null
-      }
+        notes: null,
+      },
     ];
 
     beforeEach(() => {
@@ -101,21 +101,21 @@ describe('Subscription Service', () => {
         select: jest.fn().mockReturnThis(),
         order: jest.fn().mockResolvedValue({
           data: mockSubscriptions,
-          error: null
-        })
+          error: null,
+        }),
       });
     });
 
     it('should calculate spending for a one-month period', async () => {
       const result = await subscriptionService.calculateSpendForPeriod('2023-01-01', '2023-01-31');
-      
+
       // Expected: Netflix (9.99) + Spotify (4.99) + Yearly (120) = 134.98
       expect(result).toBeCloseTo(134.98);
     });
 
     it('should calculate spending for a two-month period', async () => {
       const result = await subscriptionService.calculateSpendForPeriod('2023-01-01', '2023-02-28');
-      
+
       // Expected: Netflix (9.99×2) + Spotify (4.99×2) + Yearly (120) = 149.96
       expect(result).toBeCloseTo(149.96);
     });
@@ -137,32 +137,35 @@ describe('Subscription Service', () => {
               updated_at: '2023-02-15',
               next_billing_date: '2023-03-15',
               category_id: 'cat3',
-              notes: null
-            }
+              notes: null,
+            },
           ],
-          error: null
-        })
+          error: null,
+        }),
       });
 
       const result = await subscriptionService.calculateSpendForPeriod('2023-01-01', '2023-03-31');
-      
+
       // Only counted once in the 3-month period (starts Feb 15)
       expect(result).toBeCloseTo(10);
     });
 
     it('should throw an error for invalid date formats', async () => {
-      await expect(subscriptionService.calculateSpendForPeriod('invalid-date', '2023-01-31'))
-        .rejects.toThrow('Invalid date format');
+      await expect(
+        subscriptionService.calculateSpendForPeriod('invalid-date', '2023-01-31')
+      ).rejects.toThrow('Invalid date format');
     });
 
     it('should throw an error if start date is after end date', async () => {
-      await expect(subscriptionService.calculateSpendForPeriod('2023-02-01', '2023-01-01'))
-        .rejects.toThrow('Start date must be before end date');
+      await expect(
+        subscriptionService.calculateSpendForPeriod('2023-02-01', '2023-01-01')
+      ).rejects.toThrow('Start date must be before end date');
     });
 
     it('should throw an error if dates are missing', async () => {
-      await expect(subscriptionService.calculateSpendForPeriod('', '2023-01-31'))
-        .rejects.toThrow('Start date and end date are required');
+      await expect(subscriptionService.calculateSpendForPeriod('', '2023-01-31')).rejects.toThrow(
+        'Start date and end date are required'
+      );
     });
 
     it('should handle database errors', async () => {
@@ -171,12 +174,13 @@ describe('Subscription Service', () => {
         select: jest.fn().mockReturnThis(),
         order: jest.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Database error' }
-        })
+          error: { message: 'Database error' },
+        }),
       });
 
-      await expect(subscriptionService.calculateSpendForPeriod('2023-01-01', '2023-01-31'))
-        .rejects.toThrow();
+      await expect(
+        subscriptionService.calculateSpendForPeriod('2023-01-01', '2023-01-31')
+      ).rejects.toThrow();
     });
   });
 
@@ -192,31 +196,31 @@ describe('Subscription Service', () => {
               name: 'Netflix',
               amount: 9.99,
               billing_cycle: 'monthly',
-              start_date: '2023-01-01'
+              start_date: '2023-01-01',
             },
             {
               id: '2',
               name: 'Spotify',
               amount: 4.99,
               billing_cycle: 'monthly',
-              start_date: '2023-01-15'
+              start_date: '2023-01-15',
             },
             {
               id: '3',
               name: 'Yearly Subscription',
               amount: 120,
               billing_cycle: 'yearly',
-              start_date: '2023-01-01'
-            }
+              start_date: '2023-01-01',
+            },
           ],
-          error: null
-        })
+          error: null,
+        }),
       });
 
       const result = await subscriptionService.calculateTotalMonthlySpend();
-      
+
       // Expected: 9.99 + 4.99 + (120/12) = 24.98
       expect(result).toBeCloseTo(24.98);
     });
   });
-}); 
+});

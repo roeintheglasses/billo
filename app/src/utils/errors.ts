@@ -1,6 +1,6 @@
 /**
  * Custom Error Classes
- * 
+ *
  * This file defines custom error classes used throughout the application
  * for more specific error handling.
  */
@@ -68,7 +68,7 @@ export class NotFoundError extends AppError {
     const message = resourceId
       ? `${resourceType} with ID '${resourceId}' not found`
       : `${resourceType} not found`;
-    
+
     super(message);
     this.name = 'NotFoundError';
     this.resourceType = resourceType;
@@ -107,7 +107,7 @@ export class RateLimitError extends AppError {
 
 /**
  * Maps database error codes to user-friendly messages
- * 
+ *
  * @param code The database error code
  * @returns A user-friendly error message
  */
@@ -137,13 +137,13 @@ export const getDatabaseErrorMessage = (code?: string): string => {
 
 /**
  * Determine if an error is a specific type of AppError
- * 
+ *
  * @param error The error to check
  * @param errorType The constructor of the error type to check against
  * @returns True if the error is of the specified type
  */
 export const isErrorType = (
-  error: unknown, 
+  error: unknown,
   errorType: new (...args: any[]) => AppError
 ): boolean => {
   return error instanceof errorType;
@@ -151,7 +151,7 @@ export const isErrorType = (
 
 /**
  * Create a user-friendly error message from any error
- * 
+ *
  * @param error The error to create a message from
  * @returns A user-friendly error message
  */
@@ -160,30 +160,30 @@ export const getUserFriendlyErrorMessage = (error: unknown): string => {
     const firstError = Object.values(error.errors)[0];
     return firstError || error.message;
   }
-  
+
   if (error instanceof NotFoundError) {
     return error.message;
   }
-  
+
   if (error instanceof DatabaseError) {
     return getDatabaseErrorMessage(error.code);
   }
-  
+
   if (error instanceof AuthError) {
     return 'You do not have permission to perform this action';
   }
-  
+
   if (error instanceof NetworkError) {
     return 'Network error. Please check your connection and try again';
   }
-  
+
   if (error instanceof RateLimitError) {
     return `Too many requests. Please try again ${error.retryAfter ? `in ${error.retryAfter} seconds` : 'later'}`;
   }
-  
+
   if (error instanceof Error) {
     return error.message;
   }
-  
+
   return 'An unexpected error occurred';
-}; 
+};

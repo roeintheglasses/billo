@@ -1,12 +1,12 @@
 /**
  * Format Utilities
- * 
+ *
  * Utility functions for formatting different types of data for display.
  */
 
 /**
  * Format a number as a currency string
- * 
+ *
  * @param amount The number to format
  * @param currency The currency code (default: USD)
  * @param locale The locale to use for formatting (default: en-US)
@@ -21,13 +21,13 @@ export const formatCurrency = (
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(amount);
 };
 
 /**
  * Format a number as a percentage
- * 
+ *
  * @param value The decimal value to format as percentage (0.5 = 50%)
  * @param digits Number of digits after decimal (default: 0)
  * @param locale The locale to use for formatting (default: en-US)
@@ -41,13 +41,13 @@ export const formatPercentage = (
   return new Intl.NumberFormat(locale, {
     style: 'percent',
     minimumFractionDigits: digits,
-    maximumFractionDigits: digits
+    maximumFractionDigits: digits,
   }).format(value);
 };
 
 /**
  * Format a number with thousands separators
- * 
+ *
  * @param value The number to format
  * @param digits Number of digits after decimal (default: 0)
  * @param locale The locale to use for formatting (default: en-US)
@@ -60,12 +60,12 @@ export const formatNumber = (
 ): string => {
   return new Intl.NumberFormat(locale, {
     minimumFractionDigits: digits,
-    maximumFractionDigits: digits
+    maximumFractionDigits: digits,
   }).format(value);
 };
 
 export default {
   formatCurrency,
   formatPercentage,
-  formatNumber
-}; 
+  formatNumber,
+};

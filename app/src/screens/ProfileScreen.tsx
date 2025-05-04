@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Alert, Image, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,7 +37,7 @@ type ProfileFormValues = {
 
 /**
  * ProfileScreen Component
- * 
+ *
  * Allows users to view and edit their profile information.
  */
 export const ProfileScreen = () => {
@@ -36,24 +45,24 @@ export const ProfileScreen = () => {
   const { theme } = useTheme();
   const { user, session } = useAuth();
   const { colors, spacing } = theme;
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [avatar, setAvatar] = useState<string | null>(user?.avatar_url || null);
   const [editMode, setEditMode] = useState(false);
-  
+
   // Handle image picking from gallery
   const handleSelectImage = async () => {
     try {
       // Request permission to access the photo library
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (status !== 'granted') {
         Alert.alert('Permission denied', 'We need camera roll permissions to upload an avatar.');
         return;
       }
-      
+
       // Launch the image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -61,22 +70,22 @@ export const ProfileScreen = () => {
         aspect: [1, 1],
         quality: 0.8,
       });
-      
+
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setIsUploading(true);
-        
+
         // Upload the image to storage
         const uri = result.assets[0].uri;
         const fileType = uri.substring(uri.lastIndexOf('.') + 1);
-        
+
         try {
           const avatarUrl = await uploadAvatar(uri, fileType);
-          
+
           if (avatarUrl) {
             // Update the user's avatar URL in the database
             await updateUserProfile({ avatar_url: avatarUrl });
             setAvatar(avatarUrl);
-            
+
             // Notify the user
             Alert.alert('Success', 'Your profile picture has been updated.');
           }
@@ -93,22 +102,19 @@ export const ProfileScreen = () => {
       setIsUploading(false);
     }
   };
-  
+
   // Handle form submission
   const handleUpdateProfile = async (values: ProfileFormValues) => {
     try {
       setIsSaving(true);
-      
+
       // Only update if there are changes
-      if (
-        values.full_name !== user?.full_name ||
-        values.phone !== user?.phone
-      ) {
+      if (values.full_name !== user?.full_name || values.phone !== user?.phone) {
         const updatedUser = await updateUserProfile({
           full_name: values.full_name,
           phone: values.phone,
         });
-        
+
         if (updatedUser) {
           Alert.alert('Success', 'Your profile has been updated successfully.');
           setEditMode(false);
@@ -126,37 +132,26 @@ export const ProfileScreen = () => {
       setIsSaving(false);
     }
   };
-  
+
   // Toggle edit mode
   const toggleEditMode = () => {
     setEditMode(!editMode);
   };
-  
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <View style={[styles.header, { borderBottomColor: colors.border.light }]}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={[styles.backButtonText, { color: colors.primary }]}>
-            Back
-          </Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-          Profile
-        </Text>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={toggleEditMode}
-          disabled={isSaving}
-        >
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Profile</Text>
+        <TouchableOpacity style={styles.editButton} onPress={toggleEditMode} disabled={isSaving}>
           <Text style={[styles.editButtonText, { color: colors.primary }]}>
             {editMode ? 'Cancel' : 'Edit'}
           </Text>
         </TouchableOpacity>
       </View>
-      
+
       <ScrollView style={styles.content}>
         <View style={styles.avatarContainer}>
           {isUploading ? (
@@ -164,16 +159,13 @@ export const ProfileScreen = () => {
               <ActivityIndicator size="large" color={colors.primary} />
             </View>
           ) : avatar ? (
-            <Image
-              source={{ uri: avatar }}
-              style={styles.avatar}
-            />
+            <Image source={{ uri: avatar }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, { backgroundColor: colors.background.secondary }]}>
               <Ionicons name="person" size={50} color={colors.text.secondary} />
             </View>
           )}
-          
+
           <TouchableOpacity
             style={[styles.changeAvatarButton, { backgroundColor: colors.primary }]}
             onPress={handleSelectImage}
@@ -182,7 +174,7 @@ export const ProfileScreen = () => {
             <Ionicons name="camera" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
-        
+
         <Formik
           initialValues={{
             full_name: user?.full_name || '',
@@ -206,7 +198,7 @@ export const ProfileScreen = () => {
                 touched={touched.full_name}
                 editable={editMode}
               />
-              
+
               <FormInput
                 label="Email"
                 placeholder="Enter your email"
@@ -220,7 +212,7 @@ export const ProfileScreen = () => {
                 touched={touched.email}
                 editable={false} // Email cannot be changed directly
               />
-              
+
               <FormInput
                 label="Phone Number (Optional)"
                 placeholder="Enter your phone number"
@@ -233,7 +225,7 @@ export const ProfileScreen = () => {
                 touched={touched.phone}
                 editable={editMode}
               />
-              
+
               {editMode && (
                 <Button
                   title="Save Changes"
@@ -310,4 +302,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen; 
+export default ProfileScreen;

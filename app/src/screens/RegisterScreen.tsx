@@ -35,7 +35,7 @@ type RegisterFormValues = {
 
 /**
  * RegisterScreen Component
- * 
+ *
  * Allows users to create a new account using email and password.
  */
 export const RegisterScreen = () => {
@@ -43,15 +43,15 @@ export const RegisterScreen = () => {
   const { theme } = useTheme();
   const { register } = useAuth();
   const { colors, spacing } = theme;
-  
+
   const [registrationError, setRegistrationError] = useState<string | null>(null);
-  
+
   // Handle form submission
   const handleRegister = async (values: RegisterFormValues) => {
     try {
       setRegistrationError(null);
       const success = await register(values.email, values.password, values.fullName);
-      
+
       if (success) {
         // Registration successful
         Alert.alert(
@@ -68,12 +68,9 @@ export const RegisterScreen = () => {
       console.error('Registration error:', error);
     }
   };
-  
+
   return (
-    <FormContainer
-      title="Create an Account"
-      subtitle="Sign up to manage your subscriptions"
-    >
+    <FormContainer title="Create an Account" subtitle="Sign up to manage your subscriptions">
       <Formik
         initialValues={{ fullName: '', email: '', password: '', confirmPassword: '' }}
         validationSchema={RegisterSchema}
@@ -92,7 +89,7 @@ export const RegisterScreen = () => {
               error={errors.fullName}
               touched={touched.fullName}
             />
-            
+
             <FormInput
               label="Email"
               placeholder="Enter your email"
@@ -105,7 +102,7 @@ export const RegisterScreen = () => {
               error={errors.email}
               touched={touched.email}
             />
-            
+
             <FormInput
               label="Password"
               placeholder="Create a password"
@@ -117,7 +114,7 @@ export const RegisterScreen = () => {
               error={errors.password}
               touched={touched.password}
             />
-            
+
             <FormInput
               label="Confirm Password"
               placeholder="Confirm your password"
@@ -129,28 +126,24 @@ export const RegisterScreen = () => {
               error={errors.confirmPassword}
               touched={touched.confirmPassword}
             />
-            
+
             {registrationError && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {registrationError}
-              </Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{registrationError}</Text>
             )}
-            
+
             <Button
               title="Register"
               onPress={() => handleSubmit()}
               isLoading={isSubmitting}
               style={{ marginTop: spacing.md }}
             />
-            
+
             <View style={styles.footerContainer}>
               <Text style={[styles.footerText, { color: colors.text.secondary }]}>
                 Already have an account?
               </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={[styles.footerLink, { color: colors.primary }]}>
-                  {' Sign In'}
-                </Text>
+                <Text style={[styles.footerLink, { color: colors.primary }]}>{' Sign In'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -178,4 +171,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-}); 
+});

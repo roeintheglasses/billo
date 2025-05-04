@@ -1,12 +1,5 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Image, 
-  StyleProp, 
-  ViewStyle,
-  ImageSourcePropType,
-} from 'react-native';
+import { View, StyleSheet, Image, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { Text } from '../../atoms/Text';
 
@@ -19,7 +12,7 @@ export interface SubscriptionCardHeaderProps {
 
 /**
  * Header component for SubscriptionCard
- * 
+ *
  * @param {string} title - The subscription service name
  * @param {string} iconUrl - URL to the subscription service logo
  * @returns {React.ReactElement} A subscription card header component
@@ -38,33 +31,18 @@ export const SubscriptionCardHeader: React.FC<SubscriptionCardHeaderProps> = ({
   };
 
   return (
-    <View 
-      style={[styles.container, style]} 
-      testID={testID}
-    >
+    <View style={[styles.container, style]} testID={testID}>
       {iconUrl ? (
-        <Image 
-          source={{ uri: iconUrl }} 
-          style={styles.icon}
-          resizeMode="contain"
-        />
+        <Image source={{ uri: iconUrl }} style={styles.icon} resizeMode="contain" />
       ) : (
-        <View 
-          style={[
-            styles.initialContainer, 
-            { backgroundColor: theme.colors.primary }
-          ]}
-        >
-          <Text 
-            style={{ color: theme.colors.text.inverted }}
-            variant="subtitle"
-          >
+        <View style={[styles.initialContainer, { backgroundColor: theme.colors.primary }]}>
+          <Text style={{ color: theme.colors.text.inverted }} variant="subtitle">
             {getInitial()}
           </Text>
         </View>
       )}
-      <Text 
-        variant="subtitle" 
+      <Text
+        variant="subtitle"
         style={[styles.title, { color: theme.colors.text.primary }]}
         numberOfLines={1}
       >
@@ -99,4 +77,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SubscriptionCardHeader; 
+export default SubscriptionCardHeader;

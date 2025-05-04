@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  TextInput, 
-  StyleSheet, 
-  TouchableOpacity, 
-  TextInputProps 
-} from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, TextInputProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -17,12 +11,12 @@ export interface SearchInputProps extends TextInputProps {
 
 /**
  * SearchInput component with search icon and clear button
- * 
+ *
  * @param {function} onClear - Callback function when clear button is pressed
  * @param {function} onSearch - Callback function when search is submitted
  * @param {string} placeholder - Placeholder text for the search input
  * @returns {React.ReactElement} A styled search input component
- * 
+ *
  * @example
  * // Basic usage
  * <SearchInput
@@ -43,10 +37,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
-  
+
   // Local state to track when to show the clear button
   const [isFocused, setIsFocused] = useState(false);
-  
+
   // Handle text clear
   const handleClear = () => {
     if (onChangeText) {
@@ -56,16 +50,16 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       onClear();
     }
   };
-  
+
   // Handle search submission
   const handleSubmit = () => {
     if (onSearch && value) {
       onSearch(value);
     }
   };
-  
+
   const showClearButton = !!value && value.length > 0;
-  
+
   return (
     <View
       style={[
@@ -77,18 +71,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         style,
       ]}
     >
-      <Ionicons 
-        name="search" 
-        size={20} 
-        color={colors.text.tertiary} 
-        style={styles.searchIcon} 
-      />
-      
+      <Ionicons name="search" size={20} color={colors.text.tertiary} style={styles.searchIcon} />
+
       <TextInput
-        style={[
-          styles.input,
-          { color: colors.text.primary }
-        ]}
+        style={[styles.input, { color: colors.text.primary }]}
         placeholder={placeholder}
         placeholderTextColor={colors.text.tertiary}
         returnKeyType="search"
@@ -102,7 +88,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         clearButtonMode="never" // We'll handle clear manually for cross-platform
         {...rest}
       />
-      
+
       {showClearButton && (
         <TouchableOpacity
           onPress={handleClear}
@@ -110,11 +96,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
           accessibilityLabel="Clear search"
           accessibilityRole="button"
         >
-          <Ionicons 
-            name="close-circle" 
-            size={18} 
-            color={colors.text.tertiary} 
-          />
+          <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
     </View>
@@ -145,4 +127,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SearchInput; 
+export default SearchInput;

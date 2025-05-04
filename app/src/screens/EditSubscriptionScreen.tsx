@@ -1,5 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, ActivityIndicator } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { FormField } from '../components/molecules/FormField';
@@ -22,7 +30,7 @@ type EditRouteParams = {
 
 /**
  * EditSubscriptionScreen Component
- * 
+ *
  * Allows users to edit an existing subscription with all required fields.
  */
 const EditSubscriptionScreen = () => {
@@ -39,7 +47,13 @@ const EditSubscriptionScreen = () => {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<BillingCycle>('monthly');
-  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>(['monthly', 'yearly', 'weekly', 'quarterly', 'biannually']);
+  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([
+    'monthly',
+    'yearly',
+    'weekly',
+    'quarterly',
+    'biannually',
+  ]);
   const [startDate, setStartDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [category, setCategory] = useState('');
@@ -63,7 +77,7 @@ const EditSubscriptionScreen = () => {
       try {
         setLoading(true);
         const subscription = await getSubscriptionById(subscriptionId);
-        
+
         if (subscription) {
           setSubscription(subscription);
           setName(subscription.name);
@@ -187,7 +201,7 @@ const EditSubscriptionScreen = () => {
               if (!subscription) {
                 throw new Error('Subscription not found');
               }
-              
+
               await deleteSubscription(subscription.id);
               Alert.alert('Success', 'Subscription deleted successfully');
               navigation.goBack();
@@ -214,13 +228,11 @@ const EditSubscriptionScreen = () => {
   if (loadingError) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
-        <Text variant="heading2" style={{ color: colors.error }}>Error</Text>
+        <Text variant="heading2" style={{ color: colors.error }}>
+          Error
+        </Text>
         <Text variant="body">{loadingError}</Text>
-        <Button 
-          title="Go Back" 
-          onPress={() => navigation.goBack()} 
-          style={{ marginTop: 20 }}
-        />
+        <Button title="Go Back" onPress={() => navigation.goBack()} style={{ marginTop: 20 }} />
       </View>
     );
   }
@@ -232,14 +244,16 @@ const EditSubscriptionScreen = () => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
           </TouchableOpacity>
-          <Text variant="heading1" style={styles.title}>Edit Subscription</Text>
+          <Text variant="heading1" style={styles.title}>
+            Edit Subscription
+          </Text>
         </View>
 
         <FormField label="Name" error={errors.name}>
           <Input
             placeholder="Enter subscription name"
             value={name}
-            onChangeText={(text) => {
+            onChangeText={text => {
               setName(text);
               if (errors.name) setErrors({ ...errors, name: '' });
             }}
@@ -250,7 +264,7 @@ const EditSubscriptionScreen = () => {
           <Input
             placeholder="Enter amount"
             value={amount}
-            onChangeText={(text) => {
+            onChangeText={text => {
               setAmount(text);
               if (errors.amount) setErrors({ ...errors, amount: '' });
             }}
@@ -260,30 +274,27 @@ const EditSubscriptionScreen = () => {
 
         <FormField label="Billing Cycle" error={errors.billingCycle}>
           <View style={styles.billingCycleContainer}>
-            {billingCycles.map((cycle) => (
+            {billingCycles.map(cycle => (
               <TouchableOpacity
                 key={cycle}
                 style={[
                   styles.billingCycleButton,
-                  { 
-                    backgroundColor: 
-                      selectedBillingCycle === cycle 
-                        ? colors.primary 
-                        : colors.background.secondary,
-                    borderColor: colors.border.light
-                  }
+                  {
+                    backgroundColor:
+                      selectedBillingCycle === cycle ? colors.primary : colors.background.secondary,
+                    borderColor: colors.border.light,
+                  },
                 ]}
                 onPress={() => {
                   setSelectedBillingCycle(cycle);
                   if (errors.billingCycle) setErrors({ ...errors, billingCycle: '' });
                 }}
               >
-                <Text 
-                  variant="body" 
-                  style={{ 
-                    color: selectedBillingCycle === cycle 
-                      ? colors.text.inverted 
-                      : colors.text.primary 
+                <Text
+                  variant="body"
+                  style={{
+                    color:
+                      selectedBillingCycle === cycle ? colors.text.inverted : colors.text.primary,
                   }}
                 >
                   {cycle.charAt(0).toUpperCase() + cycle.slice(1)}
@@ -297,10 +308,10 @@ const EditSubscriptionScreen = () => {
           <TouchableOpacity
             style={[
               styles.datePickerButton,
-              { 
+              {
                 backgroundColor: colors.background.secondary,
-                borderColor: colors.border.light
-              }
+                borderColor: colors.border.light,
+              },
             ]}
             onPress={showDatePickerModal}
           >
@@ -325,7 +336,10 @@ const EditSubscriptionScreen = () => {
             editable={false}
             onPressIn={() => {
               // This would open a category selection modal in the future
-              Alert.alert('Coming Soon', 'Category selection will be available in a future update.');
+              Alert.alert(
+                'Coming Soon',
+                'Category selection will be available in a future update.'
+              );
             }}
           />
         </FormField>
@@ -351,15 +365,11 @@ const EditSubscriptionScreen = () => {
         </FormField>
 
         <View style={styles.buttonContainer}>
-          <Button 
-            title="Save Changes" 
-            onPress={handleSubmit} 
-            style={styles.submitButton}
-          />
-          <Button 
-            title="Delete" 
-            onPress={handleDelete} 
-            style={styles.deleteButton} 
+          <Button title="Save Changes" onPress={handleSubmit} style={styles.submitButton} />
+          <Button
+            title="Delete"
+            onPress={handleDelete}
+            style={styles.deleteButton}
             variant="secondary"
           />
         </View>
@@ -421,4 +431,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditSubscriptionScreen; 
+export default EditSubscriptionScreen;

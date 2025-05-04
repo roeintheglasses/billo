@@ -1,13 +1,13 @@
 import React from 'react';
-import { 
-  TouchableOpacity, 
-  Text, 
-  StyleSheet, 
-  ActivityIndicator, 
-  TouchableOpacityProps, 
-  StyleProp, 
-  TextStyle, 
-  ViewStyle 
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacityProps,
+  StyleProp,
+  TextStyle,
+  ViewStyle,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,7 +28,7 @@ interface ButtonProps extends TouchableOpacityProps {
 
 /**
  * Button Component
- * 
+ *
  * A reusable button component with different variants, sizes, and states.
  */
 export const Button: React.FC<ButtonProps> = ({
@@ -45,7 +45,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const { theme } = useTheme();
   const { colors, spacing } = theme;
-  
+
   // Get variant specific styles
   const getVariantStyles = (): { container: ViewStyle; text: TextStyle } => {
     switch (variant) {
@@ -59,7 +59,7 @@ export const Button: React.FC<ButtonProps> = ({
             color: '#FFFFFF',
           },
         };
-        
+
       case 'secondary':
         return {
           container: {
@@ -70,7 +70,7 @@ export const Button: React.FC<ButtonProps> = ({
             color: '#FFFFFF',
           },
         };
-        
+
       case 'outline':
         return {
           container: {
@@ -82,7 +82,7 @@ export const Button: React.FC<ButtonProps> = ({
             color: colors.primary,
           },
         };
-        
+
       case 'ghost':
         return {
           container: {
@@ -93,7 +93,7 @@ export const Button: React.FC<ButtonProps> = ({
             color: colors.primary,
           },
         };
-      
+
       default:
         return {
           container: {
@@ -106,7 +106,7 @@ export const Button: React.FC<ButtonProps> = ({
         };
     }
   };
-  
+
   // Get size specific styles
   const getSizeStyles = (): { container: ViewStyle; text: TextStyle } => {
     switch (size) {
@@ -120,7 +120,7 @@ export const Button: React.FC<ButtonProps> = ({
             fontSize: 14,
           },
         };
-        
+
       case 'medium':
         return {
           container: {
@@ -131,7 +131,7 @@ export const Button: React.FC<ButtonProps> = ({
             fontSize: 16,
           },
         };
-        
+
       case 'large':
         return {
           container: {
@@ -142,7 +142,7 @@ export const Button: React.FC<ButtonProps> = ({
             fontSize: 18,
           },
         };
-        
+
       default:
         return {
           container: {
@@ -155,33 +155,37 @@ export const Button: React.FC<ButtonProps> = ({
         };
     }
   };
-  
+
   const variantStyles = getVariantStyles();
   const sizeStyles = getSizeStyles();
-  
+
   const disabledStyles: { container: ViewStyle; text: TextStyle } = {
     container: {
       opacity: 0.5,
     },
     text: {},
   };
-  
+
   // Spinner color based on variant
   const spinnerColor = variant === 'outline' || variant === 'ghost' ? colors.primary : '#FFFFFF';
-  
+
   // Icon size based on button size
   const getIconSize = (): number => {
     switch (size) {
-      case 'small': return 16;
-      case 'medium': return 18;
-      case 'large': return 20;
-      default: return 18;
+      case 'small':
+        return 16;
+      case 'medium':
+        return 18;
+      case 'large':
+        return 20;
+      default:
+        return 18;
     }
   };
-  
+
   const iconSize = getIconSize();
   const iconColor = variantStyles.text.color;
-  
+
   return (
     <TouchableOpacity
       style={[
@@ -206,7 +210,7 @@ export const Button: React.FC<ButtonProps> = ({
               style={styles.leftIcon}
             />
           )}
-          
+
           <Text
             style={[
               styles.text,
@@ -218,7 +222,7 @@ export const Button: React.FC<ButtonProps> = ({
           >
             {title}
           </Text>
-          
+
           {rightIcon && (
             <Ionicons
               name={rightIcon}
@@ -250,4 +254,4 @@ const styles = StyleSheet.create({
   rightIcon: {
     marginLeft: 8,
   },
-}); 
+});

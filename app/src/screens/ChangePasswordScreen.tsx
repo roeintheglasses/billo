@@ -9,7 +9,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { updatePassword } from '../services/auth';
 
 // Password validation schema
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 // Validation schema
 const ChangePasswordSchema = Yup.object().shape({
@@ -35,85 +36,67 @@ type ChangePasswordFormValues = {
 
 /**
  * ChangePasswordScreen Component
- * 
+ *
  * Allows logged-in users to change their password from the settings.
  */
 export const ChangePasswordScreen = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
   const { colors, spacing } = theme;
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Handle form submission
   const handleSubmit = async (values: ChangePasswordFormValues, { resetForm }: any) => {
     try {
       setIsSubmitting(true);
-      
+
       // TODO: Add verification of current password before changing to new password
       // This would require a separate auth method in Supabase
-      
+
       const success = await updatePassword(values.newPassword);
-      
+
       if (success) {
-        Alert.alert(
-          'Success',
-          'Your password has been updated successfully.',
-          [
-            { 
-              text: 'OK', 
-              onPress: () => {
-                resetForm();
-                navigation.goBack();
-              }
-            }
-          ]
-        );
+        Alert.alert('Success', 'Your password has been updated successfully.', [
+          {
+            text: 'OK',
+            onPress: () => {
+              resetForm();
+              navigation.goBack();
+            },
+          },
+        ]);
       } else {
-        Alert.alert(
-          'Error',
-          'Unable to update your password. Please try again later.',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Error', 'Unable to update your password. Please try again later.', [
+          { text: 'OK' },
+        ]);
       }
     } catch (error) {
       console.error('Password change error:', error);
-      Alert.alert(
-        'Error',
-        'An unexpected error occurred. Please try again later.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Error', 'An unexpected error occurred. Please try again later.', [
+        { text: 'OK' },
+      ]);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <View style={[styles.header, { borderBottomColor: colors.border.light }]}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={[styles.backButtonText, { color: colors.primary }]}>
-            Back
-          </Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-          Change Password
-        </Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Change Password</Text>
         <View style={styles.placeholder} />
       </View>
-      
-      <FormContainer
-        subtitle="Update your password to keep your account secure"
-        showTitle={false}
-      >
+
+      <FormContainer subtitle="Update your password to keep your account secure" showTitle={false}>
         <Formik
-          initialValues={{ 
-            currentPassword: '', 
-            newPassword: '', 
-            confirmNewPassword: '' 
+          initialValues={{
+            currentPassword: '',
+            newPassword: '',
+            confirmNewPassword: '',
           }}
           validationSchema={ChangePasswordSchema}
           onSubmit={handleSubmit}
@@ -132,7 +115,7 @@ export const ChangePasswordScreen = () => {
                 touched={touched.currentPassword}
                 autoCapitalize="none"
               />
-              
+
               <FormInput
                 label="New Password"
                 placeholder="Enter new password"
@@ -145,7 +128,7 @@ export const ChangePasswordScreen = () => {
                 touched={touched.newPassword}
                 autoCapitalize="none"
               />
-              
+
               <FormInput
                 label="Confirm New Password"
                 placeholder="Confirm new password"
@@ -158,12 +141,12 @@ export const ChangePasswordScreen = () => {
                 touched={touched.confirmNewPassword}
                 autoCapitalize="none"
               />
-              
+
               <Text style={[styles.passwordRequirements, { color: colors.text.secondary }]}>
-                Password must contain at least 8 characters, including uppercase letter, 
-                lowercase letter, number, and special character.
+                Password must contain at least 8 characters, including uppercase letter, lowercase
+                letter, number, and special character.
               </Text>
-              
+
               <Button
                 title="Update Password"
                 onPress={() => handleSubmit()}
@@ -207,4 +190,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 16,
   },
-}); 
+});

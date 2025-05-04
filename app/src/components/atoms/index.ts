@@ -15,4 +15,4 @@ export { default as Container } from './Container';
 export { Row, Column, Grid } from './Grid';
 export { default as Modal } from './Modal';
 export { default as List } from './List';
-export { default as Spinner } from './Spinner'; 
+export { default as Spinner } from './Spinner';

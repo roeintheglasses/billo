@@ -17,25 +17,23 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   icon = 'add',
   title,
   color,
-  position = 'bottom-right'
+  position = 'bottom-right',
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
-  
+
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        styles[position],
-        { backgroundColor: color || colors.primary }
-      ]}
+      style={[styles.button, styles[position], { backgroundColor: color || colors.primary }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       {title ? (
         <View style={styles.containerWithTitle}>
           <Ionicons name={icon} size={24} color={colors.text.inverted} />
-          <Text variant="body" style={styles.title}>{title}</Text>
+          <Text variant="body" style={styles.title}>
+            {title}
+          </Text>
         </View>
       ) : (
         <Ionicons name={icon} size={24} color={colors.text.inverted} />
@@ -74,5 +72,5 @@ const styles = StyleSheet.create({
   title: {
     color: '#FFFFFF',
     marginLeft: 8,
-  }
-}); 
+  },
+});

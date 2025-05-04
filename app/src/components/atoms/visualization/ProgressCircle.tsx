@@ -8,57 +8,57 @@ export interface ProgressCircleProps {
    * Progress value from 0 to 100
    */
   value: number;
-  
+
   /**
    * Circle size (diameter) in pixels
    */
   size?: number;
-  
+
   /**
    * Thickness of the progress circle
    */
   thickness?: number;
-  
+
   /**
    * Color of the unfilled track
    */
   trackColor?: string;
-  
+
   /**
    * Color of the progress fill
    */
   fillColor?: string;
-  
+
   /**
    * Show percentage text in the center
    */
   showValue?: boolean;
-  
+
   /**
    * Format for the value display
    */
   valuePrefix?: string;
-  
+
   /**
    * Format for the value display
    */
   valueSuffix?: string;
-  
+
   /**
    * Custom style for the container
    */
   style?: StyleProp<ViewStyle>;
-  
+
   /**
    * Custom style for the text
    */
   textStyle?: StyleProp<TextStyle>;
-  
+
   /**
    * Custom format function for the value display
    */
   formatValue?: (value: number) => string;
-  
+
   /**
    * Custom component to render in the center
    */
@@ -67,7 +67,7 @@ export interface ProgressCircleProps {
 
 /**
  * ProgressCircle component
- * 
+ *
  * A circular progress indicator with customizable appearance.
  * Can display percentage value in the center or a custom component.
  */
@@ -87,21 +87,21 @@ export const ProgressCircle: React.FC<ProgressCircleProps> = ({
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
-  
+
   // Clamp value between 0 and 100
   const clampedValue = Math.min(Math.max(value, 0), 100);
-  
+
   // Calculate SVG parameters
   const radius = (size - thickness) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (clampedValue / 100) * circumference;
-  
+
   // Colors based on theme
   const trackColorWithDefault = trackColor || colors.border.light;
   const fillColorWithDefault = fillColor || colors.primary;
-  
+
   // Format the display value
-  const displayValue = formatValue 
+  const displayValue = formatValue
     ? formatValue(clampedValue)
     : `${valuePrefix}${Math.round(clampedValue)}${valueSuffix}`;
 
@@ -118,7 +118,7 @@ export const ProgressCircle: React.FC<ProgressCircleProps> = ({
             strokeWidth={thickness}
             fill="transparent"
           />
-          
+
           {/* Progress Fill */}
           <Circle
             cx={size / 2}
@@ -133,22 +133,15 @@ export const ProgressCircle: React.FC<ProgressCircleProps> = ({
           />
         </G>
       </Svg>
-      
+
       {/* Center Content */}
       <View style={styles.centerContent}>
-        {centerComponent || (
-          showValue && (
-            <Text 
-              style={[
-                styles.valueText, 
-                { color: colors.text.primary }, 
-                textStyle
-              ]}
-            >
+        {centerComponent ||
+          (showValue && (
+            <Text style={[styles.valueText, { color: colors.text.primary }, textStyle]}>
               {displayValue}
             </Text>
-          )
-        )}
+          ))}
       </View>
     </View>
   );
@@ -173,4 +166,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-}); 
+});

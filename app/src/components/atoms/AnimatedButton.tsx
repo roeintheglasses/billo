@@ -43,18 +43,13 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   ...pressableProps
 }) => {
   const { theme, isReducedMotionEnabled } = useTheme();
-  
+
   // Scale animation for press feedback
-  const { animatedValue: scale, reset: resetScale } = useSpringAnimation(
-    false,
-    1,
-    0.95,
-    {
-      damping: 8,
-      stiffness: 150,
-    }
-  );
-  
+  const { animatedValue: scale, reset: resetScale } = useSpringAnimation(false, 1, 0.95, {
+    damping: 8,
+    stiffness: 150,
+  });
+
   // Fade animation for disabled state
   const fadeStyle = useFadeScaleAnimation(!disabled, 0.95, {
     duration: theme.animations.duration.fast,
@@ -184,13 +179,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   return (
     <AnimatedPressable
-      style={[
-        styles.button,
-        getButtonStyle(),
-        getSizeStyle(),
-        animatedStyle,
-        containerStyle,
-      ]}
+      style={[styles.button, getButtonStyle(), getSizeStyle(), animatedStyle, containerStyle]}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       onPress={onPress}
@@ -198,16 +187,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
       {...accessibilityProps}
       {...pressableProps}
     >
-      <Text
-        style={[
-          styles.label,
-          getTextStyle(),
-          getTextSizeStyle(),
-          labelStyle,
-        ]}
-      >
-        {label}
-      </Text>
+      <Text style={[styles.label, getTextStyle(), getTextSizeStyle(), labelStyle]}>{label}</Text>
     </AnimatedPressable>
   );
 };
@@ -227,4 +207,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AnimatedButton; 
+export default AnimatedButton;

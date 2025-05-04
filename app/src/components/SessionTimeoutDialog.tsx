@@ -1,6 +1,6 @@
 /**
  * Session Timeout Dialog Component
- * 
+ *
  * This component displays a warning when the user's session is about to expire,
  * giving them the option to extend the session or sign out.
  */
@@ -11,43 +11,38 @@ import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Session Timeout Dialog
- * 
+ *
  * Shows a warning when the session is about to expire and provides options to extend or sign out.
  */
 const SessionTimeoutDialog: React.FC = () => {
-  const { 
-    sessionTimeoutWarning, 
-    extendSession, 
-    signOut, 
-    dismissSessionWarning,
-    isLoading 
-  } = useAuth();
-  
+  const { sessionTimeoutWarning, extendSession, signOut, dismissSessionWarning, isLoading } =
+    useAuth();
+
   if (!sessionTimeoutWarning) {
     return null;
   }
-  
+
   /**
    * Handle extending the session
    */
   const handleExtendSession = async () => {
     await extendSession();
   };
-  
+
   /**
    * Handle signing out
    */
   const handleSignOut = async () => {
     await signOut();
   };
-  
+
   /**
    * Handle dismissing the warning
    */
   const handleDismiss = () => {
     dismissSessionWarning();
   };
-  
+
   return (
     <Modal
       transparent
@@ -61,7 +56,7 @@ const SessionTimeoutDialog: React.FC = () => {
           <Text style={styles.message}>
             Your session is about to expire. Would you like to extend your session?
           </Text>
-          
+
           {isLoading ? (
             <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
           ) : (
@@ -69,11 +64,14 @@ const SessionTimeoutDialog: React.FC = () => {
               <TouchableOpacity style={styles.button} onPress={handleExtendSession}>
                 <Text style={styles.buttonText}>Extend Session</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={handleSignOut}>
+
+              <TouchableOpacity
+                style={[styles.button, styles.secondaryButton]}
+                onPress={handleSignOut}
+              >
                 <Text style={styles.secondaryButtonText}>Sign Out</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={styles.dismissButton} onPress={handleDismiss}>
                 <Text style={styles.dismissText}>Dismiss</Text>
               </TouchableOpacity>
@@ -141,4 +139,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SessionTimeoutDialog; 
+export default SessionTimeoutDialog;

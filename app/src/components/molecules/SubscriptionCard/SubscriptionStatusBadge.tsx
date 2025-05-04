@@ -1,10 +1,5 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  StyleProp, 
-  ViewStyle 
-} from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { Text } from '../../atoms/Text';
 import { SubscriptionStatus } from './SubscriptionCard';
@@ -18,7 +13,7 @@ export interface SubscriptionStatusBadgeProps {
 
 /**
  * Status badge component for SubscriptionCard
- * 
+ *
  * @param {SubscriptionStatus} status - The subscription status
  * @param {string} size - Size of the badge
  * @returns {React.ReactElement} A subscription status badge component
@@ -30,7 +25,7 @@ export const SubscriptionStatusBadge: React.FC<SubscriptionStatusBadgeProps> = (
   testID,
 }) => {
   const { theme } = useTheme();
-  
+
   // Get status color and text
   const getStatusConfig = (): { color: string; text: string } => {
     switch (status) {
@@ -66,12 +61,12 @@ export const SubscriptionStatusBadge: React.FC<SubscriptionStatusBadgeProps> = (
         };
     }
   };
-  
+
   const statusConfig = getStatusConfig();
   const isSmall = size === 'small';
-  
+
   return (
-    <View 
+    <View
       style={[
         styles.container,
         {
@@ -79,18 +74,18 @@ export const SubscriptionStatusBadge: React.FC<SubscriptionStatusBadgeProps> = (
           paddingVertical: isSmall ? 2 : 4,
           paddingHorizontal: isSmall ? 6 : 10,
         },
-        style
-      ]} 
+        style,
+      ]}
       testID={testID}
     >
-      <Text 
+      <Text
         variant="caption"
         style={[
           styles.text,
-          { 
+          {
             color: '#FFFFFF', // White text on colored background
             fontSize: isSmall ? 10 : 12,
-          }
+          },
         ]}
       >
         {statusConfig.text}
@@ -109,4 +104,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SubscriptionStatusBadge; 
+export default SubscriptionStatusBadge;

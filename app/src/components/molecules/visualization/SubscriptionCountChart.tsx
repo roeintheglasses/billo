@@ -2,24 +2,26 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { BarChart, BarData } from '../../atoms/visualization/BarChart';
 import { useTheme } from '../../../contexts/ThemeContext';
-import subscriptionCountService, { CategoryCount } from '../../../services/subscriptionCountService';
+import subscriptionCountService, {
+  CategoryCount,
+} from '../../../services/subscriptionCountService';
 
 export interface SubscriptionCountChartProps {
   /**
    * Title for the chart
    */
   title?: string;
-  
+
   /**
    * Custom height for the chart
    */
   height?: number;
-  
+
   /**
    * Whether to show values on top of the bars
    */
   showValues?: boolean;
-  
+
   /**
    * Callback when a category is selected
    */
@@ -28,7 +30,7 @@ export interface SubscriptionCountChartProps {
 
 /**
  * SubscriptionCountChart component
- * 
+ *
  * Displays a bar chart showing the number of subscriptions in each category.
  * Allows filtering the dashboard by clicking on a category.
  */
@@ -36,14 +38,14 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
   title = 'Subscriptions by Category',
   height = 300,
   showValues = true,
-  onCategorySelect
+  onCategorySelect,
 }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [categoryData, setCategoryData] = useState<CategoryCount[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  
+
   const { theme } = useTheme();
   const colors = theme.colors || {
     primary: '#4A80F0',
@@ -54,18 +56,18 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
     text: {
       primary: '#1A1A1A',
       secondary: '#737373',
-      tertiary: '#9E9E9E'
+      tertiary: '#9E9E9E',
     },
     background: {
       primary: '#FFFFFF',
-      secondary: '#F5F5F5'
+      secondary: '#F5F5F5',
     },
     border: {
       light: '#E0E0E0',
-      medium: '#BDBDBD'
-    }
+      medium: '#BDBDBD',
+    },
   };
-  
+
   // Fetch category count data
   useEffect(() => {
     const fetchData = async () => {
@@ -73,7 +75,7 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
         setLoading(true);
         const data = await subscriptionCountService.calculateSubscriptionCountByCategory();
         setCategoryData(data.filter(item => item.count > 0).sort((a, b) => b.count - a.count));
-        
+
         const total = await subscriptionCountService.getTotalSubscriptionCount();
         setTotalCount(total);
       } catch (err) {
@@ -83,17 +85,18 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
-  
+
   // Transform data for BarChart component
   const chartData = useMemo((): BarData[] => {
     return categoryData.map((item, index) => {
       // Generate color based on category color or fallback to index-based color
-      const barColor = item.category.color || 
+      const barColor =
+        item.category.color ||
         [colors.primary, colors.secondary, colors.success, colors.warning, '#9C27B0'][index % 5];
-      
+
       return {
         value: item.count,
         label: item.category.name,
@@ -102,26 +105,23 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
           const newSelectedId = selectedCategory === item.category.id ? null : item.category.id;
           setSelectedCategory(newSelectedId);
           if (onCategorySelect) {
-            onCategorySelect(
-              item.category.id,
-              item.category.name
-            );
+            onCategorySelect(item.category.id, item.category.name);
           }
-        }
+        },
       };
     });
   }, [categoryData, selectedCategory, onCategorySelect, colors]);
-  
+
   // Render legend items
   const renderLegend = () => {
     return (
       <View style={styles.legend}>
-        {categoryData.map((item) => (
+        {categoryData.map(item => (
           <TouchableOpacity
             key={item.category.id}
             style={[
-              styles.legendItem, 
-              selectedCategory === item.category.id && styles.legendItemSelected
+              styles.legendItem,
+              selectedCategory === item.category.id && styles.legendItemSelected,
             ]}
             accessibilityRole="button"
             accessibilityLabel={`${item.category.name}: ${item.count} subscriptions`}
@@ -130,35 +130,32 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
               const newSelectedId = selectedCategory === item.category.id ? null : item.category.id;
               setSelectedCategory(newSelectedId);
               if (onCategorySelect) {
-                onCategorySelect(
-                  item.category.id,
-                  item.category.name
-                );
+                onCategorySelect(item.category.id, item.category.name);
               }
             }}
           >
-            <View 
+            <View
               style={[
-                styles.legendColor, 
-                { 
-                  backgroundColor: item.category.color || 
+                styles.legendColor,
+                {
+                  backgroundColor:
+                    item.category.color ||
                     [colors.primary, colors.secondary, colors.success, colors.warning, '#9C27B0'][
                       categoryData.indexOf(item) % 5
                     ],
-                  borderColor: selectedCategory === item.category.id 
-                    ? colors.text.primary 
-                    : 'transparent'
-                }
-              ]} 
+                  borderColor:
+                    selectedCategory === item.category.id ? colors.text.primary : 'transparent',
+                },
+              ]}
             />
             <View style={styles.legendText}>
-              <Text 
+              <Text
                 style={[
-                  styles.legendName, 
-                  { 
+                  styles.legendName,
+                  {
                     color: colors.text.primary,
-                    fontWeight: selectedCategory === item.category.id ? 'bold' : 'normal'
-                  }
+                    fontWeight: selectedCategory === item.category.id ? 'bold' : 'normal',
+                  },
                 ]}
               >
                 {item.category.name}
@@ -172,23 +169,21 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
       </View>
     );
   };
-  
+
   // Handle empty state
   if (!loading && categoryData.length === 0) {
     return (
-      <View 
+      <View
         style={[
-          styles.container, 
-          { 
+          styles.container,
+          {
             height,
-            backgroundColor: colors.background.secondary, 
-            borderColor: colors.border.light
-          }
+            backgroundColor: colors.background.secondary,
+            borderColor: colors.border.light,
+          },
         ]}
       >
-        <Text style={[styles.title, { color: colors.text.primary }]}>
-          {title}
-        </Text>
+        <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
         <View style={styles.emptyState}>
           <Text style={[styles.emptyText, { color: colors.text.secondary }]}>
             No subscription data available
@@ -200,27 +195,23 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
       </View>
     );
   }
-  
+
   return (
-    <View 
+    <View
       style={[
-        styles.container, 
-        { 
+        styles.container,
+        {
           height,
-          backgroundColor: colors.background.secondary, 
-          borderColor: colors.border.light
-        }
+          backgroundColor: colors.background.secondary,
+          borderColor: colors.border.light,
+        },
       ]}
     >
       <View style={styles.headerContainer}>
-        <Text style={[styles.title, { color: colors.text.primary }]}>
-          {title}
-        </Text>
-        <Text style={[styles.totalCount, { color: colors.primary }]}>
-          Total: {totalCount}
-        </Text>
+        <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
+        <Text style={[styles.totalCount, { color: colors.primary }]}>Total: {totalCount}</Text>
       </View>
-      
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -230,9 +221,7 @@ export const SubscriptionCountChart: React.FC<SubscriptionCountChartProps> = ({
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: colors.error }]}>
-            {error}
-          </Text>
+          <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>
       ) : (
         <View style={styles.chartContainer}>
@@ -342,4 +331,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SubscriptionCountChart; 
+export default SubscriptionCountChart;

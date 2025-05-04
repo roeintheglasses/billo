@@ -1,6 +1,6 @@
 /**
  * Theme configuration index
- * 
+ *
  * This file exports the entire theme configuration and provides
  * a convenience method to get the correct theme based on the mode.
  */
@@ -33,4 +33,4 @@ const getTheme = (mode: ThemeMode): Theme => ({
 export const lightTheme = getTheme('light');
 export const darkTheme = getTheme('dark');
 
-export { lightColors, darkColors, colors, spacing, typography, animations }; 
+export { lightColors, darkColors, colors, spacing, typography, animations };

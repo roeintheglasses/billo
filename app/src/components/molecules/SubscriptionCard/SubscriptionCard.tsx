@@ -1,11 +1,11 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ViewStyle, 
-  StyleProp, 
+import {
+  View,
+  StyleSheet,
+  ViewStyle,
+  StyleProp,
   TouchableOpacity,
-  TouchableOpacityProps
+  TouchableOpacityProps,
 } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { Card } from '../../atoms/Card';
@@ -32,7 +32,7 @@ export interface SubscriptionCardProps extends TouchableOpacityProps {
 
 /**
  * A card component for displaying subscription information
- * 
+ *
  * @param {SubscriptionStatus} status - The subscription status (active, pending, expired, trial, canceled)
  * @param {string} renewalDate - The date the subscription will renew
  * @param {ReactNode} children - The card content (typically SubscriptionCard.Header, SubscriptionCard.Details, etc.)
@@ -41,7 +41,7 @@ export interface SubscriptionCardProps extends TouchableOpacityProps {
  * @param {boolean} selectable - Whether the card is in multi-select mode
  * @param {boolean} selected - Whether the card is selected in multi-select mode
  * @returns {React.ReactElement} A subscription card component
- * 
+ *
  * @example
  * // Basic usage
  * <SubscriptionCard status="active" renewalDate="2025-05-15">
@@ -49,7 +49,7 @@ export interface SubscriptionCardProps extends TouchableOpacityProps {
  *   <SubscriptionCard.Details amount={14.99} cycle="monthly" category="Entertainment" />
  *   <SubscriptionCard.Actions />
  * </SubscriptionCard>
- * 
+ *
  * // Selectable mode
  * <SubscriptionCard status="active" selectable={true} selected={isSelected}>
  *   <SubscriptionCard.Header title="Netflix" />
@@ -81,9 +81,9 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> & {
   const formatRenewalDate = (date: string) => {
     if (!date) return '';
     const parsedDate = new Date(date);
-    return parsedDate.toLocaleDateString(undefined, { 
-      month: 'short', 
-      day: 'numeric' 
+    return parsedDate.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
     });
   };
 
@@ -97,63 +97,45 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> & {
   };
 
   const renderContent = () => (
-    <View style={[
-      styles.container,
-      isCompact && styles.compactContainer,
-    ]}>
+    <View style={[styles.container, isCompact && styles.compactContainer]}>
       {/* Selection indicator (shown when in selectable mode) */}
       {selectable && (
         <View style={styles.selectIconContainer}>
-          <Ionicons 
-            name={selected ? "checkmark-circle" : "ellipse-outline"} 
-            size={24} 
-            color={selected ? colors.primary : colors.text.secondary} 
+          <Ionicons
+            name={selected ? 'checkmark-circle' : 'ellipse-outline'}
+            size={24}
+            color={selected ? colors.primary : colors.text.secondary}
           />
         </View>
       )}
 
       {/* Status badge (shown in the corner) */}
-      <View style={[
-        styles.badgeContainer,
-        selectable && styles.badgeWithSelectable
-      ]}>
+      <View style={[styles.badgeContainer, selectable && styles.badgeWithSelectable]}>
         <SubscriptionStatusBadge status={status} />
       </View>
 
       {/* Renewal banner (only shown if renewal is soon and active) */}
       {status === 'active' && renewalDate && isRenewalSoon() && (
-        <View style={[
-          styles.renewalBanner,
-          { backgroundColor: theme.colors.primary }
-        ]}>
-          <Text 
-            variant="caption" 
-            style={{ color: theme.colors.text.inverted }}
-          >
+        <View style={[styles.renewalBanner, { backgroundColor: theme.colors.primary }]}>
+          <Text variant="caption" style={{ color: theme.colors.text.inverted }}>
             Renews {formatRenewalDate(renewalDate)}
           </Text>
         </View>
       )}
 
       {/* Main content */}
-      <View style={[
-        styles.contentContainer,
-        selectable && styles.contentWithSelectable
-      ]}>
+      <View style={[styles.contentContainer, selectable && styles.contentWithSelectable]}>
         {children}
       </View>
     </View>
   );
 
   return (
-    <Card 
+    <Card
       style={[
-        styles.card, 
-        selected && [
-          styles.selectedCard,
-          { borderColor: colors.primary }
-        ],
-        style
+        styles.card,
+        selected && [styles.selectedCard, { borderColor: colors.primary }],
+        style,
       ]}
       variant="elevated"
       testID={testID}
@@ -218,4 +200,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SubscriptionCard; 
+export default SubscriptionCard;

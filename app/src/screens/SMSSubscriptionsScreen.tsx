@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSMSPermissions } from '../contexts/PermissionsContext';
 import { SMSService, SubscriptionSMSMessage } from '../services';
@@ -12,19 +20,22 @@ import { IconButton } from '../components/atoms/IconButton';
 
 /**
  * SMSSubscriptionsScreen Component
- * 
+ *
  * Displays subscriptions detected from SMS messages
  */
 const SMSSubscriptionsScreen: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionSMSMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionSMSMessage | null>(null);
+  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionSMSMessage | null>(
+    null
+  );
   const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
   const [isBatchConfirmationVisible, setIsBatchConfirmationVisible] = useState(false);
   const { theme } = useTheme();
   const { colors } = theme;
-  const { isSMSPermissionGranted, requestSMSPermission, showSMSPermissionExplanation } = useSMSPermissions();
+  const { isSMSPermissionGranted, requestSMSPermission, showSMSPermissionExplanation } =
+    useSMSPermissions();
 
   // Scan for subscriptions in SMS messages
   const scanForSubscriptions = async () => {
@@ -50,19 +61,19 @@ const SMSSubscriptionsScreen: React.FC = () => {
     if (isSMSPermissionGranted) {
       // Set up listener for real-time SMS subscription detection
       const cleanup = SMSService.setupSMSListeners();
-      
+
       // Scan for existing subscriptions
       scanForSubscriptions();
-      
+
       // Listen for new subscription detections
       const newSubscriptionListener = DeviceEventEmitter.addListener(
         'subscriptionDetected',
-        (smsData) => {
+        smsData => {
           // When a new subscription SMS is detected, refresh the list
           scanForSubscriptions();
         }
       );
-      
+
       // Clean up listeners when component unmounts
       return () => {
         cleanup();
@@ -128,7 +139,7 @@ const SMSSubscriptionsScreen: React.FC = () => {
   // Render header with batch confirmation button
   const renderHeader = () => {
     if (subscriptions.length === 0) return null;
-    
+
     return (
       <View style={styles.headerContainer}>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
@@ -138,9 +149,7 @@ const SMSSubscriptionsScreen: React.FC = () => {
           style={[styles.batchButton, { backgroundColor: colors.primary }]}
           onPress={openBatchConfirmation}
         >
-          <Text style={{ color: colors.text.inverted, fontWeight: 'bold' }}>
-            Batch Confirm
-          </Text>
+          <Text style={{ color: colors.text.inverted, fontWeight: 'bold' }}>Batch Confirm</Text>
         </TouchableOpacity>
       </View>
     );
@@ -155,11 +164,15 @@ const SMSSubscriptionsScreen: React.FC = () => {
             SMS Permission Required
           </Text>
           <Text style={[styles.emptyText, { color: colors.text.secondary }]}>
-            To automatically detect subscriptions from your SMS messages, Billo needs permission to read your SMS messages.
+            To automatically detect subscriptions from your SMS messages, Billo needs permission to
+            read your SMS messages.
           </Text>
           <View style={styles.buttonContainer}>
-            <Text 
-              style={[styles.permissionButton, { backgroundColor: colors.primary, color: colors.text.inverted }]}
+            <Text
+              style={[
+                styles.permissionButton,
+                { backgroundColor: colors.primary, color: colors.text.inverted },
+              ]}
               onPress={showSMSPermissionExplanation}
             >
               Grant Permission
@@ -175,7 +188,8 @@ const SMSSubscriptionsScreen: React.FC = () => {
           No Subscriptions Found
         </Text>
         <Text style={[styles.emptyText, { color: colors.text.secondary }]}>
-          We couldn't find any subscription-related messages in your SMS inbox. Subscription confirmations, receipts, and renewal notices will appear here.
+          We couldn't find any subscription-related messages in your SMS inbox. Subscription
+          confirmations, receipts, and renewal notices will appear here.
         </Text>
       </View>
     );
@@ -200,10 +214,7 @@ const SMSSubscriptionsScreen: React.FC = () => {
         keyExtractor={item => item._id.toString()}
         ListHeaderComponent={renderHeader}
         renderItem={({ item }) => (
-          <SubscriptionCard 
-            subscription={item} 
-            onPress={() => handleSubscriptionPress(item)}
-          />
+          <SubscriptionCard subscription={item} onPress={() => handleSubscriptionPress(item)} />
         )}
         contentContainerStyle={subscriptions.length === 0 ? { flex: 1 } : styles.listContent}
         ListEmptyComponent={renderEmptyState}
@@ -292,4 +303,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SMSSubscriptionsScreen; 
+export default SMSSubscriptionsScreen;

@@ -1,19 +1,14 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { 
-  RegisterScreen, 
-  LoginScreen, 
-  ForgotPasswordScreen,
-  ResetPasswordScreen 
-} from '../screens';
+import { RegisterScreen, LoginScreen, ForgotPasswordScreen, ResetPasswordScreen } from '../screens';
 import { AuthStackParamList } from './navigationTypes';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 /**
  * AuthNavigator Component
- * 
- * Handles the authentication flow with screens for login, registration, 
+ *
+ * Handles the authentication flow with screens for login, registration,
  * and password recovery.
  */
 export const AuthNavigator = () => {
@@ -31,4 +26,4 @@ export const AuthNavigator = () => {
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
-}; 
+};

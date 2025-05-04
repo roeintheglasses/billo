@@ -8,7 +8,7 @@ import { Button } from '../components';
 
 /**
  * Authentication Screen
- * 
+ *
  * A placeholder screen for the authentication flow.
  */
 export const AuthScreen = () => {
@@ -33,21 +33,17 @@ export const AuthScreen = () => {
           Manage your subscriptions effortlessly
         </Text>
       </View>
-      
+
       <View style={styles.buttonContainer}>
-        <Button 
-          title="Sign In" 
-          onPress={handleLogin}
-          style={{ marginBottom: spacing.md }}
-        />
-        
-        <Button 
-          title="Create Account" 
+        <Button title="Sign In" onPress={handleLogin} style={{ marginBottom: spacing.md }} />
+
+        <Button
+          title="Create Account"
           variant="outline"
           onPress={() => navigation.navigate('Register')}
         />
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.forgotPassword}
           onPress={() => navigation.navigate('ForgotPassword' as any)}
         >
@@ -98,4 +94,4 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
   },
-}); 
+});

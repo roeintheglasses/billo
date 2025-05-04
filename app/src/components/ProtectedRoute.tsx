@@ -1,6 +1,6 @@
 /**
  * Protected Route Component
- * 
+ *
  * This component redirects unauthenticated users to the login screen.
  * It's used to protect routes that require authentication.
  */
@@ -16,14 +16,14 @@ interface ProtectedRouteProps {
 
 /**
  * ProtectedRoute Component
- * 
+ *
  * Wraps a component and ensures the user is authenticated
  * before rendering it. Redirects to login if not authenticated.
  */
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const navigation = useNavigation<NavigationProp<any>>();
-  
+
   // Show loading indicator while checking authentication
   if (isLoading) {
     return (
@@ -32,17 +32,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       </View>
     );
   }
-  
+
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     // Use setTimeout to avoid navigation during render
     setTimeout(() => {
       navigation.navigate('Login');
     }, 0);
-    
+
     return null;
   }
-  
+
   // Render children if authenticated
   return <>{children}</>;
 };
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProtectedRoute; 
+export default ProtectedRoute;

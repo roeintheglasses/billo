@@ -1,6 +1,6 @@
 /**
  * Color palette for the application
- * 
+ *
  * This file defines colors for both light and dark themes.
  */
 
@@ -33,7 +33,7 @@ const palette = {
   },
   // Grey scale
   grey: {
-    50: '#F9F9F9', 
+    50: '#F9F9F9',
     100: '#F2F2F7',
     200: '#E5E5EA',
     300: '#D1D1D6',
@@ -115,4 +115,4 @@ export const darkColors = {
 
 export type ColorTheme = typeof lightColors;
 
-export default { lightColors, darkColors, palette }; 
+export default { lightColors, darkColors, palette };

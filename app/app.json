@@ -37,7 +37,8 @@
       }
     },
     "plugins": [
-      "./plugins/withSmsModule.js"
+      "./plugins/withSmsModule.js",
+      "./plugins/withSMSScannerModule.js"
     ]
   }
 }

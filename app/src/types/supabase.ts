@@ -1,18 +1,12 @@
 /**
  * Supabase Database Types
- * 
+ *
  * This file contains TypeScript definitions that match the Supabase
  * database schema. These types provide type safety when interacting
  * with Supabase data.
  */
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
   public: {
@@ -377,8 +371,10 @@ export type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['
 
 // Subscription message types
 export type SubscriptionMessage = Database['public']['Tables']['subscription_messages']['Row'];
-export type SubscriptionMessageInsert = Database['public']['Tables']['subscription_messages']['Insert'];
-export type SubscriptionMessageUpdate = Database['public']['Tables']['subscription_messages']['Update'];
+export type SubscriptionMessageInsert =
+  Database['public']['Tables']['subscription_messages']['Insert'];
+export type SubscriptionMessageUpdate =
+  Database['public']['Tables']['subscription_messages']['Update'];
 
 // Transaction-related types
 export type Transaction = Database['public']['Tables']['transactions']['Row'];
@@ -449,4 +445,4 @@ export interface SpendingAnalytics {
     period: string;
     amount: number;
   }[];
-} 
+}

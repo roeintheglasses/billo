@@ -1,21 +1,21 @@
 import React from 'react';
-import { 
-  View, 
-  ScrollView, 
-  StyleSheet, 
-  ActivityIndicator, 
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
   RefreshControl,
-  SafeAreaView
+  SafeAreaView,
 } from 'react-native';
 import { Header } from '../organisms/Header';
 import { ScreenProps } from '../../types/components';
 
 /**
  * Screen template component for consistent screen layout
- * 
+ *
  * Provides a consistent layout structure for screens, including header handling,
  * scrolling behavior, safe area insets, loading states, and pull-to-refresh.
- * 
+ *
  * @param {ReactNode} header - Custom header component
  * @param {string} headerTitle - Title to display in the default header
  * @param {ReactNode} headerLeft - Component to display on the left side of header
@@ -29,15 +29,15 @@ import { ScreenProps } from '../../types/components';
  * @param {string} backgroundColor - Background color of the screen
  * @param {number|string} padding - Padding for the screen content
  * @returns {React.ReactElement} A styled screen component
- * 
+ *
  * @example
  * // Basic usage
  * <Screen headerTitle="Home">
  *   <Text>Screen content goes here</Text>
  * </Screen>
- * 
+ *
  * // With custom header and scrolling
- * <Screen 
+ * <Screen
  *   header={<CustomHeader />}
  *   scrollable
  *   onRefresh={handleRefresh}
@@ -65,7 +65,7 @@ export const Screen = ({
 }: ScreenProps) => {
   const Container = safeArea ? SafeAreaView : View;
   const ContentContainer = scrollable ? ScrollView : View;
-  
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -74,16 +74,14 @@ export const Screen = ({
         </View>
       );
     }
-    
+
     const contentStyles = [
       styles.contentContainer,
-      typeof padding === 'number' || typeof padding === 'string' 
-        ? { padding } 
-        : null,
+      typeof padding === 'number' || typeof padding === 'string' ? { padding } : null,
       !scrollable && { flex: 1 },
-      style
+      style,
     ];
-    
+
     if (scrollable) {
       return (
         <ContentContainer
@@ -91,9 +89,7 @@ export const Screen = ({
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            onRefresh ? (
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            ) : undefined
+            onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined
           }
           {...props}
         >
@@ -101,25 +97,24 @@ export const Screen = ({
         </ContentContainer>
       );
     }
-    
+
     return (
       <ContentContainer style={contentStyles} {...props}>
         {children}
       </ContentContainer>
     );
   };
-  
+
   return (
     <Container style={[styles.container, { backgroundColor }]}>
-      {!hideHeader && (
-        header || (
+      {!hideHeader &&
+        (header || (
           <Header
             title={headerTitle || ''}
             leftComponent={headerLeft}
             rightComponent={headerRight}
           />
-        )
-      )}
+        ))}
       {renderContent()}
     </Container>
   );
@@ -140,4 +135,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-}); 
+});

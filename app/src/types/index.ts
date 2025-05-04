@@ -1,6 +1,6 @@
 /**
  * Types index
- * 
+ *
  * This file exports all type definitions used in the application.
  */
 
@@ -8,7 +8,7 @@ export * from './supabase';
 
 /**
  * Navigation Stack Parameter List
- * 
+ *
  * Defines the parameters for each screen in the navigation stack
  */
 export type RootStackParamList = {
@@ -22,4 +22,4 @@ export type RootStackParamList = {
   AddSubscription: undefined;
   EditSubscription: { id: string };
   CategoryManagement: undefined;
-}; 
+};

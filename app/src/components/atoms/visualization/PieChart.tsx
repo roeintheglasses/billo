@@ -24,82 +24,82 @@ export interface PieChartProps extends Omit<ChartContainerProps, 'children'> {
    * Data for pie chart segments
    */
   data: PieChartData[];
-  
+
   /**
    * Whether to show a donut chart instead of a pie chart
    */
   donut?: boolean;
-  
+
   /**
    * Inner radius for donut chart
    */
   innerRadius?: number;
-  
+
   /**
    * Inner circle color for donut chart
    */
   innerCircleColor?: string;
-  
+
   /**
    * Inner circle border width for donut chart
    */
   innerCircleBorderWidth?: number;
-  
+
   /**
    * Inner circle border color for donut chart
    */
   innerCircleBorderColor?: string;
-  
+
   /**
    * Whether to show text labels on segments
    */
   showText?: boolean;
-  
+
   /**
    * Size of the pie chart
    */
   radius?: number;
-  
+
   /**
    * Text size for segment labels
    */
   textSize?: number;
-  
+
   /**
    * Background color for text labels
    */
   textBackgroundColor?: string;
-  
+
   /**
    * Color for text labels
    */
   textColor?: string;
-  
+
   /**
    * Whether to show total value in center (for donut)
    */
   showInnerComponent?: boolean;
-  
+
   /**
    * Custom inner component
    */
   innerComponent?: React.ReactNode;
-  
+
   /**
    * Label position offset from center
    */
   labelsPosition?: number;
-  
+
   /**
    * Function called when a segment is pressed
    */
   onPress?: (item: PieChartData, index: number) => void;
-  
+
   /**
    * Whether to animate the chart
    */
   isAnimated?: boolean;
-  
+
   /**
    * Animation duration
    */
@@ -108,7 +108,7 @@ export interface PieChartProps extends Omit<ChartContainerProps, 'children'> {
 
 /**
  * PieChart component
- * 
+ *
  * A pie/donut chart component for displaying part-to-whole relationships
  * with customizable segments, labels, and animations.
  */
@@ -134,7 +134,7 @@ export const PieChart: React.FC<PieChartProps> = ({
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
-  
+
   // Generate colors based on theme
   const themeBasedProps = useMemo(() => {
     // Default colors
@@ -142,7 +142,7 @@ export const PieChart: React.FC<PieChartProps> = ({
     const defaultInnerCircleBorderColor = colors.border.light;
     const defaultTextBgColor = colors.background.secondary;
     const defaultTextColor = colors.text.primary;
-    
+
     // Apply theme colors to data segments if not specified
     const coloredData = data.map((item, index) => {
       // Generate colors based on index if not provided
@@ -153,34 +153,27 @@ export const PieChart: React.FC<PieChartProps> = ({
           colors.secondary || colors.primary,
           colors.success || colors.primary,
           colors.warning || colors.primary,
-          colors.error || colors.primary
+          colors.error || colors.primary,
         ];
-        
+
         return {
           ...item,
           color: colorOptions[index % colorOptions.length],
-          textColor: item.textColor || defaultTextColor
+          textColor: item.textColor || defaultTextColor,
         };
       }
-      
+
       return item;
     });
-    
+
     return {
       data: coloredData,
       innerCircleColor: innerCircleColor || defaultInnerCircleColor,
       innerCircleBorderColor: innerCircleBorderColor || defaultInnerCircleBorderColor,
       textBackgroundColor: textBackgroundColor || defaultTextBgColor,
-      textColor: textColor || defaultTextColor
+      textColor: textColor || defaultTextColor,
     };
-  }, [
-    data, 
-    colors, 
-    innerCircleColor, 
-    innerCircleBorderColor, 
-    textBackgroundColor, 
-    textColor
-  ]);
+  }, [data, colors, innerCircleColor, innerCircleBorderColor, textBackgroundColor, textColor]);
 
   return (
     <ChartContainer {...chartContainerProps}>
@@ -214,6 +207,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%'
-  }
-}); 
+    width: '100%',
+  },
+});

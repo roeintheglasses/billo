@@ -23,7 +23,7 @@ interface StorageContextType {
   createSubscription: (subscription: Omit<SubscriptionInsert, 'id'>) => Promise<Subscription>;
   updateSubscription: (id: string, updates: SubscriptionUpdate) => Promise<Subscription>;
   deleteSubscription: (id: string) => Promise<boolean>;
-  
+
   // Bulk operations
   bulkDeleteSubscriptions: (ids: string[]) => Promise<boolean>;
   bulkUpdateCategory: (ids: string[], categoryId: string) => Promise<boolean>;
@@ -32,10 +32,15 @@ interface StorageContextType {
   // Category operations
   categories: Category[];
   fetchCategories: () => Promise<void>;
-  createCategory: (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>) => Promise<Category>;
-  updateCategory: (id: string, updates: Omit<Partial<Category>, 'id' | 'created_at' | 'updated_at'>) => Promise<Category>;
+  createCategory: (
+    category: Omit<Category, 'id' | 'created_at' | 'updated_at'>
+  ) => Promise<Category>;
+  updateCategory: (
+    id: string,
+    updates: Omit<Partial<Category>, 'id' | 'created_at' | 'updated_at'>
+  ) => Promise<Category>;
   deleteCategory: (id: string) => Promise<boolean>;
-  
+
   // Status
   isLoading: boolean;
   error: string | null;
@@ -49,26 +54,26 @@ const StorageContext = createContext<StorageContextType>({
   storageMethod: 'remote',
   setStorageMethod: async () => {},
   isOnline: true,
-  
+
   subscriptions: [],
   fetchSubscriptions: async () => {},
   getSubscriptionById: async () => null,
-  createSubscription: async () => ({} as Subscription),
-  updateSubscription: async () => ({} as Subscription),
+  createSubscription: async () => ({}) as Subscription,
+  updateSubscription: async () => ({}) as Subscription,
   deleteSubscription: async () => false,
-  
+
   bulkDeleteSubscriptions: async () => false,
   bulkUpdateCategory: async () => false,
   bulkUpdateBillingCycle: async () => false,
-  
+
   categories: [],
   fetchCategories: async () => {},
-  createCategory: async () => ({} as Category),
-  updateCategory: async () => ({} as Category),
+  createCategory: async () => ({}) as Category,
+  updateCategory: async () => ({}) as Category,
   deleteCategory: async () => false,
-  
+
   isLoading: false,
-  error: null
+  error: null,
 });
 
 export const useStorage = () => useContext(StorageContext);
@@ -102,7 +107,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
       setIsOnline(state.isConnected !== null ? state.isConnected : true);
-      
+
       // Automatically switch to local storage when offline
       if (state.isConnected === false && storageMethod === 'remote') {
         console.log('Network is offline. Automatically switching to local storage.');
@@ -118,7 +123,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       setStorageMethodState(method);
       await AsyncStorage.setItem(STORAGE_METHOD_KEY, method);
-      
+
       // Refresh data after changing storage method
       await fetchSubscriptions();
       await fetchCategories();
@@ -132,16 +137,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const fetchSubscriptions = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let result: Subscription[] = [];
-      
+
       if (storageMethod === 'remote' && isOnline) {
         result = await subscriptionService.getSubscriptions();
       } else {
         result = await localSubscriptionService.getLocalSubscriptions();
       }
-      
+
       setSubscriptions(result);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
@@ -155,7 +160,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const getSubscriptionById = async (id: string): Promise<Subscription | null> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       if (storageMethod === 'remote' && isOnline) {
         return await subscriptionService.getSubscriptionById(id);
@@ -164,7 +169,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     } catch (error) {
       console.error(`Error fetching subscription with id ${id}:`, error);
-      setError(`Failed to fetch subscription: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to fetch subscription: ${error instanceof Error ? error.message : String(error)}`
+      );
       return null;
     } finally {
       setIsLoading(false);
@@ -172,16 +179,18 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Create a new subscription
-  const createSubscription = async (subscription: Omit<SubscriptionInsert, 'id'>): Promise<Subscription> => {
+  const createSubscription = async (
+    subscription: Omit<SubscriptionInsert, 'id'>
+  ): Promise<Subscription> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let newSubscription: Subscription;
-      
+
       if (storageMethod === 'remote' && isOnline) {
         newSubscription = await subscriptionService.createSubscription(subscription);
-        
+
         // Also save to local storage as backup
         try {
           await localSubscriptionService.createLocalSubscription(subscription);
@@ -191,14 +200,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       } else {
         newSubscription = await localSubscriptionService.createLocalSubscription(subscription);
       }
-      
+
       // Update local state
       setSubscriptions(prev => [...prev, newSubscription]);
-      
+
       return newSubscription;
     } catch (error) {
       console.error('Error creating subscription:', error);
-      setError(`Failed to create subscription: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to create subscription: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     } finally {
       setIsLoading(false);
@@ -206,16 +217,19 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Update an existing subscription
-  const updateSubscription = async (id: string, updates: SubscriptionUpdate): Promise<Subscription> => {
+  const updateSubscription = async (
+    id: string,
+    updates: SubscriptionUpdate
+  ): Promise<Subscription> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let updatedSubscription: Subscription;
-      
+
       if (storageMethod === 'remote' && isOnline) {
         updatedSubscription = await subscriptionService.updateSubscription(id, updates);
-        
+
         // Also update in local storage as backup
         try {
           await localSubscriptionService.updateLocalSubscription(id, updates);
@@ -225,16 +239,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       } else {
         updatedSubscription = await localSubscriptionService.updateLocalSubscription(id, updates);
       }
-      
+
       // Update local state
-      setSubscriptions(prev => 
-        prev.map(sub => sub.id === id ? updatedSubscription : sub)
-      );
-      
+      setSubscriptions(prev => prev.map(sub => (sub.id === id ? updatedSubscription : sub)));
+
       return updatedSubscription;
     } catch (error) {
       console.error(`Error updating subscription with id ${id}:`, error);
-      setError(`Failed to update subscription: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to update subscription: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     } finally {
       setIsLoading(false);
@@ -245,13 +259,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const deleteSubscription = async (id: string): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let success: boolean;
-      
+
       if (storageMethod === 'remote' && isOnline) {
         success = await subscriptionService.deleteSubscription(id);
-        
+
         // Also delete from local storage as backup
         try {
           await localSubscriptionService.deleteLocalSubscription(id);
@@ -261,16 +275,18 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       } else {
         success = await localSubscriptionService.deleteLocalSubscription(id);
       }
-      
+
       // Update local state
       if (success) {
         setSubscriptions(prev => prev.filter(sub => sub.id !== id));
       }
-      
+
       return success;
     } catch (error) {
       console.error(`Error deleting subscription with id ${id}:`, error);
-      setError(`Failed to delete subscription: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to delete subscription: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     } finally {
       setIsLoading(false);
@@ -281,26 +297,26 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const fetchCategories = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let result: Category[] = [];
-      
+
       if (storageMethod === 'remote' && isOnline) {
         result = await categoryService.getCategories();
-        
+
         // Check if default categories exist, if not create them
         if (result.length === 0) {
           result = await categoryService.createDefaultCategories();
         }
       } else {
         result = await localSubscriptionService.getLocalCategories();
-        
+
         // Check if default categories exist, if not create them
         if (result.length === 0) {
           result = await localSubscriptionService.createDefaultLocalCategories();
         }
       }
-      
+
       setCategories(result);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -311,16 +327,18 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Create a new category
-  const createCategory = async (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category> => {
+  const createCategory = async (
+    category: Omit<Category, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<Category> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let newCategory: Category;
-      
+
       if (storageMethod === 'remote' && isOnline) {
         newCategory = await categoryService.createCategory(category);
-        
+
         // Also save to local storage as backup
         try {
           await localSubscriptionService.createLocalCategory(category);
@@ -330,14 +348,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       } else {
         newCategory = await localSubscriptionService.createLocalCategory(category);
       }
-      
+
       // Update local state
       setCategories(prev => [...prev, newCategory]);
-      
+
       return newCategory;
     } catch (error) {
       console.error('Error creating category:', error);
-      setError(`Failed to create category: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to create category: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     } finally {
       setIsLoading(false);
@@ -345,16 +365,19 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Update an existing category
-  const updateCategory = async (id: string, updates: Omit<Partial<Category>, 'id' | 'created_at' | 'updated_at'>): Promise<Category> => {
+  const updateCategory = async (
+    id: string,
+    updates: Omit<Partial<Category>, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<Category> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let updatedCategory: Category;
-      
+
       if (storageMethod === 'remote' && isOnline) {
         updatedCategory = await categoryService.updateCategory(id, updates);
-        
+
         // Also update in local storage as backup
         try {
           await localSubscriptionService.updateLocalCategory(id, updates);
@@ -368,23 +391,23 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (!existingCategory) {
           throw new Error(`Category with ID ${id} not found`);
         }
-        
+
         updatedCategory = {
           ...existingCategory,
           ...updates,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         };
       }
-      
+
       // Update local state
-      setCategories(prev => 
-        prev.map(cat => cat.id === id ? updatedCategory : cat)
-      );
-      
+      setCategories(prev => prev.map(cat => (cat.id === id ? updatedCategory : cat)));
+
       return updatedCategory;
     } catch (error) {
       console.error(`Error updating category with id ${id}:`, error);
-      setError(`Failed to update category: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to update category: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     } finally {
       setIsLoading(false);
@@ -395,13 +418,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const deleteCategory = async (id: string): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let success: boolean;
-      
+
       if (storageMethod === 'remote' && isOnline) {
         success = await categoryService.deleteCategory(id);
-        
+
         // Also delete from local storage as backup
         try {
           await localSubscriptionService.deleteLocalCategory(id);
@@ -415,23 +438,25 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (!categoryToDelete) {
           throw new Error(`Category with ID ${id} not found`);
         }
-        
+
         if (categoryToDelete.is_default) {
           throw new Error('Default categories cannot be deleted');
         }
-        
+
         success = true;
       }
-      
+
       // Update local state
       if (success) {
         setCategories(prev => prev.filter(cat => cat.id !== id));
       }
-      
+
       return success;
     } catch (error) {
       console.error(`Error deleting category with id ${id}:`, error);
-      setError(`Failed to delete category: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to delete category: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     } finally {
       setIsLoading(false);
@@ -442,10 +467,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const bulkDeleteSubscriptions = async (ids: string[]): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let success = true;
-      
+
       if (storageMethod === 'remote' && isOnline) {
         // For remote storage, we can potentially make a bulk delete API call
         // But for now, we'll loop through and delete individually
@@ -454,7 +479,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           if (!deleted) {
             success = false;
           }
-          
+
           // Also delete from local storage as backup
           try {
             await localSubscriptionService.deleteLocalSubscription(id);
@@ -471,16 +496,18 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         }
       }
-      
+
       // Update the local state by filtering out deleted subscriptions
       if (success) {
         setSubscriptions(prev => prev.filter(sub => !ids.includes(sub.id)));
       }
-      
+
       return success;
     } catch (error) {
       console.error('Error bulk deleting subscriptions:', error);
-      setError(`Failed to delete subscriptions: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to delete subscriptions: ${error instanceof Error ? error.message : String(error)}`
+      );
       return false;
     } finally {
       setIsLoading(false);
@@ -491,19 +518,21 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const bulkUpdateCategory = async (ids: string[], categoryId: string): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let success = true;
-      
+
       // Loop through each subscription and update the category
       for (const id of ids) {
         try {
           if (storageMethod === 'remote' && isOnline) {
             await subscriptionService.updateSubscription(id, { category_id: categoryId });
-            
+
             // Also update in local storage as backup
             try {
-              await localSubscriptionService.updateLocalSubscription(id, { category_id: categoryId });
+              await localSubscriptionService.updateLocalSubscription(id, {
+                category_id: categoryId,
+              });
             } catch (localError) {
               console.warn('Error updating subscription in local backup:', localError);
             }
@@ -515,18 +544,20 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           success = false;
         }
       }
-      
+
       // Update the local state to reflect the changes
       if (success) {
-        setSubscriptions(prev => 
-          prev.map(sub => ids.includes(sub.id) ? { ...sub, category_id: categoryId } : sub)
+        setSubscriptions(prev =>
+          prev.map(sub => (ids.includes(sub.id) ? { ...sub, category_id: categoryId } : sub))
         );
       }
-      
+
       return success;
     } catch (error) {
       console.error('Error bulk updating subscription categories:', error);
-      setError(`Failed to update categories: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to update categories: ${error instanceof Error ? error.message : String(error)}`
+      );
       return false;
     } finally {
       setIsLoading(false);
@@ -537,43 +568,43 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const bulkUpdateBillingCycle = async (ids: string[], billingCycle: string): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let success = true;
-      
+
       // Loop through each subscription and update the billing cycle
       for (const id of ids) {
         try {
           // First get the current subscription to calculate new next_billing_date
           let subscription: Subscription | null = null;
-          
+
           if (storageMethod === 'remote' && isOnline) {
             subscription = await subscriptionService.getSubscriptionById(id);
           } else {
             subscription = await localSubscriptionService.getLocalSubscriptionById(id);
           }
-          
+
           if (!subscription) {
             console.error(`Subscription with id ${id} not found`);
             success = false;
             continue;
           }
-          
+
           // Calculate new next_billing_date based on the new billing cycle
-          const nextBillingDate = subscriptionService.calculateNextBillingDate(
-            subscription.start_date,
-            billingCycle
-          ).toISOString().split('T')[0];
-          
+          const nextBillingDate = subscriptionService
+            .calculateNextBillingDate(subscription.start_date, billingCycle)
+            .toISOString()
+            .split('T')[0];
+
           // Update the subscription
-          const updates = { 
-            billing_cycle: billingCycle, 
-            next_billing_date: nextBillingDate 
+          const updates = {
+            billing_cycle: billingCycle,
+            next_billing_date: nextBillingDate,
           };
-          
+
           if (storageMethod === 'remote' && isOnline) {
             await subscriptionService.updateSubscription(id, updates);
-            
+
             // Also update in local storage as backup
             try {
               await localSubscriptionService.updateLocalSubscription(id, updates);
@@ -588,32 +619,34 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           success = false;
         }
       }
-      
+
       // Update the local state to reflect the changes
       if (success) {
-        setSubscriptions(prev => 
+        setSubscriptions(prev =>
           prev.map(sub => {
             if (ids.includes(sub.id)) {
-              const nextBillingDate = subscriptionService.calculateNextBillingDate(
-                sub.start_date,
-                billingCycle
-              ).toISOString().split('T')[0];
-              
-              return { 
-                ...sub, 
-                billing_cycle: billingCycle, 
-                next_billing_date: nextBillingDate 
+              const nextBillingDate = subscriptionService
+                .calculateNextBillingDate(sub.start_date, billingCycle)
+                .toISOString()
+                .split('T')[0];
+
+              return {
+                ...sub,
+                billing_cycle: billingCycle,
+                next_billing_date: nextBillingDate,
               };
             }
             return sub;
           })
         );
       }
-      
+
       return success;
     } catch (error) {
       console.error('Error bulk updating subscription billing cycles:', error);
-      setError(`Failed to update billing cycles: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to update billing cycles: ${error instanceof Error ? error.message : String(error)}`
+      );
       return false;
     } finally {
       setIsLoading(false);
@@ -637,33 +670,29 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     storageMethod,
     setStorageMethod,
     isOnline,
-    
+
     subscriptions,
     fetchSubscriptions,
     getSubscriptionById,
     createSubscription,
     updateSubscription,
     deleteSubscription,
-    
+
     bulkDeleteSubscriptions,
     bulkUpdateCategory,
     bulkUpdateBillingCycle,
-    
+
     categories,
     fetchCategories,
     createCategory,
     updateCategory,
     deleteCategory,
-    
+
     isLoading,
-    error
+    error,
   };
 
-  return (
-    <StorageContext.Provider value={contextValue}>
-      {children}
-    </StorageContext.Provider>
-  );
+  return <StorageContext.Provider value={contextValue}>{children}</StorageContext.Provider>;
 };
 
-export default StorageContext; 
+export default StorageContext;

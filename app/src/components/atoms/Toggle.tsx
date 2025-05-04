@@ -1,11 +1,5 @@
 import React from 'react';
-import { 
-  View, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Animated, 
-  TouchableOpacityProps 
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Animated, TouchableOpacityProps } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Text } from './Text';
 
@@ -20,7 +14,7 @@ export interface ToggleProps extends TouchableOpacityProps {
 
 /**
  * Toggle component for boolean selection with sliding animation
- * 
+ *
  * @param {boolean} value - Whether the toggle is on or off
  * @param {function} onValueChange - Callback function when toggle state changes
  * @param {string} label - Optional label text to display next to toggle
@@ -28,7 +22,7 @@ export interface ToggleProps extends TouchableOpacityProps {
  * @param {string} size - Size variant of the toggle ('small', 'medium', 'large')
  * @param {string} error - Error message to display below the toggle
  * @returns {React.ReactElement} A styled toggle/switch component
- * 
+ *
  * @example
  * // Basic usage
  * <Toggle
@@ -49,10 +43,10 @@ export const Toggle: React.FC<ToggleProps> = ({
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
-  
+
   // Create animated value for the switch position
   const [animatedValue] = React.useState(new Animated.Value(value ? 1 : 0));
-  
+
   // Get size dimensions based on the size prop
   const getSize = () => {
     switch (size) {
@@ -79,9 +73,9 @@ export const Toggle: React.FC<ToggleProps> = ({
         };
     }
   };
-  
+
   const dimensions = getSize();
-  
+
   // Animate switch when value changes
   React.useEffect(() => {
     Animated.timing(animatedValue, {
@@ -90,42 +84,37 @@ export const Toggle: React.FC<ToggleProps> = ({
       useNativeDriver: true,
     }).start();
   }, [value, animatedValue]);
-  
+
   // Calculate the position of the switch thumb
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, dimensions.width - dimensions.thumb - (dimensions.margin * 2)],
+    outputRange: [0, dimensions.width - dimensions.thumb - dimensions.margin * 2],
   });
-  
+
   // Handle toggle press
   const handleToggle = () => {
     if (!disabled) {
       onValueChange(!value);
     }
   };
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.row}>
         {label && (
-          <Text 
-            variant="body" 
-            style={[
-              styles.label,
-              { color: disabled ? colors.text.tertiary : colors.text.primary }
-            ]}
+          <Text
+            variant="body"
+            style={[styles.label, { color: disabled ? colors.text.tertiary : colors.text.primary }]}
           >
             {label}
           </Text>
         )}
-        
+
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={handleToggle}
           disabled={disabled}
-          style={[
-            style,
-          ]}
+          style={[style]}
           {...rest}
         >
           <View
@@ -134,10 +123,10 @@ export const Toggle: React.FC<ToggleProps> = ({
               {
                 width: dimensions.width,
                 height: dimensions.height,
-                backgroundColor: value 
-                  ? disabled 
-                    ? colors.border.medium  // Muted color when disabled but on
-                    : colors.primary 
+                backgroundColor: value
+                  ? disabled
+                    ? colors.border.medium // Muted color when disabled but on
+                    : colors.primary
                   : disabled
                     ? colors.border.light
                     : colors.border.medium,
@@ -160,7 +149,7 @@ export const Toggle: React.FC<ToggleProps> = ({
           </View>
         </TouchableOpacity>
       </View>
-      
+
       {error && (
         <Text variant="caption" style={[styles.error, { color: colors.error }]}>
           {error}
@@ -201,4 +190,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Toggle; 
+export default Toggle;

@@ -1,6 +1,6 @@
 /**
  * Notification Service
- * 
+ *
  * This service provides functions for managing notifications in the application
  * including CRUD operations, validation, and utility functions for common
  * notification types.
@@ -18,7 +18,7 @@ export enum NotificationType {
   SUBSCRIPTION_UPDATED = 'subscription_updated',
   PAYMENT_REMINDER = 'payment_reminder',
   PRICE_CHANGE = 'price_change',
-  SYSTEM = 'system'
+  SYSTEM = 'system',
 }
 
 /**
@@ -27,7 +27,7 @@ export enum NotificationType {
 export enum NotificationPriority {
   LOW = 'low',
   MEDIUM = 'medium',
-  HIGH = 'high'
+  HIGH = 'high',
 }
 
 /**
@@ -35,7 +35,7 @@ export enum NotificationPriority {
  */
 export interface NotificationWithMeta extends Notification {
   relatedEntityData?: Record<string, any>;
-  actionButtons?: Array<{label: string, action: string}>;
+  actionButtons?: Array<{ label: string; action: string }>;
 }
 
 /**
@@ -48,7 +48,7 @@ interface ValidationResult {
 
 /**
  * Validates a notification object
- * 
+ *
  * @param notification The notification object to validate
  * @returns An object with isValid and error properties
  */
@@ -56,32 +56,32 @@ export const validateNotification = (
   notification: Partial<NotificationInsert> | Partial<NotificationUpdate>
 ): ValidationResult => {
   const errors: Record<string, string> = {};
-  
+
   // Validate required fields for new notifications
   if ('title' in notification && (!notification.title || !notification.title.trim())) {
     errors.title = 'Notification title is required';
   }
-  
+
   if ('message' in notification && (!notification.message || !notification.message.trim())) {
     errors.message = 'Notification message is required';
   }
-  
+
   if ('type' in notification) {
     const validTypes = Object.values(NotificationType);
     if (notification.type && !validTypes.includes(notification.type as NotificationType)) {
       errors.type = `Invalid notification type. Valid types are: ${validTypes.join(', ')}`;
     }
   }
-  
-  return { 
+
+  return {
     isValid: Object.keys(errors).length === 0,
-    errors: Object.keys(errors).length > 0 ? errors : undefined
+    errors: Object.keys(errors).length > 0 ? errors : undefined,
   };
 };
 
 /**
  * Get all notifications for a user
- * 
+ *
  * @param userId The user ID to get notifications for
  * @param limit Optional limit on the number of notifications to return
  * @param includeRead Whether to include read notifications
@@ -98,19 +98,19 @@ export const getNotifications = async (
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    
+
     if (!includeRead) {
       query = query.eq('is_read', false);
     }
-    
+
     if (limit) {
       query = query.limit(limit);
     }
-    
+
     const { data, error } = await query;
-    
+
     if (error) throw error;
-    
+
     return data || [];
   } catch (error: any) {
     console.error('Error fetching notifications:', error.message);
@@ -120,7 +120,7 @@ export const getNotifications = async (
 
 /**
  * Get notifications paginated
- * 
+ *
  * @param userId The user ID to get notifications for
  * @param page The page number (starting from 1)
  * @param pageSize Number of items per page
@@ -139,31 +139,31 @@ export const getNotificationsPaginated = async (
       .select('*', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    
+
     // Apply filters
     if (filters.isRead !== undefined) {
       query = query.eq('is_read', filters.isRead);
     }
-    
+
     if (filters.type) {
       query = query.eq('type', filters.type);
     }
-    
+
     if (filters.priority) {
       query = query.eq('priority', filters.priority);
     }
-    
+
     // Apply pagination
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
-    
+
     const { data, error, count } = await query.range(from, to);
-    
+
     if (error) throw error;
-    
-    return { 
-      data: data || [], 
-      count: count || 0 
+
+    return {
+      data: data || [],
+      count: count || 0,
     };
   } catch (error: any) {
     console.error('Error fetching paginated notifications:', error.message);
@@ -173,7 +173,7 @@ export const getNotificationsPaginated = async (
 
 /**
  * Get unread notification count for a user
- * 
+ *
  * @param userId The user ID to get count for
  * @returns Promise resolving to the count of unread notifications
  */
@@ -184,9 +184,9 @@ export const getUnreadNotificationCount = async (userId: string): Promise<number
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('is_read', false);
-    
+
     if (error) throw error;
-    
+
     return count || 0;
   } catch (error: any) {
     console.error('Error fetching unread notification count:', error.message);
@@ -196,25 +196,22 @@ export const getUnreadNotificationCount = async (userId: string): Promise<number
 
 /**
  * Get a notification by ID
- * 
+ *
  * @param id The notification ID
  * @returns Promise resolving to a Notification or null if not found
  */
 export const getNotificationById = async (id: string): Promise<Notification | null> => {
   try {
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
+    const { data, error } = await supabase.from('notifications').select('*').eq('id', id).single();
+
     if (error) {
-      if (error.code === 'PGRST116') { // "Not found" error code
+      if (error.code === 'PGRST116') {
+        // "Not found" error code
         return null;
       }
       throw error;
     }
-    
+
     return data;
   } catch (error: any) {
     console.error(`Error fetching notification with id ${id}:`, error.message);
@@ -224,11 +221,13 @@ export const getNotificationById = async (id: string): Promise<Notification | nu
 
 /**
  * Create a new notification
- * 
+ *
  * @param notification The notification data to insert
  * @returns Promise resolving to the created Notification
  */
-export const createNotification = async (notification: NotificationInsert): Promise<Notification> => {
+export const createNotification = async (
+  notification: NotificationInsert
+): Promise<Notification> => {
   try {
     // Validate the notification data
     const validation = validateNotification(notification);
@@ -239,19 +238,19 @@ export const createNotification = async (notification: NotificationInsert): Prom
         }`
       );
     }
-    
+
     const { data, error } = await supabase
       .from('notifications')
       .insert(notification)
       .select()
       .single();
-    
+
     if (error) throw error;
-    
+
     if (!data) {
       throw new Error('Failed to create notification: No data returned');
     }
-    
+
     return data;
   } catch (error: any) {
     console.error('Error creating notification:', error.message);
@@ -261,12 +260,15 @@ export const createNotification = async (notification: NotificationInsert): Prom
 
 /**
  * Update a notification
- * 
+ *
  * @param id The notification ID to update
  * @param updates The notification data to update
  * @returns Promise resolving to the updated Notification
  */
-export const updateNotification = async (id: string, updates: NotificationUpdate): Promise<Notification> => {
+export const updateNotification = async (
+  id: string,
+  updates: NotificationUpdate
+): Promise<Notification> => {
   try {
     // Validate the updates
     const validation = validateNotification(updates);
@@ -277,20 +279,20 @@ export const updateNotification = async (id: string, updates: NotificationUpdate
         }`
       );
     }
-    
+
     const { data, error } = await supabase
       .from('notifications')
       .update(updates)
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
-    
+
     if (!data) {
       throw new Error(`Notification with ID ${id} not found`);
     }
-    
+
     return data;
   } catch (error: any) {
     console.error(`Error updating notification with id ${id}:`, error.message);
@@ -300,20 +302,20 @@ export const updateNotification = async (id: string, updates: NotificationUpdate
 
 /**
  * Mark a notification as read
- * 
+ *
  * @param id The notification ID to mark as read
  * @returns Promise resolving to the updated Notification
  */
 export const markNotificationAsRead = async (id: string): Promise<Notification> => {
-  return updateNotification(id, { 
+  return updateNotification(id, {
     is_read: true,
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   });
 };
 
 /**
  * Mark all notifications as read for a user
- * 
+ *
  * @param userId The user ID to mark all notifications as read for
  * @returns Promise resolving to void
  */
@@ -321,13 +323,13 @@ export const markAllNotificationsAsRead = async (userId: string): Promise<void> 
   try {
     const { error } = await supabase
       .from('notifications')
-      .update({ 
+      .update({
         is_read: true,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('user_id', userId)
       .eq('is_read', false);
-    
+
     if (error) throw error;
   } catch (error: any) {
     console.error('Error marking all notifications as read:', error.message);
@@ -337,19 +339,16 @@ export const markAllNotificationsAsRead = async (userId: string): Promise<void> 
 
 /**
  * Delete a notification
- * 
+ *
  * @param id The notification ID to delete
  * @returns Promise resolving to true if successful
  */
 export const deleteNotification = async (id: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('id', id);
-    
+    const { error } = await supabase.from('notifications').delete().eq('id', id);
+
     if (error) throw error;
-    
+
     return true;
   } catch (error: any) {
     console.error(`Error deleting notification with id ${id}:`, error.message);
@@ -359,19 +358,16 @@ export const deleteNotification = async (id: string): Promise<boolean> => {
 
 /**
  * Delete all notifications for a user
- * 
+ *
  * @param userId The user ID to delete all notifications for
  * @returns Promise resolving to true if successful
  */
 export const deleteAllNotifications = async (userId: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('user_id', userId);
-    
+    const { error } = await supabase.from('notifications').delete().eq('user_id', userId);
+
     if (error) throw error;
-    
+
     return true;
   } catch (error: any) {
     console.error(`Error deleting all notifications for user ${userId}:`, error.message);
@@ -381,26 +377,29 @@ export const deleteAllNotifications = async (userId: string): Promise<boolean> =
 
 /**
  * Group notifications by date
- * 
+ *
  * @param notifications Array of notifications to group
  * @returns Object with dates as keys and arrays of notifications as values
  */
 export const groupNotificationsByDate = (
   notifications: Notification[]
 ): Record<string, Notification[]> => {
-  return notifications.reduce((groups, notification) => {
-    const date = new Date(notification.created_at).toLocaleDateString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(notification);
-    return groups;
-  }, {} as Record<string, Notification[]>);
+  return notifications.reduce(
+    (groups, notification) => {
+      const date = new Date(notification.created_at).toLocaleDateString();
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(notification);
+      return groups;
+    },
+    {} as Record<string, Notification[]>
+  );
 };
 
 /**
  * Create a subscription due notification
- * 
+ *
  * @param userId The user ID to create the notification for
  * @param subscriptionName The name of the subscription
  * @param dueDate The due date of the subscription
@@ -418,9 +417,9 @@ export const createSubscriptionDueNotification = async (
   const formattedDate = dueDate.toLocaleDateString();
   const formattedAmount = new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'USD',
   }).format(amount);
-  
+
   return createNotification({
     user_id: userId,
     title: `Payment Due: ${subscriptionName}`,
@@ -429,13 +428,13 @@ export const createSubscriptionDueNotification = async (
     is_read: false,
     priority: priority,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   });
 };
 
 /**
  * Create a system notification
- * 
+ *
  * @param userId The user ID to create the notification for
  * @param title The notification title
  * @param message The notification message
@@ -456,7 +455,7 @@ export const createSystemNotification = async (
     is_read: false,
     priority: priority,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   });
 };
 
@@ -473,5 +472,5 @@ export default {
   deleteAllNotifications,
   groupNotificationsByDate,
   createSubscriptionDueNotification,
-  createSystemNotification
-}; 
+  createSystemNotification,
+};

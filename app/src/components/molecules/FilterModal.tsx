@@ -42,49 +42,46 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   const { colors } = theme;
 
   return (
-    <Modal
-      visible={visible}
-      onClose={onClose}
-      title="Filter Subscriptions"
-      size="large"
-    >
+    <Modal visible={visible} onClose={onClose} title="Filter Subscriptions" size="large">
       <ScrollView style={styles.container}>
         <View style={styles.section}>
-          <Text variant="heading3" style={styles.sectionTitle}>Categories</Text>
+          <Text variant="heading3" style={styles.sectionTitle}>
+            Categories
+          </Text>
           <View style={styles.optionsContainer}>
             <TouchableOpacity
               style={[
                 styles.categoryOption,
-                !selectedCategory && { backgroundColor: colors.primary, borderColor: colors.primary }
+                !selectedCategory && {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                },
               ]}
               onPress={() => setSelectedCategory(null)}
             >
               <Text
-                style={[
-                  styles.categoryText,
-                  !selectedCategory && { color: colors.text.inverted }
-                ]}
+                style={[styles.categoryText, !selectedCategory && { color: colors.text.inverted }]}
               >
                 All Categories
               </Text>
             </TouchableOpacity>
-            
+
             {categories.map(category => (
               <TouchableOpacity
                 key={category.id}
                 style={[
                   styles.categoryOption,
-                  selectedCategory === category.id && { 
+                  selectedCategory === category.id && {
                     backgroundColor: category.color || colors.primary,
-                    borderColor: category.color || colors.primary
-                  }
+                    borderColor: category.color || colors.primary,
+                  },
                 ]}
                 onPress={() => setSelectedCategory(category.id)}
               >
                 <Text
                   style={[
                     styles.categoryText,
-                    selectedCategory === category.id && { color: colors.text.inverted }
+                    selectedCategory === category.id && { color: colors.text.inverted },
                   ]}
                 >
                   {category.name}
@@ -103,41 +100,46 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         </View>
 
         <View style={styles.section}>
-          <Text variant="heading3" style={styles.sectionTitle}>Billing Cycle</Text>
+          <Text variant="heading3" style={styles.sectionTitle}>
+            Billing Cycle
+          </Text>
           <View style={styles.optionsContainer}>
             <TouchableOpacity
               style={[
                 styles.billingOption,
-                !selectedBillingCycle && { backgroundColor: colors.primary, borderColor: colors.primary }
+                !selectedBillingCycle && {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                },
               ]}
               onPress={() => setSelectedBillingCycle(null)}
             >
               <Text
                 style={[
                   styles.billingText,
-                  !selectedBillingCycle && { color: colors.text.inverted }
+                  !selectedBillingCycle && { color: colors.text.inverted },
                 ]}
               >
                 All Cycles
               </Text>
             </TouchableOpacity>
-            
+
             {billingCycles.map(cycle => (
               <TouchableOpacity
                 key={cycle.id}
                 style={[
                   styles.billingOption,
-                  selectedBillingCycle === cycle.id && { 
+                  selectedBillingCycle === cycle.id && {
                     backgroundColor: colors.primary,
-                    borderColor: colors.primary
-                  }
+                    borderColor: colors.primary,
+                  },
                 ]}
                 onPress={() => setSelectedBillingCycle(cycle.id)}
               >
                 <Text
                   style={[
                     styles.billingText,
-                    selectedBillingCycle === cycle.id && { color: colors.text.inverted }
+                    selectedBillingCycle === cycle.id && { color: colors.text.inverted },
                   ]}
                 >
                   {cycle.name}
@@ -223,4 +225,4 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   applyButton: {},
-}); 
+});

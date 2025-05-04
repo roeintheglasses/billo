@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Text } from '../components/atoms/Text';
@@ -20,7 +27,7 @@ type DetailRouteParams = {
 
 /**
  * SubscriptionDetailScreen Component
- * 
+ *
  * Displays detailed information about a subscription and provides
  * options to edit or delete the subscription.
  */
@@ -40,16 +47,16 @@ const SubscriptionDetailScreen = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         if (!subscriptionId) {
           throw new Error('Subscription ID is missing');
         }
-        
+
         const subscription = await getSubscriptionById(subscriptionId);
         if (!subscription) {
           throw new Error('Subscription not found');
         }
-        
+
         setSubscription(subscription);
       } catch (error) {
         setError(error instanceof Error ? error.message : 'An error occurred');
@@ -77,7 +84,7 @@ const SubscriptionDetailScreen = () => {
           onPress: async () => {
             try {
               if (!subscription) return;
-              
+
               await deleteSubscription(subscription.id);
               Alert.alert('Success', 'Subscription deleted successfully');
               navigation.goBack();
@@ -123,33 +130,33 @@ const SubscriptionDetailScreen = () => {
 
   const getStatusColor = (nextBillingDate: string | null): string => {
     if (!nextBillingDate) return theme.colors.text.secondary;
-    
+
     const now = new Date();
     const nextBilling = new Date(nextBillingDate);
-    
+
     if (nextBilling < now) {
       return theme.colors.error;
     }
-    
+
     // Within 3 days
     const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
     if (nextBilling.getTime() - now.getTime() < threeDaysMs) {
       return theme.colors.warning;
     }
-    
+
     return theme.colors.success;
   };
 
   const getStatusText = (nextBillingDate: string | null): string => {
     if (!nextBillingDate) return 'Unknown';
-    
+
     const now = new Date();
     const nextBilling = new Date(nextBillingDate);
-    
+
     if (nextBilling < now) {
       return 'Overdue';
     }
-    
+
     return 'Active';
   };
 
@@ -179,60 +186,80 @@ const SubscriptionDetailScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>
-        <Text variant="heading1" style={styles.title}>{subscription.name}</Text>
+        <Text variant="heading1" style={styles.title}>
+          {subscription.name}
+        </Text>
       </View>
 
       <ScrollView style={styles.scrollView}>
         {/* Status Card */}
         <View style={[styles.card, { backgroundColor: theme.colors.background.secondary }]}>
           <View style={styles.statusContainer}>
-            <Text variant="body" style={styles.sectionTitle}>Status</Text>
+            <Text variant="body" style={styles.sectionTitle}>
+              Status
+            </Text>
             <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-              <Text variant="caption" style={styles.statusText}>{statusText}</Text>
+              <Text variant="caption" style={styles.statusText}>
+                {statusText}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Key Info Card */}
         <View style={[styles.card, { backgroundColor: theme.colors.background.secondary }]}>
-          <Text variant="body" style={styles.sectionTitle}>Key Information</Text>
-          
+          <Text variant="body" style={styles.sectionTitle}>
+            Key Information
+          </Text>
+
           <View style={styles.infoRow}>
-            <Text variant="body" style={styles.infoLabel}>Monthly Cost:</Text>
-            <Text variant="heading3" style={styles.infoValue}>{formatCurrency(subscription.amount)}</Text>
-          </View>
-          
-          <View style={styles.infoRow}>
-            <Text variant="body" style={styles.infoLabel}>Billing Cycle:</Text>
-            <Text variant="body" style={styles.infoValue}>
-              {subscription.billing_cycle.charAt(0).toUpperCase() + subscription.billing_cycle.slice(1)}
+            <Text variant="body" style={styles.infoLabel}>
+              Monthly Cost:
+            </Text>
+            <Text variant="heading3" style={styles.infoValue}>
+              {formatCurrency(subscription.amount)}
             </Text>
           </View>
-          
+
           <View style={styles.infoRow}>
-            <Text variant="body" style={styles.infoLabel}>Next Payment:</Text>
+            <Text variant="body" style={styles.infoLabel}>
+              Billing Cycle:
+            </Text>
+            <Text variant="body" style={styles.infoValue}>
+              {subscription.billing_cycle.charAt(0).toUpperCase() +
+                subscription.billing_cycle.slice(1)}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text variant="body" style={styles.infoLabel}>
+              Next Payment:
+            </Text>
             <Text variant="body" style={[styles.infoValue, { color: statusColor }]}>
-              {subscription.next_billing_date 
+              {subscription.next_billing_date
                 ? formatDate(new Date(subscription.next_billing_date))
                 : 'Not scheduled'}
             </Text>
           </View>
-          
+
           <View style={styles.infoRow}>
-            <Text variant="body" style={styles.infoLabel}>Annual Cost:</Text>
-            <Text variant="heading3" style={styles.infoValue}>{formatCurrency(annualCost)}</Text>
+            <Text variant="body" style={styles.infoLabel}>
+              Annual Cost:
+            </Text>
+            <Text variant="heading3" style={styles.infoValue}>
+              {formatCurrency(annualCost)}
+            </Text>
           </View>
         </View>
 
         {/* Category Card - This would be more detailed in a future implementation */}
         <View style={[styles.card, { backgroundColor: theme.colors.background.secondary }]}>
-          <Text variant="body" style={styles.sectionTitle}>Category</Text>
+          <Text variant="body" style={styles.sectionTitle}>
+            Category
+          </Text>
           <View style={styles.categoryRow}>
             <Ionicons name="apps" size={24} color={theme.colors.primary} />
             <Text variant="body" style={styles.categoryText}>
@@ -243,26 +270,36 @@ const SubscriptionDetailScreen = () => {
 
         {/* Details Card */}
         <View style={[styles.card, { backgroundColor: theme.colors.background.secondary }]}>
-          <Text variant="body" style={styles.sectionTitle}>Details</Text>
-          
+          <Text variant="body" style={styles.sectionTitle}>
+            Details
+          </Text>
+
           <View style={styles.infoRow}>
-            <Text variant="body" style={styles.infoLabel}>Start Date:</Text>
+            <Text variant="body" style={styles.infoLabel}>
+              Start Date:
+            </Text>
             <Text variant="body" style={styles.infoValue}>
               {formatDate(new Date(subscription.start_date))}
             </Text>
           </View>
-          
+
           {subscription.notes && (
             <View style={styles.notesContainer}>
-              <Text variant="body" style={styles.infoLabel}>Notes:</Text>
-              <Text variant="body" style={styles.notesText}>{subscription.notes}</Text>
+              <Text variant="body" style={styles.infoLabel}>
+                Notes:
+              </Text>
+              <Text variant="body" style={styles.notesText}>
+                {subscription.notes}
+              </Text>
             </View>
           )}
         </View>
 
         {/* Payment History Card - Placeholder for future implementation */}
         <View style={[styles.card, { backgroundColor: theme.colors.background.secondary }]}>
-          <Text variant="body" style={styles.sectionTitle}>Payment History</Text>
+          <Text variant="body" style={styles.sectionTitle}>
+            Payment History
+          </Text>
           <Text variant="body" style={styles.placeholderText}>
             Payment history will be available in a future update.
           </Text>
@@ -271,17 +308,10 @@ const SubscriptionDetailScreen = () => {
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <View style={styles.actionButton}>
-            <Button 
-              title="Edit" 
-              onPress={handleEdit} 
-            />
+            <Button title="Edit" onPress={handleEdit} />
           </View>
           <View style={styles.actionButton}>
-            <Button 
-              title="Delete" 
-              onPress={handleDelete} 
-              variant="secondary"
-            />
+            <Button title="Delete" onPress={handleDelete} variant="secondary" />
           </View>
         </View>
       </ScrollView>
@@ -380,4 +410,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SubscriptionDetailScreen; 
+export default SubscriptionDetailScreen;

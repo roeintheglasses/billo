@@ -14,7 +14,7 @@ interface FormContainerProps {
 
 /**
  * FormContainer Component
- * 
+ *
  * A container for forms with flexible options for scrolling and keyboard behavior.
  */
 export const FormContainer: React.FC<FormContainerProps> = ({
@@ -31,7 +31,7 @@ export const FormContainer: React.FC<FormContainerProps> = ({
 
   // Determine the appropriate component for content
   const ContentComponent = scrollable ? ScrollView : View;
-  
+
   // Main form content
   const formContent = (
     <ContentComponent
@@ -51,7 +51,7 @@ export const FormContainer: React.FC<FormContainerProps> = ({
             {
               color: colors.text.primary,
               fontSize: typography.fontSize.xxl,
-              fontWeight: "700",
+              fontWeight: '700',
               marginBottom: subtitle ? spacing.sm : spacing.md,
             },
           ]}
@@ -59,7 +59,7 @@ export const FormContainer: React.FC<FormContainerProps> = ({
           {title}
         </Text>
       )}
-      
+
       {subtitle && (
         <Text
           style={[
@@ -74,11 +74,11 @@ export const FormContainer: React.FC<FormContainerProps> = ({
           {subtitle}
         </Text>
       )}
-      
+
       {children}
     </ContentComponent>
   );
-  
+
   // Wrap with KeyboardAvoidingView if needed
   if (keyboardAvoiding) {
     return (
@@ -91,7 +91,7 @@ export const FormContainer: React.FC<FormContainerProps> = ({
       </KeyboardAvoidingView>
     );
   }
-  
+
   return formContent;
 };
 
@@ -111,4 +111,4 @@ const styles = StyleSheet.create({
   subtitle: {
     textAlign: 'center',
   },
-}); 
+});

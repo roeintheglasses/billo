@@ -16,17 +16,17 @@ interface CategoryDistributionChartProps {
    * Title for the chart
    */
   title?: string;
-  
+
   /**
    * Whether to show a legend
    */
   showLegend?: boolean;
-  
+
   /**
    * Custom height for the chart
    */
   height?: number;
-  
+
   /**
    * Callback when a category is selected
    */
@@ -35,7 +35,7 @@ interface CategoryDistributionChartProps {
 
 /**
  * CategoryDistributionChart component
- * 
+ *
  * Displays a donut chart showing the distribution of subscription costs
  * across different categories.
  */
@@ -43,16 +43,16 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
   title = 'Spending by Category',
   showLegend = true,
   height = 300,
-  onCategorySelect
+  onCategorySelect,
 }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [categoryData, setCategoryData] = useState<CategorySpending[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  
+
   const { theme } = useTheme();
   const { colors, spacing } = theme;
-  
+
   // Fetch category spending data
   useEffect(() => {
     const fetchData = async () => {
@@ -67,15 +67,15 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
-  
+
   // Calculate total monthly spending
   const totalSpending = useMemo(() => {
     return categoryData.reduce((sum, item) => sum + item.amount, 0);
   }, [categoryData]);
-  
+
   // Transform data for PieChart component
   const chartData = useMemo((): PieChartData[] => {
     return categoryData.map((item, index) => ({
@@ -84,16 +84,14 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
       // Use category color if available, otherwise use index-based color
       focused: selectedCategory === item.category.id,
       onPress: () => {
-        setSelectedCategory(
-          selectedCategory === item.category.id ? null : item.category.id
-        );
+        setSelectedCategory(selectedCategory === item.category.id ? null : item.category.id);
         if (onCategorySelect) {
           onCategorySelect(item.category, item.amount);
         }
-      }
+      },
     }));
   }, [categoryData, selectedCategory, onCategorySelect]);
-  
+
   // Create inner component for the donut center
   const innerComponent = useMemo(() => {
     if (selectedCategory) {
@@ -115,29 +113,25 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
         );
       }
     }
-    
+
     return (
       <View style={styles.innerComponent}>
-        <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>
-          Monthly
-        </Text>
+        <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>Monthly</Text>
         <Text style={[styles.totalAmount, { color: colors.text.primary }]}>
           {formatCurrency(totalSpending)}
         </Text>
       </View>
     );
   }, [selectedCategory, categoryData, totalSpending, colors]);
-  
+
   // Render legend items
   const renderLegend = () => {
     return (
       <View style={styles.legend}>
-        {categoryData.map((item) => {
+        {categoryData.map(item => {
           // Find matching chart data to get the color
-          const chartItem = chartData.find(
-            chartItem => chartItem.text === item.category.name
-          );
-          
+          const chartItem = chartData.find(chartItem => chartItem.text === item.category.name);
+
           return (
             <TouchableOpacity
               key={item.category.id}
@@ -151,25 +145,24 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
                 }
               }}
             >
-              <View 
+              <View
                 style={[
-                  styles.legendColor, 
-                  { 
+                  styles.legendColor,
+                  {
                     backgroundColor: chartItem?.color || colors.primary,
-                    borderColor: selectedCategory === item.category.id 
-                      ? colors.text.primary 
-                      : 'transparent'
-                  }
-                ]} 
+                    borderColor:
+                      selectedCategory === item.category.id ? colors.text.primary : 'transparent',
+                  },
+                ]}
               />
               <View style={styles.legendText}>
-                <Text 
+                <Text
                   style={[
-                    styles.legendName, 
-                    { 
+                    styles.legendName,
+                    {
                       color: colors.text.primary,
-                      fontWeight: selectedCategory === item.category.id ? 'bold' : 'normal'
-                    }
+                      fontWeight: selectedCategory === item.category.id ? 'bold' : 'normal',
+                    },
                   ]}
                 >
                   {item.category.name}
@@ -184,23 +177,21 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
       </View>
     );
   };
-  
+
   // Handle empty state
   if (!loading && categoryData.length === 0) {
     return (
-      <View 
+      <View
         style={[
-          styles.container, 
-          { 
+          styles.container,
+          {
             height,
-            backgroundColor: colors.background.secondary, 
-            borderColor: colors.border.light
-          }
+            backgroundColor: colors.background.secondary,
+            borderColor: colors.border.light,
+          },
         ]}
       >
-        <Text style={[styles.title, { color: colors.text.primary }]}>
-          {title}
-        </Text>
+        <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
         <View style={styles.emptyState}>
           <Text style={[styles.emptyText, { color: colors.text.secondary }]}>
             No category data available
@@ -212,22 +203,20 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
       </View>
     );
   }
-  
+
   return (
-    <View 
+    <View
       style={[
-        styles.container, 
-        { 
+        styles.container,
+        {
           height: height + (showLegend ? categoryData.length * 40 : 0),
-          backgroundColor: colors.background.secondary, 
-          borderColor: colors.border.light
-        }
+          backgroundColor: colors.background.secondary,
+          borderColor: colors.border.light,
+        },
       ]}
     >
-      <Text style={[styles.title, { color: colors.text.primary }]}>
-        {title}
-      </Text>
-      
+      <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -237,9 +226,7 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: colors.error }]}>
-            {error}
-          </Text>
+          <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>
       ) : (
         <View style={styles.chartContainer}>
@@ -252,7 +239,7 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
             innerComponent={innerComponent}
             isAnimated={true}
           />
-          
+
           {showLegend && renderLegend()}
         </View>
       )}
@@ -354,5 +341,5 @@ const styles = StyleSheet.create({
   },
   legendAmount: {
     fontSize: 14,
-  }
-}); 
+  },
+});

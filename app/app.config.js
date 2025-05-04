@@ -6,7 +6,7 @@ module.exports = ({ config }) => {
   // Default values for development if not provided
   // Note: These are placeholders and should be replaced with actual values
   // in a real environment or .env file
-  const defaultSupabaseUrl = 'https://your-supabase-project.supabase.co'; 
+  const defaultSupabaseUrl = 'https://your-supabase-project.supabase.co';
   const defaultSupabaseAnonKey = 'your-anon-key';
 
   return {
@@ -47,4 +47,4 @@ module.exports = ({ config }) => {
       // Add Expo plugins here
     ],
   };
-}; 
+};

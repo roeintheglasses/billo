@@ -35,4 +35,4 @@ export interface PermissionsContextState {
 export interface PermissionResult {
   granted: boolean;
   canAskAgain: boolean;
-} 
+}

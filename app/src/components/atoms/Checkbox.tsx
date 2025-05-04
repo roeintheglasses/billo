@@ -1,10 +1,5 @@
 import React from 'react';
-import { 
-  TouchableOpacity, 
-  View, 
-  StyleSheet, 
-  TouchableOpacityProps 
-} from 'react-native';
+import { TouchableOpacity, View, StyleSheet, TouchableOpacityProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Text } from './Text';
@@ -20,7 +15,7 @@ export interface CheckboxProps extends TouchableOpacityProps {
 
 /**
  * Checkbox component for boolean selection
- * 
+ *
  * @param {boolean} checked - Whether the checkbox is checked
  * @param {function} onChange - Callback function when checkbox state changes
  * @param {string} label - Optional label text to display next to checkbox
@@ -28,28 +23,28 @@ export interface CheckboxProps extends TouchableOpacityProps {
  * @param {string} error - Error message to display below the checkbox
  * @param {boolean} disabled - Whether the checkbox is disabled
  * @returns {React.ReactElement} A styled checkbox component
- * 
+ *
  * @example
  * // Basic usage
- * <Checkbox 
- *   checked={isAccepted} 
- *   onChange={setIsAccepted} 
- *   label="I accept the terms and conditions" 
+ * <Checkbox
+ *   checked={isAccepted}
+ *   onChange={setIsAccepted}
+ *   label="I accept the terms and conditions"
  * />
  */
-export const Checkbox: React.FC<CheckboxProps> = ({ 
-  checked, 
-  onChange, 
-  label, 
-  size = 'medium', 
+export const Checkbox: React.FC<CheckboxProps> = ({
+  checked,
+  onChange,
+  label,
+  size = 'medium',
   error,
   disabled = false,
   style,
-  ...rest 
+  ...rest
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
-  
+
   // Determine sizes based on the size prop
   const getSize = () => {
     switch (size) {
@@ -73,62 +68,51 @@ export const Checkbox: React.FC<CheckboxProps> = ({
         };
     }
   };
-  
+
   const sizeValues = getSize();
-  
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => !disabled && onChange(!checked)}
-        style={[
-          styles.row,
-          disabled && styles.disabled,
-          style,
-        ]}
+        style={[styles.row, disabled && styles.disabled, style]}
         disabled={disabled}
         {...rest}
       >
-        <View 
+        <View
           style={[
             styles.checkboxContainer,
             {
               width: sizeValues.box,
               height: sizeValues.box,
-              borderColor: error 
-                ? colors.error 
-                : checked 
-                  ? colors.primary 
-                  : colors.border.light,
-              backgroundColor: checked 
-                ? colors.primary 
-                : 'transparent',
+              borderColor: error ? colors.error : checked ? colors.primary : colors.border.light,
+              backgroundColor: checked ? colors.primary : 'transparent',
               opacity: disabled ? 0.5 : 1,
-            }
+            },
           ]}
         >
           {checked && (
-            <Ionicons 
-              name="checkmark" 
-              size={sizeValues.icon} 
-              color={colors.background.primary} 
-            />
+            <Ionicons name="checkmark" size={sizeValues.icon} color={colors.background.primary} />
           )}
         </View>
-        
+
         {label && (
-          <Text 
-            variant="body" 
+          <Text
+            variant="body"
             style={[
-              styles.label, 
-              { marginLeft: sizeValues.padding * 3, color: disabled ? colors.text.tertiary : colors.text.primary }
+              styles.label,
+              {
+                marginLeft: sizeValues.padding * 3,
+                color: disabled ? colors.text.tertiary : colors.text.primary,
+              },
             ]}
           >
             {label}
           </Text>
         )}
       </TouchableOpacity>
-      
+
       {error && (
         <Text variant="caption" style={[styles.error, { color: colors.error }]}>
           {error}
@@ -164,4 +148,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Checkbox; 
+export default Checkbox;

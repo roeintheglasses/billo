@@ -11,7 +11,7 @@ const animations = {
     medium: DURATION.MEDIUM,
     slow: DURATION.SLOW,
   },
-  
+
   // Easing functions
   easing: {
     default: EASING.DEFAULT,
@@ -20,7 +20,7 @@ const animations = {
     easeInOut: EASING.EASE_IN_OUT,
     bounce: EASING.BOUNCE,
   },
-  
+
   // Animation presets for common UI interactions
   presets: {
     fade: {
@@ -125,7 +125,7 @@ const animations = {
       autoDismiss: 3000, // Auto-dismiss duration in milliseconds
     },
   },
-  
+
   // High-level animation behaviors
   behavior: {
     // Adjustments for reduced motion accessibility setting
@@ -141,4 +141,4 @@ const animations = {
   },
 };
 
-export default animations; 
+export default animations;

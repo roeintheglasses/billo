@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ViewProps, 
+import {
+  View,
+  StyleSheet,
+  ViewProps,
   ViewStyle,
   StyleProp,
   TouchableOpacity,
@@ -24,22 +24,22 @@ export interface CardProps extends ViewProps {
 
 /**
  * Card component for creating containers with consistent styling
- * 
+ *
  * @param {string} variant - Style variant ('default', 'outlined', 'elevated')
  * @param {number|string} padding - Custom padding for the card content
  * @param {number} radius - Custom border radius
  * @param {function} onPress - Function to call when card is pressed (makes card touchable)
  * @param {boolean} disabled - Whether the card is disabled (only applies with onPress)
  * @returns {React.ReactElement} A styled card component
- * 
+ *
  * @example
  * // Basic usage
  * <Card>
  *   <Text>Card content</Text>
  * </Card>
- * 
+ *
  * // With variant and custom styling
- * <Card 
+ * <Card
  *   variant="elevated"
  *   padding={16}
  *   radius={12}
@@ -47,7 +47,7 @@ export interface CardProps extends ViewProps {
  * >
  *   <Text>Elevated Card</Text>
  * </Card>
- * 
+ *
  * // Touchable card
  * <Card onPress={() => console.log('Card pressed')}>
  *   <Text>Tap me</Text>
@@ -138,4 +138,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Card; 
+export default Card;

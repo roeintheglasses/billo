@@ -17,7 +17,7 @@ export const RadioButton: React.FC<RadioButtonProps> = ({
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
-  
+
   // Determine sizes based on the size prop
   const getSizes = () => {
     switch (size) {
@@ -39,9 +39,9 @@ export const RadioButton: React.FC<RadioButtonProps> = ({
         };
     }
   };
-  
+
   const sizes = getSizes();
-  
+
   return (
     <TouchableOpacity
       onPress={onSelect}
@@ -51,13 +51,13 @@ export const RadioButton: React.FC<RadioButtonProps> = ({
         {
           width: sizes.outer,
           height: sizes.outer,
-          borderColor: disabled 
-            ? colors.text.tertiary 
-            : selected 
-              ? colors.primary 
+          borderColor: disabled
+            ? colors.text.tertiary
+            : selected
+              ? colors.primary
               : colors.border.light,
           opacity: disabled ? 0.7 : 1,
-        }
+        },
       ]}
     >
       {selected && (
@@ -68,7 +68,7 @@ export const RadioButton: React.FC<RadioButtonProps> = ({
               width: sizes.inner,
               height: sizes.inner,
               backgroundColor: disabled ? colors.text.tertiary : colors.primary,
-            }
+            },
           ]}
         />
       )}
@@ -86,4 +86,4 @@ const styles = StyleSheet.create({
   inner: {
     borderRadius: 100, // Make it fully rounded
   },
-}); 
+});

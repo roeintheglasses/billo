@@ -1,10 +1,5 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  StyleProp, 
-  ViewStyle 
-} from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { IconButton } from '../../atoms/IconButton';
 import { Row } from '../../atoms/Grid';
 
@@ -18,7 +13,7 @@ export interface SubscriptionCardActionsProps {
 
 /**
  * Actions component for SubscriptionCard
- * 
+ *
  * @param {function} onEdit - Callback for edit action
  * @param {function} onDelete - Callback for delete action
  * @param {function} onPause - Callback for pause action
@@ -32,10 +27,7 @@ export const SubscriptionCardActions: React.FC<SubscriptionCardActionsProps> = (
   testID,
 }) => {
   return (
-    <View 
-      style={[styles.container, style]} 
-      testID={testID}
-    >
+    <View style={[styles.container, style]} testID={testID}>
       <Row justifyContent="flex-end" gap={8}>
         {onEdit && (
           <IconButton
@@ -46,7 +38,7 @@ export const SubscriptionCardActions: React.FC<SubscriptionCardActionsProps> = (
             accessibilityLabel="Edit subscription"
           />
         )}
-        
+
         {onPause && (
           <IconButton
             name="pause-circle"
@@ -56,7 +48,7 @@ export const SubscriptionCardActions: React.FC<SubscriptionCardActionsProps> = (
             accessibilityLabel="Pause subscription"
           />
         )}
-        
+
         {onDelete && (
           <IconButton
             name="trash-outline"
@@ -77,4 +69,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SubscriptionCardActions; 
+export default SubscriptionCardActions;

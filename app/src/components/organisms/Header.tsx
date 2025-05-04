@@ -15,10 +15,10 @@ export interface HeaderProps {
 
 /**
  * Header component for app screens
- * 
+ *
  * Displays a consistent header across screens with customizable left/right components,
  * title, and subtitle.
- * 
+ *
  * @param {string} title - Main header title
  * @param {string} subtitle - Smaller text shown below the title
  * @param {React.ReactNode} leftComponent - Component to display on the left side
@@ -28,14 +28,14 @@ export interface HeaderProps {
  * @param {string} bgColor - Background color of the header
  * @param {boolean} translucent - Whether the header should be translucent
  * @returns {React.ReactElement} A styled header component
- * 
+ *
  * @example
  * // Basic header with title
  * <Header title="Subscriptions" />
- * 
+ *
  * // Header with back button and action
- * <Header 
- *   title="Subscription Details" 
+ * <Header
+ *   title="Subscription Details"
  *   leftComponent={<BackIcon />}
  *   onLeftPress={navigation.goBack}
  *   rightComponent={<EditIcon />}
@@ -59,12 +59,8 @@ export const Header = ({
         barStyle="dark-content"
         translucent={translucent}
       />
-      <View 
-        style={[
-          styles.container, 
-          { backgroundColor: bgColor },
-          translucent && styles.translucent
-        ]}
+      <View
+        style={[styles.container, { backgroundColor: bgColor }, translucent && styles.translucent]}
       >
         <View style={styles.leftContainer}>
           {leftComponent && (
@@ -78,20 +74,11 @@ export const Header = ({
           )}
         </View>
         <View style={styles.titleContainer}>
-          <Text 
-            variant="heading3" 
-            weight="semibold" 
-            align="center" 
-            numberOfLines={1}
-          >
+          <Text variant="heading3" weight="semibold" align="center" numberOfLines={1}>
             {title}
           </Text>
           {subtitle && (
-            <Text 
-              variant="caption" 
-              align="center"
-              numberOfLines={1}
-            >
+            <Text variant="caption" align="center" numberOfLines={1}>
               {subtitle}
             </Text>
           )}
@@ -142,4 +129,4 @@ const styles = StyleSheet.create({
   iconContainer: {
     padding: 8,
   },
-}); 
+});

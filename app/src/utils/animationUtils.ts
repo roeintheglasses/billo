@@ -106,12 +106,9 @@ export const useReducedMotion = () => {
     checkReducedMotion();
 
     // Listen for changes to reduced motion setting
-    const listener = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      (isReduced) => {
-        setIsReducedMotionEnabled(isReduced);
-      }
-    );
+    const listener = AccessibilityInfo.addEventListener('reduceMotionChanged', isReduced => {
+      setIsReducedMotionEnabled(isReduced);
+    });
 
     return () => {
       listener.remove();
@@ -123,7 +120,7 @@ export const useReducedMotion = () => {
 
 /**
  * Hook to create a fade animation using Reanimated
- * 
+ *
  * @param visible Whether the element should be visible
  * @param config Animation timing configuration
  * @returns Animated style object for fade animation
@@ -134,10 +131,10 @@ export const useFadeAnimation = (
 ) => {
   const opacity = useSharedValue(visible ? 1 : 0);
   const isReducedMotion = useReducedMotion();
-  
+
   // If reduced motion is enabled, use shorter duration
-  const adjustedConfig = isReducedMotion 
-    ? { ...config, duration: Math.min(config.duration || DURATION.MEDIUM, DURATION.FAST) } 
+  const adjustedConfig = isReducedMotion
+    ? { ...config, duration: Math.min(config.duration || DURATION.MEDIUM, DURATION.FAST) }
     : config;
 
   useEffect(() => {
@@ -153,7 +150,7 @@ export const useFadeAnimation = (
 
 /**
  * Hook to create a slide animation using Reanimated
- * 
+ *
  * @param visible Whether the element should be visible
  * @param direction Direction to slide from ('left', 'right', 'top', 'bottom')
  * @param distance Distance to slide (default: 20)
@@ -169,12 +166,12 @@ export const useSlideAnimation = (
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const isReducedMotion = useReducedMotion();
-  
+
   // If reduced motion is enabled, use shorter duration
-  const adjustedConfig = isReducedMotion 
-    ? { ...config, duration: Math.min(config.duration || DURATION.MEDIUM, DURATION.FAST) } 
+  const adjustedConfig = isReducedMotion
+    ? { ...config, duration: Math.min(config.duration || DURATION.MEDIUM, DURATION.FAST) }
     : config;
-  
+
   // If reduced motion is enabled, reduce the distance
   const adjustedDistance = isReducedMotion ? Math.min(distance, 10) : distance;
 
@@ -197,17 +194,14 @@ export const useSlideAnimation = (
 
   return useAnimatedStyle(() => {
     return {
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-      ],
+      transform: [{ translateX: translateX.value }, { translateY: translateY.value }],
     };
   });
 };
 
 /**
  * Hook to create a scale animation using Reanimated
- * 
+ *
  * @param visible Whether the element should be visible
  * @param initialScale Initial scale value (default: 0.9)
  * @param config Animation timing configuration
@@ -220,10 +214,10 @@ export const useScaleAnimation = (
 ) => {
   const scale = useSharedValue(visible ? 1 : initialScale);
   const isReducedMotion = useReducedMotion();
-  
+
   // If reduced motion is enabled, use shorter duration and less dramatic scaling
-  const adjustedConfig = isReducedMotion 
-    ? { ...config, duration: Math.min(config.duration || DURATION.MEDIUM, DURATION.FAST) } 
+  const adjustedConfig = isReducedMotion
+    ? { ...config, duration: Math.min(config.duration || DURATION.MEDIUM, DURATION.FAST) }
     : config;
   const adjustedInitialScale = isReducedMotion ? Math.max(initialScale, 0.95) : initialScale;
 
@@ -240,7 +234,7 @@ export const useScaleAnimation = (
 
 /**
  * Hook to create a combined fade and scale animation using Reanimated
- * 
+ *
  * @param visible Whether the element should be visible
  * @param initialScale Initial scale value (default: 0.9)
  * @param config Animation timing configuration
@@ -254,10 +248,10 @@ export const useFadeScaleAnimation = (
   const opacity = useSharedValue(visible ? 1 : 0);
   const scale = useSharedValue(visible ? 1 : initialScale);
   const isReducedMotion = useReducedMotion();
-  
+
   // If reduced motion is enabled, adjust animation parameters
-  const adjustedConfig = isReducedMotion 
-    ? { ...config, duration: Math.min(config.duration || DURATION.MEDIUM, DURATION.FAST) } 
+  const adjustedConfig = isReducedMotion
+    ? { ...config, duration: Math.min(config.duration || DURATION.MEDIUM, DURATION.FAST) }
     : config;
   const adjustedInitialScale = isReducedMotion ? Math.max(initialScale, 0.95) : initialScale;
 
@@ -276,7 +270,7 @@ export const useFadeScaleAnimation = (
 
 /**
  * Hook to create a spring animation using Reanimated
- * 
+ *
  * @param active Whether the animation is active
  * @param activeValue Value when active (default: 1)
  * @param inactiveValue Value when inactive (default: 0)
@@ -291,7 +285,7 @@ export const useSpringAnimation = (
 ) => {
   const animatedValue = useSharedValue(active ? activeValue : inactiveValue);
   const isReducedMotion = useReducedMotion();
-  
+
   // Create a basic spring config with safe defaults
   const baseSpringConfig = {
     damping: config.damping || 10,
@@ -301,7 +295,7 @@ export const useSpringAnimation = (
     restDisplacementThreshold: config.restDisplacementThreshold || 0.01,
     restSpeedThreshold: config.restSpeedThreshold || 0.01,
   };
-  
+
   // Apply reduced motion adjustments if needed
   const springConfig = isReducedMotion
     ? {
@@ -312,10 +306,7 @@ export const useSpringAnimation = (
     : baseSpringConfig;
 
   useEffect(() => {
-    animatedValue.value = withSpring(
-      active ? activeValue : inactiveValue,
-      springConfig
-    );
+    animatedValue.value = withSpring(active ? activeValue : inactiveValue, springConfig);
   }, [active, activeValue, inactiveValue, animatedValue, springConfig]);
 
   // Manually reset the animation value
@@ -333,7 +324,7 @@ export const useSpringAnimation = (
 export class AnimationUtils {
   /**
    * Create a timing animation with the Animated API
-   * 
+   *
    * @param value Animated value to animate
    * @param toValue Target value
    * @param duration Animation duration in ms
@@ -356,7 +347,7 @@ export class AnimationUtils {
 
   /**
    * Create a spring animation with the Animated API
-   * 
+   *
    * @param value Animated value to animate
    * @param toValue Target value
    * @param friction Spring friction (default: 7)
@@ -379,7 +370,7 @@ export class AnimationUtils {
 
   /**
    * Create a sequence of animations with the Animated API
-   * 
+   *
    * @param animations Array of Animated.CompositeAnimation
    * @returns Animated.CompositeAnimation that can be started, stopped, etc.
    */
@@ -389,7 +380,7 @@ export class AnimationUtils {
 
   /**
    * Create a parallel animation with the Animated API
-   * 
+   *
    * @param animations Array of Animated.CompositeAnimation
    * @returns Animated.CompositeAnimation that can be started, stopped, etc.
    */
@@ -401,11 +392,11 @@ export class AnimationUtils {
 /**
  * Function to determine if animations should be reduced/disabled
  * based on device accessibility settings and app preferences
- * 
+ *
  * @param forceDisable Force disable animations
  * @returns Whether animations should be reduced/disabled
  */
 export const shouldReduceAnimations = async (forceDisable = false): Promise<boolean> => {
   if (forceDisable) return true;
   return await AccessibilityInfo.isReduceMotionEnabled();
-}; 
+};

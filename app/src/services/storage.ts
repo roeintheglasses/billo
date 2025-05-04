@@ -1,6 +1,6 @@
 /**
  * Secure Storage Service
- * 
+ *
  * This file provides a secure storage service for managing auth tokens and
  * other sensitive data using either SecureStore or AsyncStorage as a fallback.
  */
@@ -23,7 +23,7 @@ export const STORAGE_KEYS = {
 
 /**
  * Check if SecureStore is available on the current device
- * 
+ *
  * @returns {Promise<boolean>} True if SecureStore is available
  */
 const isSecureStoreAvailable = async (): Promise<boolean> => {
@@ -36,37 +36,37 @@ const isSecureStoreAvailable = async (): Promise<boolean> => {
 export const secureStorage = {
   /**
    * Store a value securely
-   * 
+   *
    * @param {string} key Storage key
    * @param {any} value Value to store (will be stringified if not a string)
    * @returns {Promise<void>}
    */
   async setItem(key: string, value: any): Promise<void> {
     const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
-    
+
     if (await isSecureStoreAvailable()) {
       await SecureStore.setItemAsync(key, stringValue);
     } else {
       await AsyncStorage.setItem(key, stringValue);
     }
   },
-  
+
   /**
    * Retrieve a stored value
-   * 
+   *
    * @param {string} key Storage key
    * @param {boolean} parseJson Whether to parse the result as JSON
    * @returns {Promise<any>} The stored value or null if not found
    */
   async getItem(key: string, parseJson = false): Promise<any> {
     let value;
-    
+
     if (await isSecureStoreAvailable()) {
       value = await SecureStore.getItemAsync(key);
     } else {
       value = await AsyncStorage.getItem(key);
     }
-    
+
     if (value && parseJson) {
       try {
         return JSON.parse(value);
@@ -75,13 +75,13 @@ export const secureStorage = {
         return null;
       }
     }
-    
+
     return value;
   },
-  
+
   /**
    * Remove a stored value
-   * 
+   *
    * @param {string} key Storage key
    * @returns {Promise<void>}
    */
@@ -92,16 +92,20 @@ export const secureStorage = {
       await AsyncStorage.removeItem(key);
     }
   },
-  
+
   /**
    * Store auth session data securely
-   * 
+   *
    * @param {object} session Session data with tokens
    * @returns {Promise<void>}
    */
-  async storeSession(session: { access_token: string, refresh_token: string, user: { id: string } }): Promise<void> {
+  async storeSession(session: {
+    access_token: string;
+    refresh_token: string;
+    user: { id: string };
+  }): Promise<void> {
     if (!session) return;
-    
+
     await Promise.all([
       this.setItem(STORAGE_KEYS.ACCESS_TOKEN, session.access_token),
       this.setItem(STORAGE_KEYS.REFRESH_TOKEN, session.refresh_token),
@@ -109,10 +113,10 @@ export const secureStorage = {
       this.setItem(STORAGE_KEYS.SESSION, session),
     ]);
   },
-  
+
   /**
    * Clear all auth session data
-   * 
+   *
    * @returns {Promise<void>}
    */
   async clearSession(): Promise<void> {
@@ -123,20 +127,20 @@ export const secureStorage = {
       this.removeItem(STORAGE_KEYS.USER_ID),
     ]);
   },
-  
+
   /**
    * Get stored session data
-   * 
+   *
    * @returns {Promise<object|null>} The session data or null if not found
    */
   async getSession(): Promise<any> {
     return this.getItem(STORAGE_KEYS.SESSION, true);
-  }
+  },
 };
 
 /**
  * Upload an avatar image to Supabase storage
- * 
+ *
  * @param uri The local URI of the image file
  * @param fileType The file extension (e.g., 'jpg', 'png')
  * @returns {Promise<string|null>} The public URL of the uploaded image, or null if upload failed
@@ -149,10 +153,10 @@ export const uploadAvatar = async (uri: string, fileType: string): Promise<strin
       console.error('No authenticated user found');
       return null;
     }
-    
+
     const userId = userData.user.id;
     const fileName = `avatar-${userId}-${Date.now()}.${fileType}`;
-    
+
     // Fetch the image data
     const response = await fetch(uri);
     const blob = await response.blob();
@@ -170,7 +174,7 @@ export const uploadAvatar = async (uri: string, fileType: string): Promise<strin
       };
       reader.onerror = () => reject(reader.error);
     });
-    
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from('avatars')
@@ -178,17 +182,15 @@ export const uploadAvatar = async (uri: string, fileType: string): Promise<strin
         contentType: `image/${fileType}`,
         upsert: true,
       });
-    
+
     if (error) {
       console.error('Error uploading avatar:', error.message);
       return null;
     }
-    
+
     // Get the public URL
-    const { data: urlData } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(data.path);
-    
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(data.path);
+
     return urlData.publicUrl;
   } catch (error) {
     console.error('Unexpected error uploading avatar:', error);
@@ -196,4 +198,4 @@ export const uploadAvatar = async (uri: string, fileType: string): Promise<strin
   }
 };
 
-export default secureStorage; 
+export default secureStorage;

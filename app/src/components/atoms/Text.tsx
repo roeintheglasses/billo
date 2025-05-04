@@ -1,5 +1,11 @@
 import React from 'react';
-import { Text as RNText, StyleSheet, TextProps as RNTextProps, StyleProp, TextStyle } from 'react-native';
+import {
+  Text as RNText,
+  StyleSheet,
+  TextProps as RNTextProps,
+  StyleProp,
+  TextStyle,
+} from 'react-native';
 
 export interface TextProps extends RNTextProps {
   variant?: 'heading1' | 'heading2' | 'heading3' | 'body' | 'caption' | 'label';
@@ -11,29 +17,29 @@ export interface TextProps extends RNTextProps {
 
 /**
  * Text component for displaying text with consistent styling
- * 
+ *
  * @param {string} variant - Text style variant (heading1, heading2, heading3, body, caption, label)
  * @param {string} weight - Font weight (normal, semibold, bold)
  * @param {string} align - Text alignment
  * @param {string} color - Text color (overrides default color)
  * @param {object} style - Additional styles to apply
  * @returns {React.ReactElement} A styled text component
- * 
+ *
  * @example
  * // Basic usage
  * <Text>Hello world</Text>
- * 
+ *
  * // With variant and styling
- * <Text 
- *   variant="heading1" 
- *   weight="bold" 
+ * <Text
+ *   variant="heading1"
+ *   weight="bold"
  *   align="center"
  *   color="#FF0000"
  * >
  *   Welcome to Billo
  * </Text>
  */
-export const Text = ({ 
+export const Text = ({
   variant = 'body',
   weight = 'normal',
   align = 'auto',
@@ -102,4 +108,4 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: 'bold',
   },
-}); 
+});

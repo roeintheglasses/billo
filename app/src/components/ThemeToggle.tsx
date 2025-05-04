@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 /**
  * ThemeToggle Component
- * 
+ *
  * A simple button component that toggles between dark and light theme
  */
 export const ThemeToggle = () => {
@@ -13,24 +13,19 @@ export const ThemeToggle = () => {
   const { colors } = theme;
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
         styles.container,
-        { backgroundColor: isDarkMode ? colors.background.tertiary : colors.background.secondary }
-      ]} 
+        { backgroundColor: isDarkMode ? colors.background.tertiary : colors.background.secondary },
+      ]}
       onPress={toggleTheme}
     >
-      <Ionicons 
-        name={isDarkMode ? 'sunny-outline' : 'moon-outline'} 
-        size={20} 
-        color={isDarkMode ? colors.primary : colors.primary} 
+      <Ionicons
+        name={isDarkMode ? 'sunny-outline' : 'moon-outline'}
+        size={20}
+        color={isDarkMode ? colors.primary : colors.primary}
       />
-      <Text 
-        style={[
-          styles.text, 
-          { color: colors.text.primary }
-        ]}
-      >
+      <Text style={[styles.text, { color: colors.text.primary }]}>
         {isDarkMode ? 'Light Mode' : 'Dark Mode'}
       </Text>
     </TouchableOpacity>
@@ -51,4 +46,4 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
   },
-}); 
+});

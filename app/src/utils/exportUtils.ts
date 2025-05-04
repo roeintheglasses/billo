@@ -24,21 +24,23 @@ export const convertToCSV = <T extends Record<string, any>>(
 
   // Convert each object to a CSV row
   const rows = data.map(obj => {
-    return keys.map(key => {
-      // Handle special cases like dates, numbers, etc.
-      const value = obj[key];
-      if (value === null || value === undefined) {
-        return '';
-      }
-      if (typeof value === 'string') {
-        // Escape quotes and wrap in quotes if it contains commas or quotes
-        if (value.includes(',') || value.includes('"')) {
-          return `"${value.replace(/"/g, '""')}"`;
+    return keys
+      .map(key => {
+        // Handle special cases like dates, numbers, etc.
+        const value = obj[key];
+        if (value === null || value === undefined) {
+          return '';
         }
-        return value;
-      }
-      return String(value);
-    }).join(',');
+        if (typeof value === 'string') {
+          // Escape quotes and wrap in quotes if it contains commas or quotes
+          if (value.includes(',') || value.includes('"')) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          return value;
+        }
+        return String(value);
+      })
+      .join(',');
   });
 
   return [headerRow, ...rows].join('\n');
@@ -54,7 +56,7 @@ export const formatSpendingDataForExport = (
 ): { Month: string; Amount: string }[] => {
   return data.map(({ month, amount }) => ({
     Month: format(new Date(month), 'MMMM yyyy'),
-    Amount: formatCurrency(amount)
+    Amount: formatCurrency(amount),
   }));
 };
 
@@ -77,7 +79,7 @@ export const exportDataAsCSV = async <T extends Record<string, any>>(
 
     const csvContent = convertToCSV(data, headers);
     const csvFilename = `${filename}-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    
+
     if (Platform.OS === 'web') {
       // For web, create a downloadable link
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -93,19 +95,19 @@ export const exportDataAsCSV = async <T extends Record<string, any>>(
       // For mobile, use FileSystem and Sharing
       const fileUri = `${FileSystem.documentDirectory}${csvFilename}`;
       await FileSystem.writeAsStringAsync(fileUri, csvContent);
-      
+
       if (Platform.OS === 'ios') {
         // iOS can use Share
         await Share.share({
           url: fileUri,
-          title: 'Monthly Spending Data'
+          title: 'Monthly Spending Data',
         });
       } else if (Platform.OS === 'android') {
         // Android needs expo-sharing
         if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri, { 
+          await Sharing.shareAsync(fileUri, {
             mimeType: 'text/csv',
-            dialogTitle: 'Export Monthly Spending Data'
+            dialogTitle: 'Export Monthly Spending Data',
           });
         } else {
           throw new Error('Sharing is not available on this device');
@@ -122,4 +124,4 @@ export default {
   convertToCSV,
   exportDataAsCSV,
   formatSpendingDataForExport,
-}; 
+};

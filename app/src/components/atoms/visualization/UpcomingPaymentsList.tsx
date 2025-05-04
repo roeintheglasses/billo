@@ -10,32 +10,32 @@ export interface UpcomingPaymentsListProps {
    * Array of subscriptions with payment due dates
    */
   subscriptions: SubscriptionWithCategory[];
-  
+
   /**
    * Loading state for the data
    */
   loading?: boolean;
-  
+
   /**
    * Error message if data fetch failed
    */
   error?: string | null;
-  
+
   /**
    * Title for the component
    */
   title?: string;
-  
+
   /**
    * Maximum number of items to display
    */
   maxItems?: number;
-  
+
   /**
    * Callback when a subscription is pressed
    */
   onSubscriptionPress?: (subscription: SubscriptionWithCategory) => void;
-  
+
   /**
    * Callback when "View All" button is pressed
    */
@@ -44,7 +44,7 @@ export interface UpcomingPaymentsListProps {
 
 /**
  * UpcomingPaymentsList component
- * 
+ *
  * Displays a list of upcoming subscription payments with their due dates
  * and amounts. Provides options for interaction and a "View All" button
  * for viewing more items.
@@ -60,26 +60,24 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
 }) => {
   const { theme } = useTheme();
   const { colors, spacing } = theme;
-  
+
   // Display items up to the maximum specified
   const displayItems = subscriptions.slice(0, maxItems);
   const hasMoreItems = subscriptions.length > maxItems;
-  
+
   // Handle empty state
   if (!loading && subscriptions.length === 0 && !error) {
     return (
-      <View 
+      <View
         style={[
-          styles.container, 
-          { 
-            backgroundColor: colors.background.secondary, 
-            borderColor: colors.border.light
-          }
+          styles.container,
+          {
+            backgroundColor: colors.background.secondary,
+            borderColor: colors.border.light,
+          },
         ]}
       >
-        <Text style={[styles.title, { color: colors.text.primary }]}>
-          {title}
-        </Text>
+        <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
         <View style={styles.emptyState}>
           <Text style={[styles.emptyText, { color: colors.text.secondary }]}>
             No upcoming payments
@@ -91,21 +89,19 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
       </View>
     );
   }
-  
+
   return (
-    <View 
+    <View
       style={[
-        styles.container, 
-        { 
-          backgroundColor: colors.background.secondary, 
-          borderColor: colors.border.light
-        }
+        styles.container,
+        {
+          backgroundColor: colors.background.secondary,
+          borderColor: colors.border.light,
+        },
       ]}
     >
-      <Text style={[styles.title, { color: colors.text.primary }]}>
-        {title}
-      </Text>
-      
+      <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -115,14 +111,12 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: colors.error }]}>
-            {error}
-          </Text>
+          <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>
       ) : (
         <>
           <View style={styles.listContainer}>
-            {displayItems.map((subscription) => (
+            {displayItems.map(subscription => (
               <TouchableOpacity
                 key={subscription.id}
                 style={[styles.paymentItem, { borderBottomColor: colors.border.light }]}
@@ -133,25 +127,25 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
                     {subscription.name}
                   </Text>
                   {subscription.category && (
-                    <View 
+                    <View
                       style={[
-                        styles.categoryTag, 
-                        { 
+                        styles.categoryTag,
+                        {
                           backgroundColor: subscription.category.color || colors.primary,
-                          opacity: 0.8 
-                        }
+                          opacity: 0.8,
+                        },
                       ]}
                     >
-                      <Text style={styles.categoryText}>
-                        {subscription.category.name}
-                      </Text>
+                      <Text style={styles.categoryText}>{subscription.category.name}</Text>
                     </View>
                   )}
                 </View>
-                
+
                 <View style={styles.paymentDetails}>
                   <Text style={[styles.paymentDate, { color: colors.text.secondary }]}>
-                    {subscription.next_billing_date ? formatDate(new Date(subscription.next_billing_date)) : 'N/A'}
+                    {subscription.next_billing_date
+                      ? formatDate(new Date(subscription.next_billing_date))
+                      : 'N/A'}
                   </Text>
                   <Text style={[styles.paymentAmount, { color: colors.primary }]}>
                     {formatCurrency(subscription.amount)}
@@ -160,7 +154,7 @@ export const UpcomingPaymentsList: React.FC<UpcomingPaymentsListProps> = ({
               </TouchableOpacity>
             ))}
           </View>
-          
+
           {hasMoreItems && (
             <TouchableOpacity
               style={[styles.viewAllButton, { borderColor: colors.primary }]}
@@ -269,4 +263,4 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
   },
-}); 
+});

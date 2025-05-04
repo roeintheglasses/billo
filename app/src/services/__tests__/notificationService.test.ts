@@ -2,7 +2,11 @@
  * Notification Service Tests
  */
 
-import { validateNotification, NotificationType, NotificationPriority } from '../notificationService';
+import {
+  validateNotification,
+  NotificationType,
+  NotificationPriority,
+} from '../notificationService';
 
 // Mock the Supabase client
 jest.mock('../supabase', () => ({
@@ -17,7 +21,7 @@ jest.mock('../supabase', () => ({
     limit: jest.fn().mockReturnThis(),
     range: jest.fn().mockReturnThis(),
     single: jest.fn().mockReturnThis(),
-  }
+  },
 }));
 
 describe('Notification Service', () => {
@@ -27,7 +31,7 @@ describe('Notification Service', () => {
         user_id: 'user-123',
         title: 'Test Notification',
         message: 'This is a test notification',
-        type: NotificationType.SYSTEM
+        type: NotificationType.SYSTEM,
       };
 
       const result = validateNotification(notification);
@@ -40,7 +44,7 @@ describe('Notification Service', () => {
         user_id: 'user-123',
         title: '',
         message: 'This is a test notification',
-        type: NotificationType.SYSTEM
+        type: NotificationType.SYSTEM,
       };
 
       const result = validateNotification(notification);
@@ -53,7 +57,7 @@ describe('Notification Service', () => {
         user_id: 'user-123',
         title: 'Test Notification',
         message: '',
-        type: NotificationType.SYSTEM
+        type: NotificationType.SYSTEM,
       };
 
       const result = validateNotification(notification);
@@ -66,7 +70,7 @@ describe('Notification Service', () => {
         user_id: 'user-123',
         title: 'Test Notification',
         message: 'This is a test notification',
-        type: 'invalid-type'
+        type: 'invalid-type',
       };
 
       const result = validateNotification(notification);
@@ -77,4 +81,4 @@ describe('Notification Service', () => {
 
   // Additional tests would be implemented here for CRUD operations
   // using mocked Supabase responses.
-}); 
+});

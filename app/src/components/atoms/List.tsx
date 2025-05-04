@@ -34,7 +34,7 @@ export interface ListProps<T> extends Omit<FlatListProps<T>, 'renderItem'> {
 
 /**
  * List component for displaying collections of items with consistent styling
- * 
+ *
  * @param {array} data - Array of data items to render
  * @param {function} renderItem - Function to render each item
  * @param {boolean} isLoading - Whether the list is loading data
@@ -49,14 +49,14 @@ export interface ListProps<T> extends Omit<FlatListProps<T>, 'renderItem'> {
  * @param {object} itemContainerStyle - Additional styles for individual item containers
  * @param {number|string} contentContainerPadding - Padding for the content container
  * @returns {React.ReactElement} A list component
- * 
+ *
  * @example
  * // Basic usage
  * <List
  *   data={items}
  *   renderItem={({ item }) => <Text>{item.name}</Text>}
  * />
- * 
+ *
  * // With loading state and custom empty text
  * <List
  *   data={items}
@@ -87,13 +87,13 @@ export function List<T>({
   const { colors } = theme;
 
   // Wrap each item with proper styling and separator
-  const renderItemWithContainer: ListRenderItem<T> = (info) => {
+  const renderItemWithContainer: ListRenderItem<T> = info => {
     const content = renderItem(info);
     const { index } = info;
-    
+
     // Apply styling to the item container
     return (
-      <View 
+      <View
         style={[
           styles.itemContainer,
           { marginBottom: index < data.length - 1 ? separatorHeight : 0 },
@@ -109,7 +109,9 @@ export function List<T>({
   const renderLoading = () => (
     <View style={styles.placeholderContainer}>
       <ActivityIndicator size="large" color={colors.primary} />
-      {loadingText ? <Text style={{ color: colors.text.secondary, marginTop: 16 }}>{loadingText}</Text> : null}
+      {loadingText ? (
+        <Text style={{ color: colors.text.secondary, marginTop: 16 }}>{loadingText}</Text>
+      ) : null}
     </View>
   );
 
@@ -146,11 +148,7 @@ export function List<T>({
 
   // Render the list with appropriate container
   return (
-    <Card
-      variant={cardVariant}
-      radius={rounded ? 8 : 0}
-      style={[styles.container, containerStyle]}
-    >
+    <Card variant={cardVariant} radius={rounded ? 8 : 0} style={[styles.container, containerStyle]}>
       {renderContent()}
     </Card>
   );
@@ -172,4 +170,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default List; 
+export default List;

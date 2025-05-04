@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, ViewStyle, StyleProp, DimensionValue } from 'react-native';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  ViewStyle,
+  StyleProp,
+  DimensionValue,
+} from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 export interface ChartContainerProps {
@@ -7,37 +15,37 @@ export interface ChartContainerProps {
    * The title displayed above the chart
    */
   title?: string;
-  
+
   /**
    * Optional subtitle for additional context
    */
   subtitle?: string;
-  
+
   /**
    * The chart component to render
    */
   children: React.ReactNode;
-  
+
   /**
    * Whether the chart is in a loading state
    */
   loading?: boolean;
-  
+
   /**
    * Error message to display when chart data fails to load
    */
   error?: string;
-  
+
   /**
    * Height of the chart container
    */
   height?: number;
-  
+
   /**
    * Width of the chart container
    */
   width?: DimensionValue;
-  
+
   /**
    * Additional styles for the container
    */
@@ -46,12 +54,12 @@ export interface ChartContainerProps {
 
 /**
  * ChartContainer component
- * 
+ *
  * A container for data visualization components with support for titles,
  * loading states, and error handling. Applies consistent styling and theme support.
- * 
+ *
  * @example
- * <ChartContainer 
+ * <ChartContainer
  *   title="Monthly Expenses"
  *   subtitle="Last 6 months"
  *   height={300}
@@ -95,9 +103,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
     if (loading) {
       return (
         <View style={styles.centerContent}>
-          <ActivityIndicator 
-            size="large" 
-            color={colors.primary} 
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
             accessibilityLabel="Loading chart data"
           />
         </View>
@@ -118,13 +126,8 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   };
 
   return (
-    <View 
-      style={[
-        styles.container, 
-        containerStyle,
-        { height, width },
-        style
-      ]}
+    <View
+      style={[styles.container, containerStyle, { height, width }, style]}
       accessibilityLabel={title ? `Chart: ${title}` : 'Chart'}
     >
       <View style={styles.header}>
@@ -133,11 +136,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             {title}
           </Text>
         )}
-        {subtitle && (
-          <Text style={[styles.subtitle, subtitleStyle]}>
-            {subtitle}
-          </Text>
-        )}
+        {subtitle && <Text style={[styles.subtitle, subtitleStyle]}>{subtitle}</Text>}
       </View>
       {renderContent()}
     </View>
@@ -175,4 +174,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-}); 
+});

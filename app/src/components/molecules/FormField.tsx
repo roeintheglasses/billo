@@ -12,16 +12,16 @@ export interface FormFieldProps extends InputProps {
 
 /**
  * FormField component that combines Input with additional form elements
- * 
+ *
  * A composable form field that combines the Input component with a label,
  * error message, and helper text in a standardized layout.
- * 
+ *
  * @param {string} label - Label text displayed above the input
  * @param {string} error - Error message to display below the input
  * @param {string} helperText - Helper text displayed below the input
  * @param {boolean} required - Whether the field is required (adds asterisk to label)
  * @returns {React.ReactElement} A styled form field component
- * 
+ *
  * @example
  * // Basic usage
  * <FormField
@@ -31,7 +31,7 @@ export interface FormFieldProps extends InputProps {
  *   onChangeText={setEmail}
  *   required
  * />
- * 
+ *
  * // With error and helper text
  * <FormField
  *   label="Password"
@@ -57,13 +57,12 @@ export const FormField = ({
           {label}
         </Text>
         {required && (
-          <Text color="#e74c3c" style={styles.requiredAsterisk}>*</Text>
+          <Text color="#e74c3c" style={styles.requiredAsterisk}>
+            *
+          </Text>
         )}
       </View>
-      <Input 
-        {...rest}
-        error={error} 
-      />
+      <Input {...rest} error={error} />
       {helperText && !error && (
         <Text variant="caption" style={styles.helperText}>
           {helperText}
@@ -89,4 +88,4 @@ const styles = StyleSheet.create({
   helperText: {
     marginTop: 4,
   },
-}); 
+});

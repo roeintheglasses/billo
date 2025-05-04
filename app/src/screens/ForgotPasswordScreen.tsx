@@ -21,7 +21,7 @@ type ForgotPasswordFormValues = {
 
 /**
  * ForgotPasswordScreen Component
- * 
+ *
  * Allows users to request a password reset using their email address.
  */
 export const ForgotPasswordScreen = () => {
@@ -29,16 +29,16 @@ export const ForgotPasswordScreen = () => {
   const { theme } = useTheme();
   const { forgotPassword } = useAuth();
   const { colors, spacing } = theme;
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  
+
   // Handle form submission
   const handleSubmit = async (values: ForgotPasswordFormValues) => {
     try {
       setIsSubmitting(true);
       const success = await forgotPassword(values.email);
-      
+
       if (success) {
         setResetSent(true);
       } else {
@@ -51,16 +51,14 @@ export const ForgotPasswordScreen = () => {
       }
     } catch (error) {
       console.error('Password reset error:', error);
-      Alert.alert(
-        'Error',
-        'An unexpected error occurred. Please try again later.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Error', 'An unexpected error occurred. Please try again later.', [
+        { text: 'OK' },
+      ]);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <FormContainer
       title="Reset Your Password"
@@ -86,15 +84,15 @@ export const ForgotPasswordScreen = () => {
                 error={errors.email}
                 touched={touched.email}
               />
-              
+
               <Button
                 title="Send Reset Link"
                 onPress={() => handleSubmit()}
                 isLoading={isSubmitting}
                 style={{ marginTop: spacing.md }}
               />
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => navigation.navigate('Login')}
               >
@@ -112,7 +110,8 @@ export const ForgotPasswordScreen = () => {
             Reset instructions sent!
           </Text>
           <Text style={[styles.successSubtext, { color: colors.text.secondary }]}>
-            We've sent the password reset instructions to your email. Please check your inbox and follow the link to reset your password.
+            We've sent the password reset instructions to your email. Please check your inbox and
+            follow the link to reset your password.
           </Text>
           <Button
             title="Back to Login"
@@ -149,4 +148,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
-}); 
+});

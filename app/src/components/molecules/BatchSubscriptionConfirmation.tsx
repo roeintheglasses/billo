@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { Modal } from '../atoms/Modal';
 import { Button } from '../atoms/Button';
 import { Text } from '../atoms/Text';
@@ -21,14 +28,14 @@ interface BatchSubscriptionConfirmationProps {
 
 /**
  * BatchSubscriptionConfirmation Component
- * 
+ *
  * A modal for batch confirming multiple subscription messages
  */
 export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmationProps> = ({
   visible,
   onClose,
   subscriptions,
-  onConfirm
+  onConfirm,
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
@@ -58,7 +65,10 @@ export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmati
   // Handle confirmation and saving of selected subscriptions
   const handleConfirm = async () => {
     if (selectedIds.length === 0) {
-      Alert.alert('No Subscriptions Selected', 'Please select at least one subscription to confirm.');
+      Alert.alert(
+        'No Subscriptions Selected',
+        'Please select at least one subscription to confirm.'
+      );
       return;
     }
 
@@ -88,7 +98,7 @@ export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmati
           start_date: new Date().toISOString().split('T')[0],
           next_billing_date: subscription.nextBillingDate || null,
           source_type: 'sms',
-          auto_detected: true
+          auto_detected: true,
         };
 
         // Save the subscription
@@ -110,10 +120,7 @@ export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmati
         [{ text: 'OK', onPress: onConfirm }]
       );
     } catch (error) {
-      Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'Failed to save subscriptions'
-      );
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to save subscriptions');
     } finally {
       setIsLoading(false);
       onClose();
@@ -127,10 +134,7 @@ export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmati
     return (
       <TouchableOpacity
         onPress={() => toggleSelection(item._id)}
-        style={[
-          styles.subscriptionItem,
-          isSelected && { backgroundColor: colors.primary + '10' }
-        ]}
+        style={[styles.subscriptionItem, isSelected && { backgroundColor: colors.primary + '10' }]}
       >
         <View style={styles.selectionIndicator}>
           <Ionicons
@@ -159,12 +163,7 @@ export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmati
   };
 
   return (
-    <Modal
-      visible={visible}
-      onClose={onClose}
-      title="Batch Confirm Subscriptions"
-      size="large"
-    >
+    <Modal visible={visible} onClose={onClose} title="Batch Confirm Subscriptions" size="large">
       <View style={styles.container}>
         <Text variant="body" style={styles.description}>
           Select the subscription messages you want to add to your subscription list.
@@ -189,7 +188,7 @@ export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmati
         <FlatList
           data={subscriptions}
           renderItem={renderItem}
-          keyExtractor={(item) => item._id.toString()}
+          keyExtractor={item => item._id.toString()}
           style={styles.listContainer}
           contentContainerStyle={styles.listContent}
         />
@@ -203,7 +202,7 @@ export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmati
             disabled={isLoading}
           />
           <Button
-            title={isLoading ? "Saving..." : "Confirm Selected"}
+            title={isLoading ? 'Saving...' : 'Confirm Selected'}
             variant="primary"
             onPress={handleConfirm}
             style={styles.confirmButton}
@@ -212,11 +211,7 @@ export const BatchSubscriptionConfirmation: React.FC<BatchSubscriptionConfirmati
         </View>
 
         {isLoading && (
-          <ActivityIndicator
-            size="large"
-            color={colors.primary}
-            style={styles.loader}
-          />
+          <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
         )}
       </View>
     </Modal>
@@ -293,4 +288,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
-}); 
+});

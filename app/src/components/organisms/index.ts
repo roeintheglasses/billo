@@ -1,2 +1,2 @@
 // Export all organism components
-export * from './Header'; 
+export * from './Header';

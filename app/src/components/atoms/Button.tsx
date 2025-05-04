@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  TouchableOpacity, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacityProps, 
-  ActivityIndicator 
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  TouchableOpacityProps,
+  ActivityIndicator,
 } from 'react-native';
 
 export interface ButtonProps extends TouchableOpacityProps {
@@ -16,61 +16,45 @@ export interface ButtonProps extends TouchableOpacityProps {
 
 /**
  * Button component for user interactions
- * 
+ *
  * @param {string} title - Text to display inside the button
  * @param {string} variant - Button style variant ('primary', 'secondary', 'outline')
  * @param {string} size - Button size ('small', 'medium', 'large')
  * @param {boolean} isLoading - Shows loading indicator when true
  * @returns {React.ReactElement} A styled button component
- * 
+ *
  * @example
  * // Basic usage
  * <Button title="Submit" onPress={() => console.log('Pressed')} />
- * 
+ *
  * // With variants and loading state
- * <Button 
- *   title="Save" 
- *   variant="primary" 
- *   size="large" 
- *   isLoading={saving} 
- *   onPress={handleSave} 
+ * <Button
+ *   title="Save"
+ *   variant="primary"
+ *   size="large"
+ *   isLoading={saving}
+ *   onPress={handleSave}
  * />
  */
-export const Button = ({ 
-  title, 
-  variant = 'primary', 
-  size = 'medium', 
+export const Button = ({
+  title,
+  variant = 'primary',
+  size = 'medium',
   isLoading = false,
-  style, 
-  disabled, 
-  ...rest 
+  style,
+  disabled,
+  ...rest
 }: ButtonProps) => {
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        styles[variant],
-        styles[size],
-        disabled && styles.disabled,
-        style,
-      ]}
+      style={[styles.button, styles[variant], styles[size], disabled && styles.disabled, style]}
       disabled={disabled || isLoading}
       {...rest}
     >
       {isLoading ? (
-        <ActivityIndicator 
-          color={variant === 'outline' ? '#3498db' : '#ffffff'} 
-          size="small" 
-        />
+        <ActivityIndicator color={variant === 'outline' ? '#3498db' : '#ffffff'} size="small" />
       ) : (
-        <Text 
-          style={[
-            styles.text, 
-            variant === 'outline' && styles.outlineText
-          ]}
-        >
-          {title}
-        </Text>
+        <Text style={[styles.text, variant === 'outline' && styles.outlineText]}>{title}</Text>
       )}
     </TouchableOpacity>
   );
@@ -116,5 +100,5 @@ const styles = StyleSheet.create({
   },
   outlineText: {
     color: '#3498db',
-  }
-}); 
+  },
+});

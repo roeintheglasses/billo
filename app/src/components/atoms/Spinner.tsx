@@ -25,7 +25,7 @@ export interface SpinnerProps {
 
 /**
  * Spinner component for showing loading states
- * 
+ *
  * @param {string} size - Size of the spinner ('small', 'medium', 'large')
  * @param {string} color - Custom color for the spinner
  * @param {string} text - Optional text to display below the spinner
@@ -34,14 +34,14 @@ export interface SpinnerProps {
  * @param {boolean} fullScreen - Whether to display the spinner in full screen
  * @param {boolean} overlay - Whether to display the spinner as an overlay
  * @returns {React.ReactElement} A loading spinner component
- * 
+ *
  * @example
  * // Basic usage
  * <Spinner />
- * 
+ *
  * // With custom size and text
  * <Spinner size="large" text="Loading data..." />
- * 
+ *
  * // Full screen overlay
  * <Spinner fullScreen overlay />
  */
@@ -82,20 +82,9 @@ export const Spinner: React.FC<SpinnerProps> = ({
 
   return (
     <View style={containerStyles} testID={testID}>
-      <ActivityIndicator
-        size={getActivityIndicatorSize()}
-        color={color || colors.primary}
-      />
+      <ActivityIndicator size={getActivityIndicatorSize()} color={color || colors.primary} />
       {text ? (
-        <Text
-          style={[
-            styles.text,
-            { color: colors.text.secondary },
-            textStyle,
-          ]}
-        >
-          {text}
-        </Text>
+        <Text style={[styles.text, { color: colors.text.secondary }, textStyle]}>{text}</Text>
       ) : null}
     </View>
   );
@@ -126,4 +115,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Spinner; 
+export default Spinner;

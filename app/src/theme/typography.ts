@@ -1,6 +1,6 @@
 /**
  * Typography styles for the application
- * 
+ *
  * This file defines font sizes, weights, and styles
  * for maintaining consistent typography across the app.
  */
@@ -8,11 +8,12 @@
 import { Platform } from 'react-native';
 
 // Helper for selecting platform-specific fonts
-const font = (ios: string, android: string) => Platform.select({
-  ios,
-  android,
-  default: ios,
-});
+const font = (ios: string, android: string) =>
+  Platform.select({
+    ios,
+    android,
+    default: ios,
+  });
 
 // Font families
 const fontFamily = {
@@ -21,7 +22,7 @@ const fontFamily = {
   medium: font('System', 'Roboto-Medium'),
   semiBold: font('System', 'Roboto-Medium'),
   bold: font('System', 'Roboto-Bold'),
-  // Add custom fonts here if needed 
+  // Add custom fonts here if needed
 };
 
 // Font sizes
@@ -98,7 +99,7 @@ const variants = {
     lineHeight: lineHeight.tight,
     letterSpacing: letterSpacing.tight,
   },
-  
+
   // Body text
   bodyLarge: {
     fontFamily: fontFamily.regular,
@@ -121,7 +122,7 @@ const variants = {
     lineHeight: lineHeight.normal,
     letterSpacing: letterSpacing.normal,
   },
-  
+
   // Button text
   button: {
     fontFamily: fontFamily.medium,
@@ -130,7 +131,7 @@ const variants = {
     lineHeight: lineHeight.tight,
     letterSpacing: letterSpacing.normal,
   },
-  
+
   // Labels
   labelLarge: {
     fontFamily: fontFamily.medium,
@@ -153,7 +154,7 @@ const variants = {
     lineHeight: lineHeight.tight,
     letterSpacing: letterSpacing.wide,
   },
-  
+
   // Caption
   caption: {
     fontFamily: fontFamily.regular,
@@ -175,4 +176,4 @@ const typography = {
 
 export type TypographyTheme = typeof typography;
 
-export default typography; 
+export default typography;

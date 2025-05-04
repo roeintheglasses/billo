@@ -9,7 +9,7 @@ export interface AccessibilityProps {
   accessibilityLabel?: string;
   accessibilityHint?: string;
   accessibilityRole?: ViewProps['accessibilityRole'];
-  accessibilityState?: ViewProps['accessibilityState']; 
+  accessibilityState?: ViewProps['accessibilityState'];
   accessibilityValue?: ViewProps['accessibilityValue'];
   accessibilityLiveRegion?: ViewProps['accessibilityLiveRegion'];
   accessibilityActions?: ViewProps['accessibilityActions'];
@@ -55,12 +55,9 @@ export const useScreenReader = () => {
     checkScreenReader();
 
     // Listen for changes to screen reader setting
-    const listener = AccessibilityInfo.addEventListener(
-      'screenReaderChanged',
-      (isEnabled) => {
-        setIsScreenReaderEnabled(isEnabled);
-      }
-    );
+    const listener = AccessibilityInfo.addEventListener('screenReaderChanged', isEnabled => {
+      setIsScreenReaderEnabled(isEnabled);
+    });
 
     return () => {
       listener.remove();
@@ -92,12 +89,9 @@ export const useBoldText = () => {
     checkBoldText();
 
     // Listen for changes to bold text setting
-    const listener = AccessibilityInfo.addEventListener(
-      'boldTextChanged',
-      (isEnabled) => {
-        setIsBoldTextEnabled(isEnabled);
-      }
-    );
+    const listener = AccessibilityInfo.addEventListener('boldTextChanged', isEnabled => {
+      setIsBoldTextEnabled(isEnabled);
+    });
 
     return () => {
       listener.remove();
@@ -129,12 +123,9 @@ export const useReduceTransparency = () => {
     checkReduceTransparency();
 
     // Listen for changes to reduce transparency setting
-    const listener = AccessibilityInfo.addEventListener(
-      'reduceTransparencyChanged',
-      (isEnabled) => {
-        setIsReduceTransparencyEnabled(isEnabled);
-      }
-    );
+    const listener = AccessibilityInfo.addEventListener('reduceTransparencyChanged', isEnabled => {
+      setIsReduceTransparencyEnabled(isEnabled);
+    });
 
     return () => {
       listener.remove();
@@ -179,12 +170,9 @@ export const useReduceMotion = () => {
     checkReducedMotion();
 
     // Listen for changes to reduced motion setting
-    const listener = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      (isReduced) => {
-        setIsReduceMotionEnabled(isReduced);
-      }
-    );
+    const listener = AccessibilityInfo.addEventListener('reduceMotionChanged', isReduced => {
+      setIsReduceMotionEnabled(isReduced);
+    });
 
     return () => {
       listener.remove();
@@ -196,7 +184,7 @@ export const useReduceMotion = () => {
 
 /**
  * Generate accessibility props for a button
- * 
+ *
  * @param label The accessible label for the button
  * @param hint Optional hint for what the button does
  * @param disabled Whether the button is disabled
@@ -218,7 +206,7 @@ export const getButtonAccessibilityProps = (
 
 /**
  * Generate accessibility props for a toggle/switch
- * 
+ *
  * @param label The accessible label for the toggle
  * @param checked Whether the toggle is checked/on
  * @param hint Optional hint for what the toggle controls
@@ -240,7 +228,7 @@ export const getToggleAccessibilityProps = (
 
 /**
  * Generate accessibility props for an input field
- * 
+ *
  * @param label The accessible label for the input
  * @param hint Optional hint for what information to enter
  * @param required Whether the input is required
@@ -255,16 +243,14 @@ export const getInputAccessibilityProps = (
 ): AccessibilityProps => {
   // Create an accessibility state object with valid properties
   const accessibilityState: ViewProps['accessibilityState'] = {};
-  
+
   if (disabled) {
     accessibilityState.disabled = true;
   }
-  
+
   // Note: 'required' is not a standard property in accessibilityState
   // We can add it as part of the label instead for screen readers
-  const accessibilityLabel = required 
-    ? `${label}, required` 
-    : label;
+  const accessibilityLabel = required ? `${label}, required` : label;
 
   return {
     accessible: true,
@@ -277,7 +263,7 @@ export const getInputAccessibilityProps = (
 
 /**
  * Generate accessibility props for an image
- * 
+ *
  * @param description Description of the image
  * @param isDecorative Whether the image is purely decorative
  * @returns AccessibilityProps for an image
@@ -303,7 +289,7 @@ export const getImageAccessibilityProps = (
 
 /**
  * Generate accessibility props for a header
- * 
+ *
  * @param title The title of the header
  * @returns AccessibilityProps for a header
  */
@@ -317,7 +303,7 @@ export const getHeaderAccessibilityProps = (title: string): AccessibilityProps =
 
 /**
  * Generate accessibility props for a progress bar
- * 
+ *
  * @param label The accessible label for the progress bar
  * @param value Current progress value (0-1)
  * @param min Minimum value (default: 0)
@@ -331,7 +317,7 @@ export const getProgressBarAccessibilityProps = (
   max: number = 100
 ): AccessibilityProps => {
   const currentValue = Math.round(value * 100);
-  
+
   return {
     accessible: true,
     accessibilityRole: ACCESSIBILITY_ROLES.PROGRESSBAR,
@@ -347,7 +333,7 @@ export const getProgressBarAccessibilityProps = (
 
 /**
  * Announce a message to screen readers
- * 
+ *
  * @param message The message to announce
  */
 export const announceForAccessibility = (message: string): void => {
@@ -357,7 +343,7 @@ export const announceForAccessibility = (message: string): void => {
 /**
  * Function to get the optimal minimum touch target size
  * based on platform and accessibility guidelines
- * 
+ *
  * @returns Minimum touch target size in pixels
  */
 export const getMinimumTouchTargetSize = (): number => {
@@ -369,7 +355,7 @@ export const getMinimumTouchTargetSize = (): number => {
 /**
  * Generate a color with sufficient contrast to the background
  * based on WCAG guidelines
- * 
+ *
  * @param backgroundColor The background color in hex format
  * @param darkColor Dark color to use (default: '#000000')
  * @param lightColor Light color to use (default: '#FFFFFF')
@@ -385,10 +371,10 @@ export const getAccessibleTextColor = (
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
-  
+
   // Calculate relative luminance using the formula for sRGB
   const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  
+
   // Return dark text on light backgrounds and light text on dark backgrounds
   // The threshold 0.5 is a simple midpoint, but could be adjusted
   return luminance > 0.5 ? darkColor : lightColor;
@@ -397,7 +383,7 @@ export const getAccessibleTextColor = (
 /**
  * Get contrast ratio between two colors
  * Based on WCAG 2.0 formula
- * 
+ *
  * @param color1 First color in hex format
  * @param color2 Second color in hex format
  * @returns Contrast ratio (1-21)
@@ -409,27 +395,27 @@ export const getContrastRatio = (color1: string, color2: string): number => {
     const r = parseInt(hex.substring(0, 2), 16) / 255;
     const g = parseInt(hex.substring(2, 4), 16) / 255;
     const b = parseInt(hex.substring(4, 6), 16) / 255;
-    
+
     // Convert RGB to relative luminance
     const R = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
     const G = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
     const B = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
-    
+
     return 0.2126 * R + 0.7152 * G + 0.0722 * B;
   };
-  
+
   const L1 = getLuminance(color1);
   const L2 = getLuminance(color2);
-  
+
   // Calculate contrast ratio
   const contrastRatio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
-  
+
   return contrastRatio;
 };
 
 /**
  * Check if a color combination meets WCAG contrast requirements
- * 
+ *
  * @param foreground Foreground color in hex format
  * @param background Background color in hex format
  * @param level WCAG level to check against ('AA' or 'AAA')
@@ -443,7 +429,7 @@ export const meetsContrastRequirements = (
   isLargeText: boolean = false
 ): boolean => {
   const ratio = getContrastRatio(foreground, background);
-  
+
   // WCAG 2.0 contrast ratio requirements
   const requirements = {
     AA: {
@@ -455,10 +441,8 @@ export const meetsContrastRequirements = (
       large: 4.5,
     },
   };
-  
-  const threshold = isLargeText 
-    ? requirements[level].large 
-    : requirements[level].normal;
-  
+
+  const threshold = isLargeText ? requirements[level].large : requirements[level].normal;
+
   return ratio >= threshold;
-}; 
+};

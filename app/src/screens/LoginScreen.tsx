@@ -25,7 +25,7 @@ type LoginFormValues = {
 
 /**
  * LoginScreen Component
- * 
+ *
  * Allows users to sign in to their account using email and password.
  */
 export const LoginScreen = () => {
@@ -33,11 +33,11 @@ export const LoginScreen = () => {
   const { theme } = useTheme();
   const { login } = useAuth();
   const { colors, spacing } = theme;
-  
+
   const [loginError, setLoginError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [savedEmail, setSavedEmail] = useState<string>('');
-  
+
   // Load saved email if "Remember me" was checked previously
   useEffect(() => {
     const loadSavedEmail = async () => {
@@ -51,16 +51,16 @@ export const LoginScreen = () => {
         console.error('Error loading saved email:', error);
       }
     };
-    
+
     loadSavedEmail();
   }, []);
-  
+
   // Handle form submission
   const handleLogin = async (values: LoginFormValues) => {
     try {
       setLoginError(null);
       const success = await login(values.email, values.password);
-      
+
       if (success) {
         // Save email if "Remember me" is checked
         if (rememberMe) {
@@ -68,7 +68,7 @@ export const LoginScreen = () => {
         } else {
           await AsyncStorage.removeItem('userEmail');
         }
-        
+
         // Login successful, navigation will be handled by the auth context
       } else {
         // Login failed
@@ -79,17 +79,14 @@ export const LoginScreen = () => {
       console.error('Login error:', error);
     }
   };
-  
+
   // Toggle remember me state
   const toggleRememberMe = () => {
     setRememberMe(!rememberMe);
   };
-  
+
   return (
-    <FormContainer
-      title="Welcome Back"
-      subtitle="Sign in to your account"
-    >
+    <FormContainer title="Welcome Back" subtitle="Sign in to your account">
       <Formik
         initialValues={{ email: savedEmail, password: '', rememberMe }}
         validationSchema={LoginSchema}
@@ -110,7 +107,7 @@ export const LoginScreen = () => {
               error={errors.email}
               touched={touched.email}
             />
-            
+
             <FormInput
               label="Password"
               placeholder="Enter your password"
@@ -122,40 +119,38 @@ export const LoginScreen = () => {
               error={errors.password}
               touched={touched.password}
             />
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.rememberMeContainer}
               onPress={toggleRememberMe}
               activeOpacity={0.7}
             >
-              <View style={[
-                styles.checkbox, 
-                { borderColor: colors.text.secondary },
-                rememberMe && { backgroundColor: colors.primary, borderColor: colors.primary }
-              ]}>
-                {rememberMe && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
+              <View
+                style={[
+                  styles.checkbox,
+                  { borderColor: colors.text.secondary },
+                  rememberMe && { backgroundColor: colors.primary, borderColor: colors.primary },
+                ]}
+              >
+                {rememberMe && <Text style={styles.checkmark}>✓</Text>}
               </View>
               <Text style={[styles.rememberMeText, { color: colors.text.secondary }]}>
                 Remember me
               </Text>
             </TouchableOpacity>
-            
+
             {loginError && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {loginError}
-              </Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{loginError}</Text>
             )}
-            
+
             <Button
               title="Sign In"
               onPress={() => handleSubmit()}
               isLoading={isSubmitting}
               style={{ marginTop: spacing.md }}
             />
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.forgotPassword}
               onPress={() => navigation.navigate('ForgotPassword' as any)}
             >
@@ -163,15 +158,13 @@ export const LoginScreen = () => {
                 Forgot your password?
               </Text>
             </TouchableOpacity>
-            
+
             <View style={styles.footerContainer}>
               <Text style={[styles.footerText, { color: colors.text.secondary }]}>
                 Don't have an account?
               </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={[styles.footerLink, { color: colors.primary }]}>
-                  {' Sign Up'}
-                </Text>
+                <Text style={[styles.footerLink, { color: colors.primary }]}>{' Sign Up'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -228,4 +221,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-}); 
+});

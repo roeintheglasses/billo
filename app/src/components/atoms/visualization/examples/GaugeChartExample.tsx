@@ -4,7 +4,7 @@ import { GaugeChart } from '../GaugeChart';
 
 /**
  * GaugeChartExample component
- * 
+ *
  * This example demonstrates how to use the GaugeChart component
  * with different configurations.
  */
@@ -21,7 +21,7 @@ export const GaugeChartExample: React.FC = () => {
         showLabels={true}
         valueSuffix="%"
       />
-      
+
       <Text style={styles.title}>Segments Example</Text>
       <GaugeChart
         value={65}
@@ -31,12 +31,12 @@ export const GaugeChartExample: React.FC = () => {
         segments={[
           { startValue: 0, endValue: 30, color: 'green' },
           { startValue: 30, endValue: 70, color: 'orange' },
-          { startValue: 70, endValue: 100, color: 'red' }
+          { startValue: 70, endValue: 100, color: 'red' },
         ]}
         showLabels={true}
         valueSuffix="%"
       />
-      
+
       <Text style={styles.title}>Custom Range</Text>
       <GaugeChart
         value={2500}
@@ -47,7 +47,7 @@ export const GaugeChartExample: React.FC = () => {
         height={200}
         showLabels={true}
         valuePrefix="$"
-        formatValue={(value) => `$${value.toLocaleString()}`}
+        formatValue={value => `$${value.toLocaleString()}`}
       />
     </View>
   );
@@ -63,4 +63,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
   },
-}); 
+});

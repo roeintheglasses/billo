@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  TextInput, 
-  StyleSheet, 
-  View, 
-  TextInputProps, 
-  TouchableOpacity 
-} from 'react-native';
+import { TextInput, StyleSheet, View, TextInputProps, TouchableOpacity } from 'react-native';
 import { Text } from './Text';
 
 export interface InputProps extends TextInputProps {
@@ -18,24 +12,24 @@ export interface InputProps extends TextInputProps {
 
 /**
  * Input component for text entry
- * 
+ *
  * @param {string} label - Label text displayed above the input
  * @param {string} error - Error message to display below the input
  * @param {React.ReactNode} leftIcon - Icon component to display on the left side
  * @param {React.ReactNode} rightIcon - Icon component to display on the right side
  * @param {boolean} isPassword - Whether the input is for password entry (adds show/hide toggle)
  * @returns {React.ReactElement} A styled input component
- * 
+ *
  * @example
  * // Basic usage
- * <Input 
- *   placeholder="Enter your email" 
- *   value={email} 
- *   onChangeText={setEmail} 
+ * <Input
+ *   placeholder="Enter your email"
+ *   value={email}
+ *   onChangeText={setEmail}
  * />
- * 
+ *
  * // With label and error
- * <Input 
+ * <Input
  *   label="Email Address"
  *   placeholder="example@email.com"
  *   error={emailError}
@@ -45,7 +39,7 @@ export interface InputProps extends TextInputProps {
  *   onChangeText={setEmail}
  * />
  */
-export const Input = ({ 
+export const Input = ({
   label,
   error,
   leftIcon,
@@ -59,19 +53,17 @@ export const Input = ({
   return (
     <View style={styles.container}>
       {label && (
-        <Text variant="label" style={styles.label}>{label}</Text>
+        <Text variant="label" style={styles.label}>
+          {label}
+        </Text>
       )}
-      <View style={[
-        styles.inputContainer,
-        error ? styles.inputError : null,
-        style,
-      ]}>
+      <View style={[styles.inputContainer, error ? styles.inputError : null, style]}>
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
         <TextInput
           style={[
             styles.input,
             leftIcon ? styles.inputWithLeftIcon : null,
-            (rightIcon || isPassword) ? styles.inputWithRightIcon : null,
+            rightIcon || isPassword ? styles.inputWithRightIcon : null,
           ]}
           placeholderTextColor="#999"
           autoCorrect={false}
@@ -79,19 +71,19 @@ export const Input = ({
           {...rest}
         />
         {isPassword && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.iconRight}
             onPress={() => setSecureTextEntry(!secureTextEntry)}
           >
             <Text>{secureTextEntry ? '👁️' : '👁️‍🗨️'}</Text>
           </TouchableOpacity>
         )}
-        {rightIcon && !isPassword && (
-          <View style={styles.iconRight}>{rightIcon}</View>
-        )}
+        {rightIcon && !isPassword && <View style={styles.iconRight}>{rightIcon}</View>}
       </View>
       {error && (
-        <Text variant="caption" style={styles.errorText}>{error}</Text>
+        <Text variant="caption" style={styles.errorText}>
+          {error}
+        </Text>
       )}
     </View>
   );
@@ -144,4 +136,4 @@ const styles = StyleSheet.create({
     color: '#e74c3c',
     marginTop: 4,
   },
-}); 
+});

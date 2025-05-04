@@ -12,12 +12,12 @@ export interface UpcomingPaymentsSectionProps {
    * Number of days to look ahead for upcoming payments
    */
   daysAhead?: number;
-  
+
   /**
    * Maximum number of items to display
    */
   maxItems?: number;
-  
+
   /**
    * Title for the section
    */
@@ -26,7 +26,7 @@ export interface UpcomingPaymentsSectionProps {
 
 /**
  * UpcomingPaymentsSection component
- * 
+ *
  * A dashboard section that displays upcoming subscription payments
  * for the next few days. Fetches data from the subscription service
  * and allows navigation to subscription details.
@@ -34,14 +34,16 @@ export interface UpcomingPaymentsSectionProps {
 export const UpcomingPaymentsSection: React.FC<UpcomingPaymentsSectionProps> = ({
   daysAhead = 7,
   maxItems = 3,
-  title = 'Upcoming Payments'
+  title = 'Upcoming Payments',
 }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [upcomingSubscriptions, setUpcomingSubscriptions] = useState<SubscriptionWithCategory[]>([]);
-  
+  const [upcomingSubscriptions, setUpcomingSubscriptions] = useState<SubscriptionWithCategory[]>(
+    []
+  );
+
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
-  
+
   useEffect(() => {
     const fetchUpcomingSubscriptions = async () => {
       try {
@@ -56,20 +58,20 @@ export const UpcomingPaymentsSection: React.FC<UpcomingPaymentsSectionProps> = (
         setLoading(false);
       }
     };
-    
+
     fetchUpcomingSubscriptions();
   }, [daysAhead]);
-  
+
   const handleSubscriptionPress = (subscription: SubscriptionWithCategory) => {
     // Navigate to subscription details screen
     navigation.navigate('SubscriptionDetail', { subscriptionId: subscription.id });
   };
-  
+
   const handleViewAllPress = () => {
     // Navigate to subscriptions list filtered by upcoming
     navigation.navigate('Subscriptions');
   };
-  
+
   return (
     <View style={styles.container}>
       <UpcomingPaymentsList
@@ -91,4 +93,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UpcomingPaymentsSection; 
+export default UpcomingPaymentsSection;

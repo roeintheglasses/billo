@@ -16,7 +16,7 @@ jest.mock('../supabase', () => {
   const mockGte = jest.fn().mockReturnThis();
   const mockLte = jest.fn().mockReturnThis();
   const mockSingle = jest.fn();
-  
+
   return {
     supabase: {
       from: mockFrom,
@@ -27,7 +27,7 @@ jest.mock('../supabase', () => {
       gte: mockGte,
       lte: mockLte,
       single: mockSingle,
-    }
+    },
   };
 });
 
@@ -47,13 +47,13 @@ describe('Relationship Service', () => {
           name: 'Entertainment',
         },
       };
-      
+
       // Mock transactions data
       const mockTransactions = [
         { id: '789', amount: 9.99, date: '2023-01-01' },
         { id: '790', amount: 9.99, date: '2023-02-01' },
       ];
-      
+
       // Set up mock responses
       // First query for subscription
       (supabase.from as jest.Mock).mockReturnValueOnce({
@@ -64,7 +64,7 @@ describe('Relationship Service', () => {
           error: null,
         }),
       });
-      
+
       // Second query for transactions
       (supabase.from as jest.Mock).mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
@@ -74,10 +74,10 @@ describe('Relationship Service', () => {
           error: null,
         }),
       });
-      
+
       // Call the service function
       const result = await relationshipService.getSubscriptionWithDetails('123');
-      
+
       // Assertions
       expect(supabase.from).toHaveBeenCalledWith('subscriptions');
       expect(supabase.from).toHaveBeenCalledWith('transactions');
@@ -86,7 +86,7 @@ describe('Relationship Service', () => {
         transactions: mockTransactions,
       });
     });
-    
+
     it('should return null when subscription not found', async () => {
       // Set up mock response for not found
       (supabase.from as jest.Mock).mockReturnValueOnce({
@@ -97,14 +97,14 @@ describe('Relationship Service', () => {
           error: { code: 'PGRST116', message: 'Not found' },
         }),
       });
-      
+
       // Call the service function
       const result = await relationshipService.getSubscriptionWithDetails('not-found');
-      
+
       // Assertions
       expect(result).toBeNull();
     });
-    
+
     it('should throw an error when Supabase returns an error', async () => {
       // Set up mock response with error
       (supabase.from as jest.Mock).mockReturnValueOnce({
@@ -115,7 +115,7 @@ describe('Relationship Service', () => {
           error: { code: 'other-error', message: 'Database error' },
         }),
       });
-      
+
       // Call the service function and expect it to throw
       await expect(relationshipService.getSubscriptionWithDetails('123')).rejects.toThrow();
     });
@@ -148,14 +148,12 @@ describe('Relationship Service', () => {
               id: 's2',
               name: 'Electric',
               amount: 50,
-              transactions: [
-                { id: 't3', amount: 50, date: '2023-01-20' },
-              ],
+              transactions: [{ id: 't3', amount: 50, date: '2023-01-20' }],
             },
           ],
         },
       ];
-      
+
       // Set up mock response
       (supabase.from as jest.Mock).mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
@@ -164,24 +162,29 @@ describe('Relationship Service', () => {
           error: null,
         }),
       });
-      
+
       // Call the service function
-      const result = await relationshipService.getSpendingAnalyticsByCategory('2023-01-01', '2023-02-28');
-      
+      const result = await relationshipService.getSpendingAnalyticsByCategory(
+        '2023-01-01',
+        '2023-02-28'
+      );
+
       // Assertions
       expect(supabase.from).toHaveBeenCalledWith('categories');
       expect(result.totalAmount).toBe(69.98); // Sum of all transaction amounts
       expect(result.transactionCount).toBe(3); // Total number of transactions
       expect(result.subscriptionCount).toBe(2); // Number of subscriptions with transactions
-      
+
       // Check category breakdown
       expect(result.categoryBreakdown).toHaveLength(2);
       expect(result.categoryBreakdown[0].categoryName).toBeDefined();
       expect(result.categoryBreakdown[0].amount).toBeDefined();
       expect(result.categoryBreakdown[0].percentage).toBeDefined();
-      
+
       // Verify sorting (highest amount first)
-      expect(result.categoryBreakdown[0].amount).toBeGreaterThanOrEqual(result.categoryBreakdown[1].amount);
+      expect(result.categoryBreakdown[0].amount).toBeGreaterThanOrEqual(
+        result.categoryBreakdown[1].amount
+      );
     });
   });
 
@@ -189,21 +192,21 @@ describe('Relationship Service', () => {
     it('should fetch a complete user profile with subscriptions and transactions', async () => {
       // Mock user data
       const mockUser = { id: 'user1', email: 'user@example.com' };
-      
+
       // Mock subscriptions with categories
       const mockSubscriptions = [
-        { 
-          id: 's1', 
-          name: 'Netflix', 
-          category: { id: 'c1', name: 'Entertainment' }
+        {
+          id: 's1',
+          name: 'Netflix',
+          category: { id: 'c1', name: 'Entertainment' },
         },
       ];
-      
+
       // Mock transactions
       const mockTransactions = [
         { id: 't1', subscription_id: 's1', amount: 9.99, date: '2023-01-15' },
       ];
-      
+
       // Set up mock responses
       // First query for user
       (supabase.from as jest.Mock).mockReturnValueOnce({
@@ -214,7 +217,7 @@ describe('Relationship Service', () => {
           error: null,
         }),
       });
-      
+
       // Second query for subscriptions
       (supabase.from as jest.Mock).mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
@@ -224,7 +227,7 @@ describe('Relationship Service', () => {
           error: null,
         }),
       });
-      
+
       // Third query for transactions
       (supabase.from as jest.Mock).mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
@@ -234,18 +237,18 @@ describe('Relationship Service', () => {
           error: null,
         }),
       });
-      
+
       // Call the service function
       const result = await relationshipService.getUserSubscriptionProfile('user1');
-      
+
       // Assertions
       expect(supabase.from).toHaveBeenCalledWith('users');
       expect(supabase.from).toHaveBeenCalledWith('subscriptions');
       expect(supabase.from).toHaveBeenCalledWith('transactions');
-      
+
       expect(result.user).toEqual(mockUser);
       expect(result.subscriptions).toHaveLength(1);
       expect(result.subscriptions?.[0].transactions).toHaveLength(1);
     });
   });
-}); 
+});

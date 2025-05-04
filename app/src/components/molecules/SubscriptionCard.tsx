@@ -11,13 +11,10 @@ interface SubscriptionCardProps {
 
 /**
  * SubscriptionCard Component
- * 
+ *
  * Displays detected subscription information from SMS
  */
-export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
-  subscription,
-  onPress,
-}) => {
+export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onPress }) => {
   const { theme } = useTheme();
   const { colors } = theme;
 
@@ -38,24 +35,23 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
     if (subscription.serviceName) {
       return subscription.serviceName;
     }
-    
+
     const sender = subscription.address || '';
     // Try to extract a more readable name from the sender
     if (sender.match(/^[a-zA-Z]+$/)) {
       return sender;
     }
-    
+
     // Try to find a potential subscription name in the body
     const bodyWords = subscription.body.split(' ');
-    const potentialNames = bodyWords.filter(word => 
-      word.length > 3 && 
-      !word.match(/subscription|payment|receipt|confirm/i)
+    const potentialNames = bodyWords.filter(
+      word => word.length > 3 && !word.match(/subscription|payment|receipt|confirm/i)
     );
-    
+
     if (potentialNames.length > 0) {
       return potentialNames[0];
     }
-    
+
     return sender;
   };
 
@@ -75,26 +71,24 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
               {subscriptionName}
             </Text>
             {priceText ? (
-              <Text style={[styles.price, { color: colors.text.primary }]}>
-                {priceText}
-              </Text>
+              <Text style={[styles.price, { color: colors.text.primary }]}>{priceText}</Text>
             ) : null}
           </View>
           <Text style={[styles.date, { color: colors.text.secondary }]}>
             Detected on {formatDate(subscription.date)}
           </Text>
-          <Text 
-            numberOfLines={2} 
-            ellipsizeMode="tail" 
+          <Text
+            numberOfLines={2}
+            ellipsizeMode="tail"
             style={[styles.body, { color: colors.text.secondary }]}
           >
             {subscription.body}
           </Text>
         </View>
-        <Ionicons 
-          name="chevron-forward" 
-          size={24} 
-          color={colors.text.primary} 
+        <Ionicons
+          name="chevron-forward"
+          size={24}
+          color={colors.text.primary}
           style={styles.arrow}
         />
       </View>
@@ -152,5 +146,5 @@ const styles = StyleSheet.create({
   },
   arrow: {
     marginLeft: 8,
-  }
-}); 
+  },
+});

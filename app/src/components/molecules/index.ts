@@ -20,4 +20,4 @@ export { FilterModal } from './FilterModal';
 export { CategoryDistributionChart } from './visualization/CategoryDistributionChart';
 
 export { SubscriptionConfirmationModal } from './SubscriptionConfirmationModal';
-export { BatchSubscriptionConfirmation } from './BatchSubscriptionConfirmation'; 
+export { BatchSubscriptionConfirmation } from './BatchSubscriptionConfirmation';

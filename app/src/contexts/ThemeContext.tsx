@@ -29,7 +29,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Get system theme
   const systemTheme = useColorScheme() as ThemeMode | null;
   const isReducedMotionEnabled = useReduceMotion();
-  
+
   // Initial theme mode (default to light if system theme is null)
   const [mode, setModeState] = useState<ThemeMode>(systemTheme || 'light');
   const [isSystemTheme, setIsSystemTheme] = useState<boolean>(true);
@@ -68,7 +68,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getThemeWithContrast = (): Theme => {
     const baseTheme = mode === 'light' ? { ...lightTheme } : { ...darkTheme };
     baseTheme.useHighContrast = isHighContrastEnabled;
-    
+
     // If high contrast is enabled, modify the colors for better contrast
     if (isHighContrastEnabled) {
       if (mode === 'light') {
@@ -83,7 +83,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         baseTheme.colors.background.primary = '#000000';
       }
     }
-    
+
     return baseTheme;
   };
 
@@ -105,4 +105,4 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useTheme = () => useContext(ThemeContext);
 
-export default ThemeContext; 
+export default ThemeContext;

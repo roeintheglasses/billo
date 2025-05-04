@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Modal, 
-  StyleSheet, 
-  TouchableOpacity, 
-  ScrollView, 
+import {
+  View,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
   TouchableWithoutFeedback,
-  Alert
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../atoms/Text';
@@ -19,17 +19,42 @@ import { isValidColor } from '../../services/categoryService';
 
 // Available icons for categories
 const AVAILABLE_ICONS = [
-  'film', 'cloud', 'code', 'heart', 'pizza', 'cart', 
-  'home', 'bicycle', 'airplane', 'car', 'book', 'cafe',
-  'game-controller', 'barbell', 'wifi', 'musical-notes'
+  'film',
+  'cloud',
+  'code',
+  'heart',
+  'pizza',
+  'cart',
+  'home',
+  'bicycle',
+  'airplane',
+  'car',
+  'book',
+  'cafe',
+  'game-controller',
+  'barbell',
+  'wifi',
+  'musical-notes',
 ];
 
 // Available colors for categories
 const AVAILABLE_COLORS = [
-  '#FF5252', '#FF4081', '#E040FB', '#7C4DFF', 
-  '#536DFE', '#448AFF', '#40C4FF', '#18FFFF',
-  '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41',
-  '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'
+  '#FF5252',
+  '#FF4081',
+  '#E040FB',
+  '#7C4DFF',
+  '#536DFE',
+  '#448AFF',
+  '#40C4FF',
+  '#18FFFF',
+  '#64FFDA',
+  '#69F0AE',
+  '#B2FF59',
+  '#EEFF41',
+  '#FFFF00',
+  '#FFD740',
+  '#FFAB40',
+  '#FF6E40',
 ];
 
 interface CategoryModalProps {
@@ -41,25 +66,20 @@ interface CategoryModalProps {
 
 /**
  * CategoryModal Component
- * 
+ *
  * A modal for adding or editing a category with name, icon, and color selection.
  */
-const CategoryModal: React.FC<CategoryModalProps> = ({ 
-  visible, 
-  category, 
-  onClose,
-  onRefresh
-}) => {
+const CategoryModal: React.FC<CategoryModalProps> = ({ visible, category, onClose, onRefresh }) => {
   const { theme } = useTheme();
   const { colors } = theme;
   const { createCategory, updateCategory } = useStorage();
-  
+
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('#FF5252');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Initialize form with category data if editing
   useEffect(() => {
     if (category) {
@@ -74,25 +94,25 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
     }
     setError(null);
   }, [category, visible]);
-  
+
   const handleSave = async () => {
     try {
       setError(null);
-      
+
       // Validate name
       if (!name.trim()) {
         setError('Category name is required');
         return;
       }
-      
+
       // Validate color if provided
       if (selectedColor && !isValidColor(selectedColor)) {
         setError('Invalid color format');
         return;
       }
-      
+
       setIsLoading(true);
-      
+
       if (category) {
         // Update existing category
         await updateCategory(category.id, {
@@ -108,132 +128,120 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
           icon: selectedIcon,
           color: selectedColor,
           is_default: false,
-          user_id: null
+          user_id: null,
         });
         Alert.alert('Success', `Category "${name}" created successfully`);
       }
-      
+
       await onRefresh();
       onClose();
     } catch (error) {
       console.error('Error saving category:', error);
-      setError(`Failed to save category: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to save category: ${error instanceof Error ? error.message : String(error)}`
+      );
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const renderIconOption = (icon: string) => {
     const isSelected = selectedIcon === icon;
-    
+
     return (
       <TouchableOpacity
         key={icon}
         style={[
           styles.iconOption,
-          { 
+          {
             backgroundColor: isSelected ? selectedColor : colors.background.secondary,
             borderColor: isSelected ? selectedColor : colors.border.light,
-          }
+          },
         ]}
         onPress={() => setSelectedIcon(icon)}
       >
-        <Ionicons
-          name={icon as any}
-          size={24}
-          color={isSelected ? '#fff' : colors.text.primary}
-        />
+        <Ionicons name={icon as any} size={24} color={isSelected ? '#fff' : colors.text.primary} />
       </TouchableOpacity>
     );
   };
-  
+
   const renderColorOption = (color: string) => {
     const isSelected = selectedColor === color;
-    
+
     return (
       <TouchableOpacity
         key={color}
         style={[
           styles.colorOption,
-          { 
+          {
             backgroundColor: color,
             borderWidth: isSelected ? 3 : 1,
             borderColor: isSelected ? colors.primary : colors.border.light,
-          }
+          },
         ]}
         onPress={() => setSelectedColor(color)}
       />
     );
   };
-  
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback>
-            <View style={[
-              styles.modalContent,
-              { backgroundColor: colors.background.primary }
-            ]}>
+            <View style={[styles.modalContent, { backgroundColor: colors.background.primary }]}>
               <View style={styles.modalHeader}>
-                <Text variant="heading2">
-                  {category ? 'Edit Category' : 'Add Category'}
-                </Text>
+                <Text variant="heading2">{category ? 'Edit Category' : 'Add Category'}</Text>
                 <TouchableOpacity onPress={onClose}>
                   <Ionicons name="close" size={24} color={colors.text.primary} />
                 </TouchableOpacity>
               </View>
-              
+
               <ScrollView contentContainerStyle={styles.formContainer}>
                 <View style={styles.formField}>
-                  <Text variant="body" style={styles.label}>Name</Text>
-                  <Input
-                    placeholder="Enter category name"
-                    value={name}
-                    onChangeText={setName}
-                  />
+                  <Text variant="body" style={styles.label}>
+                    Name
+                  </Text>
+                  <Input placeholder="Enter category name" value={name} onChangeText={setName} />
                 </View>
-                
+
                 <View style={styles.formField}>
-                  <Text variant="body" style={styles.label}>Icon</Text>
-                  <View style={styles.iconsContainer}>
-                    {AVAILABLE_ICONS.map(renderIconOption)}
-                  </View>
+                  <Text variant="body" style={styles.label}>
+                    Icon
+                  </Text>
+                  <View style={styles.iconsContainer}>{AVAILABLE_ICONS.map(renderIconOption)}</View>
                 </View>
-                
+
                 <View style={styles.formField}>
-                  <Text variant="body" style={styles.label}>Color</Text>
+                  <Text variant="body" style={styles.label}>
+                    Color
+                  </Text>
                   <View style={styles.colorsContainer}>
                     {AVAILABLE_COLORS.map(renderColorOption)}
                   </View>
                 </View>
-                
+
                 {error && (
                   <Text variant="caption" style={[styles.errorText, { color: colors.error }]}>
                     {error}
                   </Text>
                 )}
-                
+
                 <View style={styles.previewContainer}>
-                  <Text variant="body" style={styles.label}>Preview</Text>
-                  <View style={[
-                    styles.previewCard,
-                    { 
-                      backgroundColor: colors.background.secondary,
-                      borderColor: colors.border.light
-                    }
-                  ]}>
+                  <Text variant="body" style={styles.label}>
+                    Preview
+                  </Text>
+                  <View
+                    style={[
+                      styles.previewCard,
+                      {
+                        backgroundColor: colors.background.secondary,
+                        borderColor: colors.border.light,
+                      },
+                    ]}
+                  >
                     <View style={[styles.previewIcon, { backgroundColor: selectedColor }]}>
-                      <Ionicons
-                        name={(selectedIcon || 'apps') as any}
-                        size={24}
-                        color="#fff"
-                      />
+                      <Ionicons name={(selectedIcon || 'apps') as any} size={24} color="#fff" />
                     </View>
                     <Text variant="heading3" style={styles.previewText}>
                       {name || 'Category Name'}
@@ -241,13 +249,9 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
                   </View>
                 </View>
               </ScrollView>
-              
+
               <View style={styles.buttonContainer}>
-                <Button
-                  title="Cancel"
-                  onPress={onClose}
-                  variant="secondary"
-                />
+                <Button title="Cancel" onPress={onClose} variant="secondary" />
                 <View style={styles.buttonSpacer} />
                 <Button
                   title={isLoading ? 'Saving...' : 'Save'}
@@ -359,4 +363,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CategoryModal; 
+export default CategoryModal;

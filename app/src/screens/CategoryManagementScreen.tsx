@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Text } from '../components/atoms/Text';
@@ -11,7 +18,7 @@ import CategoryModal from '../components/molecules/CategoryModal';
 
 /**
  * CategoryManagementScreen Component
- * 
+ *
  * Displays a list of categories and allows users to add, edit, and delete categories.
  */
 const CategoryManagementScreen = () => {
@@ -19,11 +26,11 @@ const CategoryManagementScreen = () => {
   const { colors } = theme;
   const navigation = useNavigation();
   const { categories, fetchCategories, deleteCategory } = useStorage();
-  
+
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  
+
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -36,34 +43,34 @@ const CategoryManagementScreen = () => {
         setLoading(false);
       }
     };
-    
+
     loadCategories();
   }, [fetchCategories]);
-  
+
   const handleAddCategory = () => {
     setSelectedCategory(null);
     setModalVisible(true);
   };
-  
+
   const handleEditCategory = (category: Category) => {
     setSelectedCategory(category);
     setModalVisible(true);
   };
-  
+
   const handleDeleteCategory = async (category: Category) => {
     // Check if it's a default category
     if (category.is_default) {
       Alert.alert('Cannot Delete', 'Default categories cannot be deleted');
       return;
     }
-    
+
     Alert.alert(
       'Confirm Delete',
       `Are you sure you want to delete the category "${category.name}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -73,109 +80,111 @@ const CategoryManagementScreen = () => {
               console.error('Error deleting category:', error);
               Alert.alert('Error', 'Failed to delete category');
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
-  
+
   const handleCloseModal = () => {
     setModalVisible(false);
   };
-  
+
   const renderCategoryItem = ({ item }: { item: Category }) => {
     const categoryColor = item.color || colors.primary;
-    
+
     return (
-      <View style={[
-        styles.categoryItem, 
-        { backgroundColor: colors.background.secondary, borderColor: colors.border.light }
-      ]}>
+      <View
+        style={[
+          styles.categoryItem,
+          { backgroundColor: colors.background.secondary, borderColor: colors.border.light },
+        ]}
+      >
         <View style={styles.categoryInfo}>
           <View style={[styles.categoryIcon, { backgroundColor: categoryColor }]}>
-            <Ionicons 
-              name={item.icon ? (item.icon as any) : 'apps'} 
-              size={24} 
-              color="#fff" 
-            />
+            <Ionicons name={item.icon ? (item.icon as any) : 'apps'} size={24} color="#fff" />
           </View>
           <View style={styles.categoryDetails}>
-            <Text variant="heading3" style={styles.categoryName}>{item.name}</Text>
+            <Text variant="heading3" style={styles.categoryName}>
+              {item.name}
+            </Text>
             {item.is_default && (
-              <Text variant="caption" style={styles.defaultBadge}>Default</Text>
+              <Text variant="caption" style={styles.defaultBadge}>
+                Default
+              </Text>
             )}
           </View>
         </View>
-        
+
         <View style={styles.actionButtons}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleEditCategory(item)}
             disabled={item.is_default}
           >
-            <Ionicons 
-              name="pencil" 
-              size={20} 
-              color={item.is_default ? colors.text.tertiary : colors.primary} 
+            <Ionicons
+              name="pencil"
+              size={20}
+              color={item.is_default ? colors.text.tertiary : colors.primary}
             />
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleDeleteCategory(item)}
             disabled={item.is_default}
           >
-            <Ionicons 
-              name="trash" 
-              size={20} 
-              color={item.is_default ? colors.text.tertiary : colors.error} 
+            <Ionicons
+              name="trash"
+              size={20}
+              color={item.is_default ? colors.text.tertiary : colors.error}
             />
           </TouchableOpacity>
         </View>
       </View>
     );
   };
-  
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text variant="heading1" style={styles.title}>Manage Categories</Text>
+        <Text variant="heading1" style={styles.title}>
+          Manage Categories
+        </Text>
       </View>
-      
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text variant="body" style={styles.loadingText}>Loading categories...</Text>
+          <Text variant="body" style={styles.loadingText}>
+            Loading categories...
+          </Text>
         </View>
       ) : (
         <>
           <FlatList
             data={categories}
             renderItem={renderCategoryItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
             contentContainerStyle={styles.list}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text variant="body" style={styles.emptyText}>No categories found</Text>
+                <Text variant="body" style={styles.emptyText}>
+                  No categories found
+                </Text>
               </View>
             }
           />
-          
+
           <View style={styles.addButtonContainer}>
-            <Button 
-              title="Add New Category" 
-              onPress={handleAddCategory}
-            />
+            <Button title="Add New Category" onPress={handleAddCategory} />
           </View>
         </>
       )}
-      
+
       <CategoryModal
         visible={modalVisible}
         category={selectedCategory}
@@ -268,4 +277,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CategoryManagementScreen; 
+export default CategoryManagementScreen;

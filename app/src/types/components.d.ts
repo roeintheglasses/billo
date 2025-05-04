@@ -71,4 +71,4 @@ export interface ScreenProps extends BaseComponentProps {
   onRefresh?(): void;
   backgroundColor?: string;
   padding?: number | string;
-} 
+}

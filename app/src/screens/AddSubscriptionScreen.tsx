@@ -29,7 +29,7 @@ const formatDate = (date: Date): string => {
  */
 const getNextBillingDate = (startDate: Date, billingCycle: BillingCycle): Date => {
   const nextDate = new Date(startDate);
-  
+
   switch (billingCycle) {
     case 'monthly':
       nextDate.setMonth(nextDate.getMonth() + 1);
@@ -50,7 +50,7 @@ const getNextBillingDate = (startDate: Date, billingCycle: BillingCycle): Date =
       // Default to monthly if unknown
       nextDate.setMonth(nextDate.getMonth() + 1);
   }
-  
+
   return nextDate;
 };
 
@@ -70,11 +70,11 @@ export const AddSubscriptionScreen = () => {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
-  
+
   // Date picker state
   const [startDate, setStartDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
+
   // Selected category name for display
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
 
@@ -88,7 +88,7 @@ export const AddSubscriptionScreen = () => {
   const handleSubmit = useCallback(async () => {
     // Create a mock user ID for testing purposes
     // In a real app, this would come from authentication
-    const mockUserId = "test-user-id";
+    const mockUserId = 'test-user-id';
 
     // Validate form
     const subscription: SubscriptionInsert = {
@@ -104,7 +104,7 @@ export const AddSubscriptionScreen = () => {
     };
 
     const validationErrors = validateSubscription(subscription);
-    
+
     if (Object.keys(validationErrors.errors).length > 0) {
       setErrors(validationErrors.errors);
       return;
@@ -118,7 +118,17 @@ export const AddSubscriptionScreen = () => {
       console.error('Error creating subscription:', error);
       Alert.alert('Error', 'Failed to create subscription');
     }
-  }, [name, amount, billingCycle, startDate, categoryId, notes, paymentMethod, createSubscription, navigation]);
+  }, [
+    name,
+    amount,
+    billingCycle,
+    startDate,
+    categoryId,
+    notes,
+    paymentMethod,
+    createSubscription,
+    navigation,
+  ]);
 
   // Show date picker
   const showDatePickerHandler = () => {
@@ -130,7 +140,7 @@ export const AddSubscriptionScreen = () => {
     const currentDate = selectedDate || startDate;
     setShowDatePicker(Platform.OS === 'ios');
     setStartDate(currentDate);
-    
+
     // Clear error after selection
     if (errors.start_date) {
       const newErrors = { ...errors };
@@ -157,31 +167,26 @@ export const AddSubscriptionScreen = () => {
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={[styles.container, { backgroundColor: colors.background.primary }]}
       contentContainerStyle={styles.contentContainer}
     >
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={handleCancel}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text variant="heading1" style={styles.headerTitle}>Add Subscription</Text>
+        <Text variant="heading1" style={styles.headerTitle}>
+          Add Subscription
+        </Text>
         <View style={styles.placeholder} />
       </View>
-      
+
       <View style={styles.form}>
-        <FormField
-          label="Subscription Name"
-          error={errors.name}
-          required
-        >
+        <FormField label="Subscription Name" error={errors.name} required>
           <Input
             placeholder="Enter subscription name"
             value={name}
-            onChangeText={(text) => {
+            onChangeText={text => {
               setName(text);
               if (errors.name) {
                 const newErrors = { ...errors };
@@ -191,16 +196,12 @@ export const AddSubscriptionScreen = () => {
             }}
           />
         </FormField>
-        
-        <FormField
-          label="Amount"
-          error={errors.amount}
-          required
-        >
+
+        <FormField label="Amount" error={errors.amount} required>
           <Input
             placeholder="0.00"
             value={amount}
-            onChangeText={(text) => {
+            onChangeText={text => {
               // Only allow numbers and decimal point
               const regex = /^[0-9]*\.?[0-9]*$/;
               if (regex.test(text) || text === '') {
@@ -215,23 +216,19 @@ export const AddSubscriptionScreen = () => {
             keyboardType="numeric"
           />
         </FormField>
-        
-        <FormField
-          label="Billing Cycle"
-          error={errors.billing_cycle}
-          required
-        >
+
+        <FormField label="Billing Cycle" error={errors.billing_cycle} required>
           <View style={styles.pickerContainer}>
-            {BILLING_CYCLES.map((cycle) => (
+            {BILLING_CYCLES.map(cycle => (
               <TouchableOpacity
                 key={cycle}
                 style={[
                   styles.cycleButton,
-                  { 
-                    backgroundColor: billingCycle === cycle ? 
-                      colors.primary : colors.background.secondary,
-                    borderColor: colors.border.light
-                  }
+                  {
+                    backgroundColor:
+                      billingCycle === cycle ? colors.primary : colors.background.secondary,
+                    borderColor: colors.border.light,
+                  },
                 ]}
                 onPress={() => {
                   setBillingCycle(cycle);
@@ -245,7 +242,7 @@ export const AddSubscriptionScreen = () => {
                 <Text
                   style={[
                     styles.cycleButtonText,
-                    { color: billingCycle === cycle ? colors.text.inverted : colors.text.primary }
+                    { color: billingCycle === cycle ? colors.text.inverted : colors.text.primary },
                   ]}
                 >
                   {cycle.charAt(0).toUpperCase() + cycle.slice(1)}
@@ -254,26 +251,22 @@ export const AddSubscriptionScreen = () => {
             ))}
           </View>
         </FormField>
-        
-        <FormField
-          label="Start Date"
-          error={errors.start_date}
-          required
-        >
+
+        <FormField label="Start Date" error={errors.start_date} required>
           <TouchableOpacity
             style={[
               styles.dateButton,
-              { 
+              {
                 backgroundColor: colors.background.secondary,
-                borderColor: colors.border.light
-              }
+                borderColor: colors.border.light,
+              },
             ]}
             onPress={showDatePickerHandler}
           >
             <Text>{formatDate(startDate)}</Text>
             <Ionicons name="calendar-outline" size={18} color={colors.text.secondary} />
           </TouchableOpacity>
-          
+
           {showDatePicker && (
             <DateTimePicker
               value={startDate}
@@ -283,41 +276,32 @@ export const AddSubscriptionScreen = () => {
             />
           )}
         </FormField>
-        
-        <FormField
-          label="Category"
-          error={errors.category_id}
-        >
+
+        <FormField label="Category" error={errors.category_id}>
           <TouchableOpacity
             style={[
               styles.categoryButton,
-              { 
+              {
                 backgroundColor: colors.background.secondary,
-                borderColor: colors.border.light
-              }
+                borderColor: colors.border.light,
+              },
             ]}
             onPress={showCategorySelection}
           >
-            <Text>
-              {selectedCategoryName || 'Select a category'}
-            </Text>
+            <Text>{selectedCategoryName || 'Select a category'}</Text>
             <Ionicons name="chevron-down" size={18} color={colors.text.secondary} />
           </TouchableOpacity>
         </FormField>
-        
-        <FormField
-          label="Payment Method"
-        >
+
+        <FormField label="Payment Method">
           <Input
             placeholder="Credit card, bank account, etc."
             value={paymentMethod}
             onChangeText={setPaymentMethod}
           />
         </FormField>
-        
-        <FormField
-          label="Notes"
-        >
+
+        <FormField label="Notes">
           <Input
             placeholder="Add notes about this subscription"
             value={notes}
@@ -327,19 +311,10 @@ export const AddSubscriptionScreen = () => {
             textAlignVertical="top"
           />
         </FormField>
-        
+
         <View style={styles.buttonsContainer}>
-          <Button 
-            title="Cancel" 
-            onPress={handleCancel} 
-            variant="secondary"
-            style={styles.button}
-          />
-          <Button 
-            title="Save" 
-            onPress={handleSubmit} 
-            style={styles.button}
-          />
+          <Button title="Cancel" onPress={handleCancel} variant="secondary" style={styles.button} />
+          <Button title="Save" onPress={handleSubmit} style={styles.button} />
         </View>
       </View>
     </ScrollView>
@@ -415,4 +390,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddSubscriptionScreen; 
+export default AddSubscriptionScreen;

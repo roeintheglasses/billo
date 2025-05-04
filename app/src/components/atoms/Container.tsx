@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ViewProps, 
+import {
+  View,
+  StyleSheet,
+  ViewProps,
   ScrollView,
-  StyleProp, 
+  StyleProp,
   ViewStyle,
   SafeAreaView,
   DimensionValue,
@@ -25,7 +25,7 @@ export interface ContainerProps extends ViewProps {
 
 /**
  * Container component for consistent page layouts with proper spacing and sizing
- * 
+ *
  * @param {boolean} scrollable - Whether the container should be scrollable
  * @param {number|string} padding - Custom padding around content
  * @param {boolean} center - Center the content vertically and horizontally
@@ -35,18 +35,18 @@ export interface ContainerProps extends ViewProps {
  * @param {object} style - Additional styles for the container
  * @param {object} contentContainerStyle - Styles for ScrollView's content container
  * @returns {React.ReactElement} A styled container component
- * 
+ *
  * @example
  * // Basic usage
  * <Container>
  *   <Text>Content</Text>
  * </Container>
- * 
+ *
  * // Scrollable with custom padding
  * <Container scrollable padding={24}>
  *   <Text>Scrollable content</Text>
  * </Container>
- * 
+ *
  * // Centered content
  * <Container center>
  *   <Text>Centered content</Text>
@@ -99,7 +99,9 @@ export const Container: React.FC<ContainerProps> = ({
   // Wrap in SafeAreaView if requested
   if (useSafeArea) {
     return (
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: backgroundColor || colors.background.primary }]}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: backgroundColor || colors.background.primary }]}
+      >
         <View style={containerStyles} {...rest}>
           {content}
         </View>
@@ -130,4 +132,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Container; 
+export default Container;

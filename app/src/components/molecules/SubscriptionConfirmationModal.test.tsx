@@ -17,17 +17,19 @@ jest.mock('../../services/subscriptionMessageService', () => ({
 jest.mock('../../services/supabase', () => ({
   supabase: {
     auth: {
-      getSession: jest.fn(() => Promise.resolve({ 
-        data: { 
-          session: { 
-            user: { 
-              id: 'user-123' 
-            } 
-          } 
-        } 
-      }))
-    }
-  }
+      getSession: jest.fn(() =>
+        Promise.resolve({
+          data: {
+            session: {
+              user: {
+                id: 'user-123',
+              },
+            },
+          },
+        })
+      ),
+    },
+  },
 }));
 
 // Mock Alert.alert
@@ -52,7 +54,7 @@ describe('SubscriptionConfirmationModal', () => {
     billingCycle: 'monthly',
     currency: 'USD',
     confidence: 85,
-    isSubscription: true
+    isSubscription: true,
   };
 
   const defaultProps = {
@@ -71,7 +73,7 @@ describe('SubscriptionConfirmationModal', () => {
 
     // Check that the modal title is displayed
     expect(getByText('Confirm Subscription')).toBeTruthy();
-    
+
     // Check that the SMS body is displayed
     expect(getByText(mockSubscription.body)).toBeTruthy();
 
@@ -105,4 +107,4 @@ describe('SubscriptionConfirmationModal', () => {
   // - Testing form submission success/failure paths
   // - Testing with different confidence levels
   // - Testing with partial subscription data
-}); 
+});

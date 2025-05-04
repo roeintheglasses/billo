@@ -1,6 +1,6 @@
 /**
  * Authentication Service
- * 
+ *
  * This file provides functions for managing user authentication with Supabase,
  * including registration, login, password management, and profile updates.
  */
@@ -11,7 +11,7 @@ import { User, UserInsert, ProfileInsert } from '../types/supabase';
 
 /**
  * Register a new user with email and password
- * 
+ *
  * @param email User email
  * @param password User password
  * @param userData Additional user data to save in the users table
@@ -72,9 +72,7 @@ export const registerUser = async (
       updated_at: new Date().toISOString(),
     };
 
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert(newProfile);
+    const { error: profileError } = await supabase.from('profiles').insert(newProfile);
 
     if (profileError) {
       console.error('Error creating profile record:', profileError.message);
@@ -90,15 +88,12 @@ export const registerUser = async (
 
 /**
  * Login with email and password
- * 
+ *
  * @param email User email
  * @param password User password
  * @returns True if login successful, false otherwise
  */
-export const loginWithEmail = async (
-  email: string,
-  password: string
-): Promise<boolean> => {
+export const loginWithEmail = async (email: string, password: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -124,7 +119,7 @@ export const loginWithEmail = async (
 
 /**
  * Send password reset email
- * 
+ *
  * @param email User email
  * @returns True if email sent successfully, false otherwise
  */
@@ -148,7 +143,7 @@ export const resetPassword = async (email: string): Promise<boolean> => {
 
 /**
  * Update user's password
- * 
+ *
  * @param newPassword New password
  * @returns True if password updated successfully, false otherwise
  */
@@ -172,17 +167,15 @@ export const updatePassword = async (newPassword: string): Promise<boolean> => {
 
 /**
  * Update user profile data
- * 
+ *
  * @param userData User data to update
  * @returns Updated user data or null if update failed
  */
-export const updateUserProfile = async (
-  userData: Partial<User>
-): Promise<User | null> => {
+export const updateUserProfile = async (userData: Partial<User>): Promise<User | null> => {
   try {
     // Get current user
     const { data: userData1 } = await supabase.auth.getUser();
-    
+
     if (!userData1.user) {
       console.error('No authenticated user found');
       return null;
@@ -212,34 +205,34 @@ export const updateUserProfile = async (
 
 /**
  * Refresh the authentication session
- * 
+ *
  * @returns {Promise<boolean>} True if successful, false otherwise
  */
 export const refreshSession = async (): Promise<boolean> => {
   try {
     // Use the stored refresh token
     const refreshToken = await secureStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-    
+
     if (!refreshToken) {
       console.error('No refresh token available');
       return false;
     }
-    
+
     const { data, error } = await supabase.auth.refreshSession({
       refresh_token: refreshToken,
     });
-    
+
     if (error) {
       console.error('Error refreshing session:', error.message);
       return false;
     }
-    
+
     if (data.session) {
       // Store the new session data
       await secureStorage.storeSession(data.session);
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.error('Unexpected error refreshing session:', error);
@@ -249,41 +242,41 @@ export const refreshSession = async (): Promise<boolean> => {
 
 /**
  * Check if the session is expired or about to expire
- * 
+ *
  * @param {number} bufferSeconds Number of seconds before actual expiry to consider as "expired"
  * @returns {Promise<boolean>} True if session is expired or about to expire
  */
 export const isSessionExpired = async (bufferSeconds = 300): Promise<boolean> => {
   const session = await secureStorage.getSession();
-  
+
   if (!session || !session.expires_at) {
     return true;
   }
-  
+
   // Check if token is expired or about to expire (within buffer time)
   const expiresAt = session.expires_at;
   const now = Math.floor(Date.now() / 1000);
-  
+
   return now + bufferSeconds >= expiresAt;
 };
 
 /**
  * Sign out the current user and clear storage
- * 
+ *
  * @returns {Promise<boolean>} True if signed out successfully
  */
 export const signOut = async (): Promise<boolean> => {
   try {
     const { error } = await supabase.auth.signOut();
-    
+
     // Always clear local storage regardless of whether the API call succeeded
     await secureStorage.clearSession();
-    
+
     if (error) {
       console.error('Error signing out from Supabase:', error.message);
       return false;
     }
-    
+
     return true;
   } catch (error) {
     console.error('Unexpected error during sign out:', error);
@@ -295,7 +288,7 @@ export const signOut = async (): Promise<boolean> => {
 
 /**
  * Set up auth state change listener
- * 
+ *
  * @param callback Function to call when auth state changes
  * @returns Subscription object to manage the listener
  */
@@ -309,14 +302,14 @@ export const onAuthStateChange = (
         console.error('Error storing session during auth state change:', error);
       });
     }
-    
+
     // When user signs out, clear the session data
     if (event === 'SIGNED_OUT') {
       secureStorage.clearSession().catch(error => {
         console.error('Error clearing session during auth state change:', error);
       });
     }
-    
+
     callback(event as any, session);
   });
-}; 
+};

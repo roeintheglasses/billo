@@ -12,7 +12,8 @@ import { AuthStackParamList } from '../navigation/navigationTypes';
 import { updatePassword } from '../services/auth';
 
 // Password validation schema
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 // Validation schema
 const ResetPasswordSchema = Yup.object().shape({
@@ -35,23 +36,23 @@ type ResetPasswordFormValues = {
 
 /**
  * ResetPasswordScreen Component
- * 
+ *
  * Allows users to set a new password after clicking a reset link.
  */
 export const ResetPasswordScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { theme } = useTheme();
   const { colors, spacing } = theme;
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
-  
+
   // Handle form submission
   const handleSubmit = async (values: ResetPasswordFormValues) => {
     try {
       setIsSubmitting(true);
       const success = await updatePassword(values.password);
-      
+
       if (success) {
         setResetComplete(true);
       } else {
@@ -64,16 +65,14 @@ export const ResetPasswordScreen = () => {
       }
     } catch (error) {
       console.error('Password reset error:', error);
-      Alert.alert(
-        'Error',
-        'An unexpected error occurred. Please try again later.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Error', 'An unexpected error occurred. Please try again later.', [
+        { text: 'OK' },
+      ]);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <FormContainer
       title="Create New Password"
@@ -99,7 +98,7 @@ export const ResetPasswordScreen = () => {
                 touched={touched.password}
                 autoCapitalize="none"
               />
-              
+
               <FormInput
                 label="Confirm Password"
                 placeholder="Confirm new password"
@@ -112,20 +111,20 @@ export const ResetPasswordScreen = () => {
                 touched={touched.confirmPassword}
                 autoCapitalize="none"
               />
-              
+
               <Text style={[styles.passwordRequirements, { color: colors.text.secondary }]}>
-                Password must contain at least 8 characters, including uppercase letter, 
-                lowercase letter, number, and special character.
+                Password must contain at least 8 characters, including uppercase letter, lowercase
+                letter, number, and special character.
               </Text>
-              
+
               <Button
                 title="Set New Password"
                 onPress={() => handleSubmit()}
                 isLoading={isSubmitting}
                 style={{ marginTop: spacing.md }}
               />
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => navigation.navigate('Login')}
               >
@@ -184,4 +183,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
-}); 
+});

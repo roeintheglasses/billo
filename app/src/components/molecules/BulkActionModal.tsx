@@ -47,7 +47,10 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
 
   const handleApplyAction = async () => {
     if (selectedSubscriptions.length === 0) {
-      Alert.alert('No Subscriptions Selected', 'Please select at least one subscription to perform bulk actions.');
+      Alert.alert(
+        'No Subscriptions Selected',
+        'Please select at least one subscription to perform bulk actions.'
+      );
       return;
     }
 
@@ -80,7 +83,10 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
 
       onClose();
     } catch (error) {
-      Alert.alert('Error', `Failed to perform bulk action: ${error instanceof Error ? error.message : String(error)}`);
+      Alert.alert(
+        'Error',
+        `Failed to perform bulk action: ${error instanceof Error ? error.message : String(error)}`
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -124,7 +130,8 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
         return (
           <View style={styles.actionContent}>
             <Text variant="body">
-              This will delete {selectedSubscriptions.length} selected subscriptions. This action cannot be undone.
+              This will delete {selectedSubscriptions.length} selected subscriptions. This action
+              cannot be undone.
             </Text>
           </View>
         );
@@ -135,7 +142,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
               Select a category:
             </Text>
             <View style={styles.optionsContainer}>
-              {categories.map((category) => (
+              {categories.map(category => (
                 <View key={category.id} style={styles.radioOption}>
                   <RadioButton
                     selected={selectedCategoryId === category.id}
@@ -164,7 +171,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
               Select a billing cycle:
             </Text>
             <View style={styles.optionsContainer}>
-              {billingCycles.map((cycle) => (
+              {billingCycles.map(cycle => (
                 <View key={cycle.id} style={styles.radioOption}>
                   <RadioButton
                     selected={selectedBillingCycle === cycle.id}
@@ -236,7 +243,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
           />
           <Button
             variant="primary"
-            title={isProcessing ? "Processing..." : "Apply"}
+            title={isProcessing ? 'Processing...' : 'Apply'}
             onPress={handleApplyAction}
             style={styles.applyButton}
             disabled={isProcessing}
@@ -294,4 +301,4 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   applyButton: {},
-}); 
+});

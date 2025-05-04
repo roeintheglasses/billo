@@ -11,12 +11,14 @@ import { RootStackParamList } from './navigationTypes';
 import { navigationRef } from './navigationService';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { StyleSheet } from 'react-native';
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /**
  * AppNavigator Component
- * 
+ *
  * The root navigation component that handles switching between
  * authentication flow and main app screens based on auth state.
  */
@@ -27,7 +29,14 @@ export const AppNavigator = () => {
   // Show loading screen while checking authentication state
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background.primary }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: theme.colors.background.primary,
+        }}
+      >
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
@@ -47,4 +56,4 @@ export const AppNavigator = () => {
       </NavigationContainer>
     </SafeAreaProvider>
   );
-}; 
+};

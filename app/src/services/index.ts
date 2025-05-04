@@ -1,6 +1,6 @@
 /**
  * Services index
- * 
+ *
  * This file exports all services used in the application.
  */
 
@@ -12,6 +12,7 @@ import subscriptionService from './subscriptionService';
 import transactionService from './transactionService';
 import notificationService from './notificationService';
 import relationshipService from './relationshipService';
+import SMSScannerService from './SMSScannerService';
 
 export {
   authService,
@@ -22,7 +23,8 @@ export {
   subscriptionService,
   transactionService,
   notificationService,
-  relationshipService
+  relationshipService,
+  SMSScannerService,
 };
 
 export default {
@@ -33,8 +35,10 @@ export default {
   subscription: subscriptionService,
   transaction: transactionService,
   notification: notificationService,
-  relationship: relationshipService
+  relationship: relationshipService,
+  smsScanner: SMSScannerService,
 };
 
 export * from './SMSService';
-export { default as SMSService } from './SMSService'; 
+export { default as SMSService } from './SMSService';
+export * from './SMSScannerService';

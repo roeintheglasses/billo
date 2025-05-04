@@ -13,20 +13,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 /**
  * Settings Screen Component
- * 
+ *
  * Displays user settings and configuration options.
  */
 export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { theme } = useTheme();
   const { colors, spacing } = theme;
   const { signOut } = useAuth();
-  const { 
-    storageMethod, 
-    setStorageMethod, 
-    isOnline, 
-    subscriptions 
-  } = useStorage();
-  
+  const { storageMethod, setStorageMethod, isOnline, subscriptions } = useStorage();
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignOut = async () => {
@@ -38,7 +33,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     try {
       setIsLoading(true);
       const newMethod = storageMethod === 'remote' ? 'local' : 'remote';
-      
+
       // If switching to remote storage but offline, show warning
       if (newMethod === 'remote' && !isOnline) {
         Alert.alert(
@@ -46,40 +41,43 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           'You appear to be offline. Remote storage requires an internet connection.',
           [
             { text: 'Stay on Local Storage', style: 'cancel' },
-            { 
-              text: 'Try Anyway', 
+            {
+              text: 'Try Anyway',
               onPress: async () => await setStorageMethod(newMethod),
-              style: 'destructive'
-            }
+              style: 'destructive',
+            },
           ]
         );
         return;
       }
-      
+
       // If switching from local to remote, ask for confirmation if there are local changes
       if (newMethod === 'remote' && storageMethod === 'local' && subscriptions.length > 0) {
         Alert.alert(
           'Sync Local Data?',
           'Would you like to sync your local data to the remote server? This will merge your changes with any existing remote data.',
           [
-            { 
-              text: 'Keep Separate', 
-              onPress: async () => await setStorageMethod(newMethod)
+            {
+              text: 'Keep Separate',
+              onPress: async () => await setStorageMethod(newMethod),
             },
-            { 
-              text: 'Sync Data', 
+            {
+              text: 'Sync Data',
               onPress: async () => {
                 // In a real implementation, we would sync the data here
                 // For now, we just switch the storage method
                 await setStorageMethod(newMethod);
-                Alert.alert('Data Synced', 'Your local data has been synced with the remote server.');
-              }
-            }
+                Alert.alert(
+                  'Data Synced',
+                  'Your local data has been synced with the remote server.'
+                );
+              },
+            },
           ]
         );
         return;
       }
-      
+
       // Default case: just switch storage method
       await setStorageMethod(newMethod);
     } catch (error) {
@@ -93,135 +91,139 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <ScrollView 
-      style={[
-        styles.container, 
-        { backgroundColor: colors.background.primary }
-      ]}
-    >
-      <View style={[
-        styles.header,
-        { 
-          backgroundColor: colors.background.primary,
-          borderBottomColor: colors.border.light 
-        }
-      ]}>
-        <Text style={[
-          styles.headerTitle,
-          { color: colors.text.primary }
-        ]}>Settings</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background.primary }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.background.primary,
+            borderBottomColor: colors.border.light,
+          },
+        ]}
+      >
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settings</Text>
       </View>
-      
-      <View style={[
-        styles.section,
-        { 
-          backgroundColor: colors.background.primary,
-          borderColor: colors.border.light 
-        }
-      ]}>
-        <Text style={[
-          styles.sectionTitle,
-          { 
-            color: colors.text.secondary,
-            backgroundColor: colors.background.secondary 
-          }
-        ]}>Account</Text>
-        <TouchableOpacity 
+
+      <View
+        style={[
+          styles.section,
+          {
+            backgroundColor: colors.background.primary,
+            borderColor: colors.border.light,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: colors.text.secondary,
+              backgroundColor: colors.background.secondary,
+            },
+          ]}
+        >
+          Account
+        </Text>
+        <TouchableOpacity
           style={[styles.option, { borderBottomColor: colors.border.light }]}
           onPress={() => navigation.navigate('Profile' as never)}
         >
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Profile</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.option, { borderBottomColor: colors.border.light }]}
           onPress={() => navigation.navigate('ChangePassword' as never)}
         >
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Change Password</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[
-          styles.option,
-          { borderBottomColor: colors.border.light }
-        ]}>
+        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Subscription Plan</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[
-          styles.option,
-          { borderBottomColor: colors.border.light }
-        ]}>
+        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Payment Methods</Text>
         </TouchableOpacity>
       </View>
-      
-      <View style={[
-        styles.section,
-        { 
-          backgroundColor: colors.background.primary,
-          borderColor: colors.border.light 
-        }
-      ]}>
-        <Text style={[
-          styles.sectionTitle,
-          { 
-            color: colors.text.secondary,
-            backgroundColor: colors.background.secondary 
-          }
-        ]}>Preferences</Text>
-        
+
+      <View
+        style={[
+          styles.section,
+          {
+            backgroundColor: colors.background.primary,
+            borderColor: colors.border.light,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: colors.text.secondary,
+              backgroundColor: colors.background.secondary,
+            },
+          ]}
+        >
+          Preferences
+        </Text>
+
         {/* Theme toggle component */}
-        <View style={[
-          styles.option,
-          { 
-            borderBottomColor: colors.border.light,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }
-        ]}>
+        <View
+          style={[
+            styles.option,
+            {
+              borderBottomColor: colors.border.light,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            },
+          ]}
+        >
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Theme</Text>
           <ThemeToggle />
         </View>
-        
-        <TouchableOpacity style={[
-          styles.option,
-          { borderBottomColor: colors.border.light }
-        ]}>
+
+        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Notifications</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[
-          styles.option,
-          { borderBottomColor: colors.border.light }
-        ]}>
+        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Currency</Text>
         </TouchableOpacity>
       </View>
-      
-      <View style={[
-        styles.section,
-        { 
-          backgroundColor: colors.background.primary,
-          borderColor: colors.border.light 
-        }
-      ]}>
-        <Text style={[
-          styles.sectionTitle,
-          { 
-            color: colors.text.secondary,
-            backgroundColor: colors.background.secondary 
-          }
-        ]}>Data Storage</Text>
-        
+
+      <View
+        style={[
+          styles.section,
+          {
+            backgroundColor: colors.background.primary,
+            borderColor: colors.border.light,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: colors.text.secondary,
+              backgroundColor: colors.background.secondary,
+            },
+          ]}
+        >
+          Data Storage
+        </Text>
+
         <View style={styles.settingRow}>
           <View style={styles.settingInfo}>
             <Text style={styles.settingTitle}>Use Remote Storage</Text>
             <Text style={styles.settingDescription}>
-              {storageMethod === 'remote' 
-                ? 'Your data is stored on our servers and synced across devices.' 
+              {storageMethod === 'remote'
+                ? 'Your data is stored on our servers and synced across devices.'
                 : 'Your data is only stored locally on this device.'}
             </Text>
             {!isOnline && storageMethod === 'local' && (
               <View style={styles.warningContainer}>
                 <Ionicons name="warning-outline" size={16} color="#FF9800" />
-                <Text style={styles.warningText}>You are currently offline. Remote storage unavailable.</Text>
+                <Text style={styles.warningText}>
+                  You are currently offline. Remote storage unavailable.
+                </Text>
               </View>
             )}
           </View>
@@ -234,7 +236,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             disabled={isLoading}
           />
         </View>
-        
+
         <View style={styles.settingRow}>
           <View style={styles.settingInfo}>
             <Text style={styles.settingTitle}>Connection Status</Text>
@@ -242,95 +244,97 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               {isOnline ? 'Connected to the internet' : 'Currently offline'}
             </Text>
           </View>
-          <View style={[styles.statusIndicator, { backgroundColor: isOnline ? '#4CAF50' : '#F44336' }]}>
-            <Ionicons 
-              name={isOnline ? 'checkmark-circle-outline' : 'close-circle-outline'} 
-              size={16} 
+          <View
+            style={[styles.statusIndicator, { backgroundColor: isOnline ? '#4CAF50' : '#F44336' }]}
+          >
+            <Ionicons
+              name={isOnline ? 'checkmark-circle-outline' : 'close-circle-outline'}
+              size={16}
               color="#fff"
             />
           </View>
         </View>
       </View>
-      
-      <View style={[
-        styles.section,
-        { 
-          backgroundColor: colors.background.primary,
-          borderColor: colors.border.light 
-        }
-      ]}>
-        <Text style={[
-          styles.sectionTitle,
-          { 
-            color: colors.text.secondary,
-            backgroundColor: colors.background.secondary 
-          }
-        ]}>Subscription Management</Text>
-        
-        <TouchableOpacity 
-          style={styles.actionButton} 
+
+      <View
+        style={[
+          styles.section,
+          {
+            backgroundColor: colors.background.primary,
+            borderColor: colors.border.light,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: colors.text.secondary,
+              backgroundColor: colors.background.secondary,
+            },
+          ]}
+        >
+          Subscription Management
+        </Text>
+
+        <TouchableOpacity
+          style={styles.actionButton}
           onPress={() => navigation.navigate('CategoryManagement' as never)}
         >
           <Ionicons name="pricetags-outline" size={20} color="#4CAF50" />
           <Text style={styles.actionButtonText}>Manage Categories</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
           <Ionicons name="cloud-download-outline" size={20} color="#2196F3" />
           <Text style={styles.actionButtonText}>Export Subscriptions</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
           <Ionicons name="cloud-upload-outline" size={20} color="#4CAF50" />
           <Text style={styles.actionButtonText}>Import Subscriptions</Text>
         </TouchableOpacity>
       </View>
-      
-      <View style={[
-        styles.section,
-        { 
-          backgroundColor: colors.background.primary,
-          borderColor: colors.border.light 
-        }
-      ]}>
-        <Text style={[
-          styles.sectionTitle,
-          { 
-            color: colors.text.secondary,
-            backgroundColor: colors.background.secondary 
-          }
-        ]}>Support</Text>
-        <TouchableOpacity style={[
-          styles.option,
-          { borderBottomColor: colors.border.light }
-        ]}>
+
+      <View
+        style={[
+          styles.section,
+          {
+            backgroundColor: colors.background.primary,
+            borderColor: colors.border.light,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: colors.text.secondary,
+              backgroundColor: colors.background.secondary,
+            },
+          ]}
+        >
+          Support
+        </Text>
+        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Help & Support</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[
-          styles.option,
-          { borderBottomColor: colors.border.light }
-        ]}>
+        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Privacy Policy</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[
-          styles.option,
-          { borderBottomColor: colors.border.light }
-        ]}>
+        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Terms of Service</Text>
         </TouchableOpacity>
       </View>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={[styles.logoutButton, { backgroundColor: colors.error }]}
         onPress={handleSignOut}
       >
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
-      
-      <Text style={[
-        styles.versionText,
-        { color: colors.text.tertiary }
-      ]}>Version 1.0.0</Text>
+
+      <Text style={[styles.versionText, { color: colors.text.tertiary }]}>Version 1.0.0</Text>
     </ScrollView>
   );
 };
@@ -440,4 +444,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SettingsScreen; 
+export default SettingsScreen;

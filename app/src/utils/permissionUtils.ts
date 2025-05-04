@@ -10,13 +10,13 @@ const PERMISSION_LAST_REQUESTED_KEY_PREFIX = '@Billo:permission_last_requested:'
 /**
  * Get storage key for permission state
  */
-const getPermissionStateKey = (permission: PermissionType): string => 
+const getPermissionStateKey = (permission: PermissionType): string =>
   `${PERMISSION_STATE_KEY_PREFIX}${permission}`;
 
 /**
  * Get storage key for last requested timestamp
  */
-const getPermissionLastRequestedKey = (permission: PermissionType): string => 
+const getPermissionLastRequestedKey = (permission: PermissionType): string =>
   `${PERMISSION_LAST_REQUESTED_KEY_PREFIX}${permission}`;
 
 /**
@@ -41,7 +41,7 @@ export const getStoredPermissionState = async (
 ): Promise<PermissionState | null> => {
   try {
     const state = await AsyncStorage.getItem(getPermissionStateKey(permission));
-    return state as PermissionState || null;
+    return (state as PermissionState) || null;
   } catch (error) {
     console.error('Error getting stored permission state:', error);
     return null;
@@ -51,14 +51,9 @@ export const getStoredPermissionState = async (
 /**
  * Store timestamp of last permission request
  */
-export const storeLastRequestedTimestamp = async (
-  permission: PermissionType
-): Promise<void> => {
+export const storeLastRequestedTimestamp = async (permission: PermissionType): Promise<void> => {
   try {
-    await AsyncStorage.setItem(
-      getPermissionLastRequestedKey(permission),
-      Date.now().toString()
-    );
+    await AsyncStorage.setItem(getPermissionLastRequestedKey(permission), Date.now().toString());
   } catch (error) {
     console.error('Error storing permission request timestamp:', error);
   }
@@ -68,20 +63,16 @@ export const storeLastRequestedTimestamp = async (
  * Check if we can request permission again (to avoid excessive prompts)
  * Returns true if permission hasn't been requested in the last 24 hours
  */
-export const canRequestPermissionAgain = async (
-  permission: PermissionType
-): Promise<boolean> => {
+export const canRequestPermissionAgain = async (permission: PermissionType): Promise<boolean> => {
   try {
-    const lastRequestedStr = await AsyncStorage.getItem(
-      getPermissionLastRequestedKey(permission)
-    );
-    
+    const lastRequestedStr = await AsyncStorage.getItem(getPermissionLastRequestedKey(permission));
+
     if (!lastRequestedStr) return true;
-    
+
     const lastRequested = parseInt(lastRequestedStr, 10);
     const now = Date.now();
     const hoursSinceLastRequest = (now - lastRequested) / (1000 * 60 * 60);
-    
+
     return hoursSinceLastRequest >= 24;
   } catch (error) {
     console.error('Error checking if permission can be requested again:', error);
@@ -115,17 +106,13 @@ export const checkSMSPermissions = async (): Promise<PermissionState> => {
 
   try {
     // Check both READ_SMS and RECEIVE_SMS permissions
-    const hasReadSms = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.READ_SMS
-    );
+    const hasReadSms = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_SMS);
     const hasReceiveSms = await PermissionsAndroid.check(
       PermissionsAndroid.PERMISSIONS.RECEIVE_SMS
     );
 
     // Both permissions needed
-    return hasReadSms && hasReceiveSms 
-      ? PermissionState.GRANTED 
-      : PermissionState.NOT_REQUESTED;
+    return hasReadSms && hasReceiveSms ? PermissionState.GRANTED : PermissionState.NOT_REQUESTED;
   } catch (error) {
     console.error('Error checking SMS permissions:', error);
     return PermissionState.NOT_REQUESTED;
@@ -151,19 +138,21 @@ export const requestSMSPermissions = async (): Promise<PermissionResult> => {
       PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
     ]);
 
-    const isReadGranted = 
+    const isReadGranted =
       result[PermissionsAndroid.PERMISSIONS.READ_SMS] === PermissionsAndroid.RESULTS.GRANTED;
-    const isReceiveGranted = 
+    const isReceiveGranted =
       result[PermissionsAndroid.PERMISSIONS.RECEIVE_SMS] === PermissionsAndroid.RESULTS.GRANTED;
-    
+
     const isGranted = isReadGranted && isReceiveGranted;
-    
+
     // Check if we can ask again (not NEVER_ASK_AGAIN)
-    const canAskAgainRead = 
-      result[PermissionsAndroid.PERMISSIONS.READ_SMS] !== PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
-    const canAskAgainReceive = 
-      result[PermissionsAndroid.PERMISSIONS.RECEIVE_SMS] !== PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
-    
+    const canAskAgainRead =
+      result[PermissionsAndroid.PERMISSIONS.READ_SMS] !==
+      PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
+    const canAskAgainReceive =
+      result[PermissionsAndroid.PERMISSIONS.RECEIVE_SMS] !==
+      PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
+
     const canAskAgain = canAskAgainRead && canAskAgainReceive;
 
     return { granted: isGranted, canAskAgain };
@@ -200,4 +189,4 @@ export const showSMSPermissionRationaleAlert = (
     ],
     { cancelable: true }
   );
-}; 
+};

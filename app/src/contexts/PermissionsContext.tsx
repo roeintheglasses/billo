@@ -1,9 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
-import {
-  PermissionState,
-  PermissionType,
-  PermissionsContextState,
-} from '../types/permissions';
+import { PermissionState, PermissionType, PermissionsContextState } from '../types/permissions';
 import {
   checkSMSPermissions,
   getStoredPermissionState,
@@ -98,7 +94,7 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
    */
   const checkSMSPermissionStatus = async (): Promise<PermissionState> => {
     const status = await checkSMSPermissions();
-    
+
     // Update state if different from current state
     if (status !== permissionState[PermissionType.SMS]) {
       dispatch({
@@ -106,11 +102,11 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         permission: PermissionType.SMS,
         state: status,
       });
-      
+
       // Store the updated state
       await storePermissionState(PermissionType.SMS, status);
     }
-    
+
     return status;
   };
 
@@ -141,23 +137,23 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     // Request the permission
     const { granted, canAskAgain } = await requestSMSPermissions();
-    
+
     // Update state based on result
     const newState = granted
       ? PermissionState.GRANTED
       : canAskAgain
         ? PermissionState.DENIED
         : PermissionState.DENIED_PERMANENTLY;
-    
+
     dispatch({
       type: 'SET_PERMISSION_STATE',
       permission: PermissionType.SMS,
       state: newState,
     });
-    
+
     // Store the new state
     await storePermissionState(PermissionType.SMS, newState);
-    
+
     return granted;
   };
 
@@ -165,10 +161,7 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
    * Show SMS permission explanation
    */
   const showSMSPermissionExplanation = (): void => {
-    showSMSPermissionRationaleAlert(
-      requestSMSPermission,
-      openAppSettings
-    );
+    showSMSPermissionRationaleAlert(requestSMSPermission, openAppSettings);
   };
 
   const value: PermissionsContextValue = {
@@ -178,11 +171,7 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     showSMSPermissionExplanation,
   };
 
-  return (
-    <PermissionsContext.Provider value={value}>
-      {children}
-    </PermissionsContext.Provider>
-  );
+  return <PermissionsContext.Provider value={value}>{children}</PermissionsContext.Provider>;
 };
 
 /**
@@ -214,4 +203,4 @@ export const useSMSPermissions = () => {
     showSMSPermissionExplanation,
     isSMSPermissionGranted: permissionState[PermissionType.SMS] === PermissionState.GRANTED,
   };
-}; 
+};

@@ -1,38 +1,37 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ViewProps, 
-  StyleProp,
-  ViewStyle,
-  DimensionValue,
-} from 'react-native';
+import { View, StyleSheet, ViewProps, StyleProp, ViewStyle, DimensionValue } from 'react-native';
 
 // Row component props
 export interface RowProps extends ViewProps {
   gap?: number;
   wrap?: boolean;
   alignItems?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline';
-  justifyContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly';
+  justifyContent?:
+    | 'flex-start'
+    | 'flex-end'
+    | 'center'
+    | 'space-between'
+    | 'space-around'
+    | 'space-evenly';
   style?: StyleProp<ViewStyle>;
 }
 
 /**
  * Row component for horizontal layouts
- * 
+ *
  * @param {number} gap - Space between items
  * @param {boolean} wrap - Whether items should wrap to next line
  * @param {string} alignItems - Vertical alignment of items
  * @param {string} justifyContent - Horizontal distribution of items
  * @returns {React.ReactElement} A row layout component
- * 
+ *
  * @example
  * // Basic usage
  * <Row>
  *   <View style={{ width: 50, height: 50, backgroundColor: 'red' }} />
  *   <View style={{ width: 50, height: 50, backgroundColor: 'blue' }} />
  * </Row>
- * 
+ *
  * // With gap and alignment
  * <Row gap={16} alignItems="center" justifyContent="space-between">
  *   <Text>Left</Text>
@@ -71,11 +70,7 @@ export const Row = ({
   // Apply gap manually by wrapping each child in a container with margin
   const childCount = React.Children.count(children);
   const childrenWithGap = React.Children.map(children, (child, index) => {
-    return (
-      <View style={index < childCount - 1 ? { marginRight: gap } : undefined}>
-        {child}
-      </View>
-    );
+    return <View style={index < childCount - 1 ? { marginRight: gap } : undefined}>{child}</View>;
   });
 
   return (
@@ -89,7 +84,13 @@ export const Row = ({
 export interface ColumnProps extends ViewProps {
   gap?: number;
   alignItems?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline';
-  justifyContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly';
+  justifyContent?:
+    | 'flex-start'
+    | 'flex-end'
+    | 'center'
+    | 'space-between'
+    | 'space-around'
+    | 'space-evenly';
   flex?: number;
   width?: DimensionValue;
   style?: StyleProp<ViewStyle>;
@@ -97,21 +98,21 @@ export interface ColumnProps extends ViewProps {
 
 /**
  * Column component for vertical layouts
- * 
+ *
  * @param {number} gap - Space between items
  * @param {string} alignItems - Horizontal alignment of items
  * @param {string} justifyContent - Vertical distribution of items
  * @param {number} flex - Flex value for the column
  * @param {number|string} width - Width of the column
  * @returns {React.ReactElement} A column layout component
- * 
+ *
  * @example
  * // Basic usage
  * <Column>
  *   <Text>Item 1</Text>
  *   <Text>Item 2</Text>
  * </Column>
- * 
+ *
  * // With gap and alignment
  * <Column gap={16} alignItems="center" justifyContent="space-between">
  *   <Text>Top</Text>
@@ -152,11 +153,7 @@ export const Column = ({
   // Apply gap manually by wrapping each child in a container with margin
   const childCount = React.Children.count(children);
   const childrenWithGap = React.Children.map(children, (child, index) => {
-    return (
-      <View style={index < childCount - 1 ? { marginBottom: gap } : undefined}>
-        {child}
-      </View>
-    );
+    return <View style={index < childCount - 1 ? { marginBottom: gap } : undefined}>{child}</View>;
   });
 
   return (
@@ -177,13 +174,13 @@ export interface GridProps extends ViewProps {
 
 /**
  * Grid component for creating responsive grid layouts
- * 
+ *
  * @param {number} columns - Number of columns in the grid
  * @param {number} gap - Space between all items
  * @param {number} rowGap - Space between rows
  * @param {number} columnGap - Space between columns
  * @returns {React.ReactElement} A grid layout component
- * 
+ *
  * @example
  * // Basic usage with 2 columns
  * <Grid columns={2} gap={16}>
@@ -213,22 +210,19 @@ export const Grid = ({
   // Group children into rows based on column count
   for (let i = 0; i < childrenArray.length; i += columns) {
     const rowItems = childrenArray.slice(i, i + columns);
-    
+
     // Create a row with all items in this group
     rows.push(
-      <View 
-        key={`grid-row-${i}`} 
+      <View
+        key={`grid-row-${i}`}
         style={[
           styles.gridRow,
-          { marginBottom: i + columns < childrenArray.length ? effectiveRowGap : 0 }
+          { marginBottom: i + columns < childrenArray.length ? effectiveRowGap : 0 },
         ]}
       >
         <Row gap={effectiveColumnGap}>
           {rowItems.map((child, index) => (
-            <View 
-              key={`grid-item-${i + index}`}
-              style={[styles.gridItem, { flex: 1 / columns }]}
-            >
+            <View key={`grid-item-${i + index}`} style={[styles.gridItem, { flex: 1 / columns }]}>
               {child}
             </View>
           ))}
@@ -261,4 +255,4 @@ const styles = StyleSheet.create({
   gridItem: {
     minWidth: 0, // Prevent items from overflowing
   },
-}); 
+});

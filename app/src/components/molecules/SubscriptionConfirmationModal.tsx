@@ -8,7 +8,10 @@ import { Text } from '../atoms/Text';
 import { FormInput } from '../FormInput';
 import { useTheme } from '../../contexts/ThemeContext';
 import { SubscriptionSMSMessage } from '../../services/SMSService';
-import subscriptionService, { BillingCycle, BILLING_CYCLES } from '../../services/subscriptionService';
+import subscriptionService, {
+  BillingCycle,
+  BILLING_CYCLES,
+} from '../../services/subscriptionService';
 import { formatCurrency } from '../../utils/formatUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { SubscriptionInsert } from '../../types/supabase';
@@ -25,10 +28,8 @@ const validationSchema = Yup.object().shape({
   billingCycle: Yup.string()
     .oneOf(BILLING_CYCLES, 'Invalid billing cycle')
     .required('Billing cycle is required'),
-  startDate: Yup.date()
-    .typeError('Invalid date format')
-    .required('Start date is required'),
-  currency: Yup.string().required('Currency is required')
+  startDate: Yup.date().typeError('Invalid date format').required('Start date is required'),
+  currency: Yup.string().required('Currency is required'),
 });
 
 interface SubscriptionConfirmationModalProps {
@@ -40,7 +41,7 @@ interface SubscriptionConfirmationModalProps {
 
 /**
  * SubscriptionConfirmationModal Component
- * 
+ *
  * A modal for confirming subscription details detected from SMS
  * Allows users to edit details before saving
  */
@@ -48,7 +49,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
   visible,
   onClose,
   subscription,
-  onConfirm
+  onConfirm,
 }) => {
   const { theme } = useTheme();
   const { colors } = theme;
@@ -62,7 +63,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
         amount: '',
         billingCycle: 'monthly' as BillingCycle,
         startDate: new Date().toISOString().split('T')[0],
-        currency: 'USD'
+        currency: 'USD',
       };
     }
 
@@ -72,14 +73,14 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
       billingCycle: (subscription.billingCycle || 'monthly') as BillingCycle,
       startDate: new Date().toISOString().split('T')[0],
       currency: subscription.currency || 'USD',
-      nextBillingDate: subscription.nextBillingDate || undefined
+      nextBillingDate: subscription.nextBillingDate || undefined,
     };
   };
 
   // Get confidence level style based on confidence score
   const getConfidenceStyle = (confidence?: number) => {
     if (!confidence) return {};
-    
+
     if (confidence >= 85) {
       return { backgroundColor: colors.success + '20' }; // 20% opacity
     } else if (confidence >= 60) {
@@ -92,10 +93,10 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
   // Display confidence indicator
   const renderConfidenceIndicator = (confidence?: number) => {
     if (!confidence) return null;
-    
+
     let icon;
     let color: string;
-    
+
     if (confidence >= 85) {
       icon = 'checkmark-circle';
       color = colors.success;
@@ -106,7 +107,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
       icon = 'warning';
       color = colors.error;
     }
-    
+
     return (
       <View style={styles.confidenceIndicator}>
         <Ionicons name={icon as any} size={16} color={color} />
@@ -120,16 +121,16 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
   // Handle form submission
   const handleSubmit = async (values: any) => {
     if (!subscription) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       // Get current user
       const { data: userData } = await supabase.auth.getSession();
       if (!userData?.session?.user) {
         throw new Error('User not authenticated');
       }
-      
+
       // Prepare subscription data
       const subscriptionData: SubscriptionInsert = {
         user_id: userData.session.user.id,
@@ -139,12 +140,12 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
         start_date: values.startDate,
         next_billing_date: values.nextBillingDate || null,
         source_type: 'sms',
-        auto_detected: true
+        auto_detected: true,
       };
-      
+
       // Create subscription
       const savedSubscription = await subscriptionService.createSubscription(subscriptionData);
-      
+
       // Link message to subscription if we have the SMS ID
       if (subscription._id) {
         await subscriptionMessageService.linkMessageToSubscription(
@@ -152,7 +153,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
           savedSubscription.id
         );
       }
-      
+
       // Success feedback
       Alert.alert(
         'Subscription Added',
@@ -161,10 +162,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
       );
     } catch (error) {
       // Error feedback
-      Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'Failed to save subscription'
-      );
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to save subscription');
     } finally {
       setIsLoading(false);
       onClose();
@@ -175,7 +173,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
   const renderBillingCycleOptions = (setFieldValue: any, billingCycle: string) => {
     return (
       <View style={styles.billingCycleOptions}>
-        {BILLING_CYCLES.map((cycle) => (
+        {BILLING_CYCLES.map(cycle => (
           <TouchableOpacity
             key={cycle}
             style={[
@@ -205,36 +203,28 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
 
   // Reject subscription handler
   const handleReject = () => {
-    Alert.alert(
-      'Reject Subscription',
-      'Are you sure you want to ignore this subscription?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Reject', 
-          style: 'destructive',
-          onPress: () => {
-            // TODO: Mark SMS as processed but rejected
-            onClose();
-            onConfirm();
-          }
-        }
-      ]
-    );
+    Alert.alert('Reject Subscription', 'Are you sure you want to ignore this subscription?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Reject',
+        style: 'destructive',
+        onPress: () => {
+          // TODO: Mark SMS as processed but rejected
+          onClose();
+          onConfirm();
+        },
+      },
+    ]);
   };
 
   if (!subscription) return null;
 
   return (
-    <Modal
-      visible={visible}
-      onClose={onClose}
-      title="Confirm Subscription"
-      size="large"
-    >
+    <Modal visible={visible} onClose={onClose} title="Confirm Subscription" size="large">
       <View style={styles.container}>
         <Text variant="body" style={styles.description}>
-          We detected a subscription in your SMS messages. Please review and confirm the details before adding it to your subscriptions.
+          We detected a subscription in your SMS messages. Please review and confirm the details
+          before adding it to your subscriptions.
         </Text>
 
         <View style={styles.smsPreview}>
@@ -322,7 +312,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
                   disabled={isLoading}
                 />
                 <Button
-                  title={isLoading ? "Saving..." : "Confirm"}
+                  title={isLoading ? 'Saving...' : 'Confirm'}
                   variant="primary"
                   onPress={() => handleSubmit()}
                   style={styles.confirmButton}
@@ -331,11 +321,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
               </View>
 
               {isLoading && (
-                <ActivityIndicator 
-                  size="large" 
-                  color={colors.primary} 
-                  style={styles.loader} 
-                />
+                <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
               )}
             </View>
           )}
@@ -408,4 +394,4 @@ const styles = StyleSheet.create({
   loader: {
     marginTop: 20,
   },
-}); 
+});

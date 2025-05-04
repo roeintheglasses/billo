@@ -1,10 +1,5 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  StyleProp, 
-  ViewStyle 
-} from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { Text } from '../../atoms/Text';
 
@@ -20,7 +15,7 @@ export interface SubscriptionCardDetailsProps {
 
 /**
  * Details component for SubscriptionCard
- * 
+ *
  * @param {number} amount - The subscription amount
  * @param {string} cycle - The billing cycle (monthly, annually, etc.)
  * @param {string} category - The subscription category
@@ -42,7 +37,7 @@ export const SubscriptionCardDetails: React.FC<SubscriptionCardDetailsProps> = (
 
   // Format cycle text
   const formatCycle = (cycleType: SubscriptionCycle) => {
-    switch(cycleType) {
+    switch (cycleType) {
       case 'weekly':
         return '/week';
       case 'monthly':
@@ -57,31 +52,19 @@ export const SubscriptionCardDetails: React.FC<SubscriptionCardDetailsProps> = (
   };
 
   return (
-    <View 
-      style={[styles.container, style]} 
-      testID={testID}
-    >
+    <View style={[styles.container, style]} testID={testID}>
       <View style={styles.priceContainer}>
-        <Text 
-          variant="heading1" 
-          style={{ color: theme.colors.text.primary }}
-        >
+        <Text variant="heading1" style={{ color: theme.colors.text.primary }}>
           {formatCurrency(amount)}
         </Text>
-        <Text 
-          variant="body" 
-          style={[styles.cycle, { color: theme.colors.text.secondary }]}
-        >
+        <Text variant="body" style={[styles.cycle, { color: theme.colors.text.secondary }]}>
           {formatCycle(cycle)}
         </Text>
       </View>
-      
+
       {category && (
         <View style={styles.categoryContainer}>
-          <Text 
-            variant="caption" 
-            style={{ color: theme.colors.text.secondary }}
-          >
+          <Text variant="caption" style={{ color: theme.colors.text.secondary }}>
             {category}
           </Text>
         </View>
@@ -106,4 +89,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SubscriptionCardDetails; 
+export default SubscriptionCardDetails;

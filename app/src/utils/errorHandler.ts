@@ -1,6 +1,6 @@
 /**
  * Error Handler Utility
- * 
+ *
  * This file provides utilities for handling errors in service operations.
  */
 
@@ -10,14 +10,14 @@ import {
   ValidationError,
   DatabaseError,
   NotFoundError,
-  getUserFriendlyErrorMessage
+  getUserFriendlyErrorMessage,
 } from './errors';
 import logger from './logger';
 import { ValidationResult } from './validationUtils';
 
 /**
  * Process a PostgrestError from Supabase into a DatabaseError
- * 
+ *
  * @param error PostgrestError from Supabase
  * @param entity The entity type that had the error
  * @returns A DatabaseError with appropriate fields
@@ -33,27 +33,19 @@ export const processSupabaseError = (
   // Extract the Postgres error code (if available)
   const pgErrorCode = error.code;
   const errorMessage = error.message || `Error during database operation on ${entity}`;
-  
-  return new DatabaseError(
-    errorMessage,
-    pgErrorCode,
-    new Error(errorMessage)
-  );
+
+  return new DatabaseError(errorMessage, pgErrorCode, new Error(errorMessage));
 };
 
 /**
  * Check if a record was found in the database
- * 
+ *
  * @param result The result to check
  * @param entity The entity type being looked for
  * @param id Optional ID of the entity
  * @throws NotFoundError if the record was not found
  */
-export const checkRecordFound = <T>(
-  result: T | null,
-  entity: string,
-  id?: string
-): T => {
+export const checkRecordFound = <T>(result: T | null, entity: string, id?: string): T => {
   if (result === null) {
     throw new NotFoundError(entity, id);
   }
@@ -62,7 +54,7 @@ export const checkRecordFound = <T>(
 
 /**
  * Validate and process data before database operations
- * 
+ *
  * @param data The data to validate
  * @param validateFn The function to validate the data
  * @param entity The entity type being validated
@@ -74,22 +66,19 @@ export const validateOrThrow = <T>(
   entity: string
 ): T => {
   const validationResult = validateFn(data);
-  
+
   if (!validationResult.isValid) {
     logger.logValidation(entity, 'failure', validationResult.errors);
-    throw new ValidationError(
-      `Validation failed for ${entity}`,
-      validationResult.errors
-    );
+    throw new ValidationError(`Validation failed for ${entity}`, validationResult.errors);
   }
-  
+
   logger.logValidation(entity, 'success');
   return data;
 };
 
 /**
  * Wrap a database operation with standard error handling
- * 
+ *
  * @param operation The operation function to execute
  * @param entity The entity type being operated on
  * @returns A function that will handle errors appropriately
@@ -109,12 +98,12 @@ export function withErrorHandling<T, Args extends any[]>(
         logger.error(`Error during operation on ${entity}`, error);
         throw error;
       }
-      
+
       // Supabase PostgrestError
       if (
-        error && 
-        typeof error === 'object' && 
-        'code' in error && 
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
         'message' in error &&
         'details' in error
       ) {
@@ -122,7 +111,7 @@ export function withErrorHandling<T, Args extends any[]>(
         logger.error(`Database error during operation on ${entity}`, dbError);
         throw dbError;
       }
-      
+
       // Generic error
       logger.error(`Unknown error during operation on ${entity}`, error);
       throw new DatabaseError(
@@ -136,16 +125,16 @@ export function withErrorHandling<T, Args extends any[]>(
 
 /**
  * Show a user-friendly error toast message
- * 
+ *
  * @param error The error to display
  * @returns User-friendly error message
  */
 export const handleErrorDisplay = (error: unknown): string => {
   const message = getUserFriendlyErrorMessage(error);
-  
+
   // Here you could add code to show the message in a toast
   // or other UI component
-  
+
   return message;
 };
 
@@ -154,5 +143,5 @@ export default {
   checkRecordFound,
   validateOrThrow,
   withErrorHandling,
-  handleErrorDisplay
-}; 
+  handleErrorDisplay,
+};
