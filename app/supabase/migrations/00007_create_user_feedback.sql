@@ -49,7 +49,16 @@ CREATE INDEX idx_user_feedback_subscription_id ON public.user_feedback(subscript
 CREATE INDEX idx_user_feedback_message_id ON public.user_feedback(message_id);
 CREATE INDEX idx_user_feedback_feedback_type ON public.user_feedback(feedback_type);
 
+
 -- Add created_at and updated_at triggers
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TRIGGER set_user_feedback_updated_at
     BEFORE UPDATE ON public.user_feedback
     FOR EACH ROW

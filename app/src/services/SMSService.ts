@@ -103,7 +103,7 @@ class SMSService {
         const userId = userData.session.user.id;
 
         // Generate a fingerprint for message deduplication
-        const messageFingerprint = calculateMessageFingerprint(messageBody);
+        const messageFingerprint = await calculateMessageFingerprint(messageBody);
 
         // Check if this message has been processed before
         const { data: existingMessages } = await supabase
@@ -111,7 +111,7 @@ class SMSService {
           .select('*')
           .eq('user_id', userId);
 
-        const isDuplicate = isMessageDuplicate(messageBody, existingMessages || []);
+        const isDuplicate = await isMessageDuplicate(messageBody, existingMessages || []);
         if (isDuplicate) {
           logger.info('Duplicate SMS message detected, skipping processing', {
             fingerprint: messageFingerprint,

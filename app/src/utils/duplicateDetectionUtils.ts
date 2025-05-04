@@ -6,7 +6,7 @@
  */
 
 import { Subscription, SubscriptionMessage, Json } from '../types/supabase';
-import crypto from 'crypto';
+import * as Crypto from 'expo-crypto';
 import logger from './logger';
 import { normalizeAmountToMonthly } from '../services/subscriptionService';
 
@@ -196,16 +196,18 @@ export function calculateAmountSimilarity(
  * @param message Message to fingerprint
  * @returns Hash fingerprint
  */
-export function calculateMessageFingerprint(message: string | SubscriptionMessage): string {
+export async function calculateMessageFingerprint(
+  message: string | SubscriptionMessage
+): Promise<string> {
   if (typeof message === 'string') {
-    return crypto.createHash('sha256').update(message).digest('hex');
+    return await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, message);
   }
 
   // If it's a SubscriptionMessage object
-  return crypto
-    .createHash('sha256')
-    .update(`${message.sender}:${message.message_body}`)
-    .digest('hex');
+  return await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    `${message.sender}:${message.message_body}`
+  );
 }
 
 /**
@@ -320,13 +322,14 @@ export function detectDuplicateSubscription(
  * @param existingMessages List of existing messages
  * @returns Whether the message is a duplicate
  */
-export function isMessageDuplicate(
+export async function isMessageDuplicate(
   message: string | SubscriptionMessage,
   existingMessages: SubscriptionMessage[]
-): boolean {
-  const fingerprint = calculateMessageFingerprint(message);
+): Promise<boolean> {
+  const fingerprint = await calculateMessageFingerprint(message);
 
-  return existingMessages.some(existingMsg => {
+  // Check each message in sequence (can't use .some() with async callbacks)
+  for (const existingMsg of existingMessages) {
     // Check if extracted_data contains the fingerprint
     if (existingMsg.extracted_data && typeof existingMsg.extracted_data === 'object') {
       const extractedData = existingMsg.extracted_data as Record<string, Json>;
@@ -341,13 +344,20 @@ export function isMessageDuplicate(
 
     // Also check direct message content for simple matching
     if (typeof message === 'string') {
-      return calculateMessageFingerprint(existingMsg.message_body) === fingerprint;
-    } else {
-      return (
-        message.message_body === existingMsg.message_body && message.sender === existingMsg.sender
-      );
+      const existingFingerprint = await calculateMessageFingerprint(existingMsg.message_body);
+      if (existingFingerprint === fingerprint) {
+        return true;
+      }
+    } else if (
+      message.message_body === existingMsg.message_body &&
+      message.sender === existingMsg.sender
+    ) {
+      return true;
     }
-  });
+  }
+
+  // No duplicates found
+  return false;
 }
 
 /**
