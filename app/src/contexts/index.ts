@@ -6,3 +6,5 @@
 
 export * from './ThemeContext';
 export * from './AuthContext'; 
+export * from './StorageContext';
+export * from './PermissionsContext'; 

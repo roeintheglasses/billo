@@ -34,4 +34,7 @@ export default {
   transaction: transactionService,
   notification: notificationService,
   relationship: relationshipService
-}; 
+};
+
+export * from './SMSService';
+export { default as SMSService } from './SMSService'; 

@@ -3,6 +3,7 @@ import { AppNavigator } from './src/navigation';
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { StorageProvider } from './src/contexts/StorageContext';
+import { PermissionsProvider } from './src/contexts/PermissionsContext';
 import { SessionTimeoutDialog } from './src/components';
 
 /**
@@ -12,6 +13,7 @@ import { SessionTimeoutDialog } from './src/components';
  * - ThemeProvider: For theming and dark/light mode support
  * - AuthProvider: For authentication state management
  * - StorageProvider: For subscription data storage management (local/remote)
+ * - PermissionsProvider: For handling app permissions, including SMS access
  * 
  * Also includes the SessionTimeoutDialog for handling expiring sessions.
  * 
@@ -22,8 +24,10 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <StorageProvider>
-          <AppNavigator />
-          <SessionTimeoutDialog />
+          <PermissionsProvider>
+            <AppNavigator />
+            <SessionTimeoutDialog />
+          </PermissionsProvider>
         </StorageProvider>
       </AuthProvider>
     </ThemeProvider>

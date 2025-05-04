@@ -35,6 +35,9 @@
       "eas": {
         "projectId": "billo-app"
       }
-    }
+    },
+    "plugins": [
+      "./plugins/withSmsModule.js"
+    ]
   }
 }
