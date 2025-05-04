@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { HomeScreen, SettingsScreen, ChangePasswordScreen } from '../screens';
+import { HomeScreen, SettingsScreen, ChangePasswordScreen, AddSubscriptionScreen, SubscriptionDetailScreen, EditSubscriptionScreen } from '../screens';
 import { TabParamList } from './navigationTypes';
 import { useTheme } from '../contexts/ThemeContext';
 import { ProfileScreen } from '../screens/ProfileScreen';
@@ -21,64 +21,86 @@ export const TabNavigator = () => {
   return (
     <Tab.Navigator
       initialRouteName="Home"
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap = 'home';
-          
-          // Set the icon based on the route name
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Subscriptions') {
-            iconName = focused ? 'list' : 'list-outline';
-          } else if (route.name === 'Add') {
-            iconName = focused ? 'add-circle' : 'add-circle-outline';
-          } else if (route.name === 'Calendar') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-          
-          // Return the Ionicons component
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
+      screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.text.secondary,
+        tabBarInactiveTintColor: colors.text.tertiary,
         tabBarStyle: {
           backgroundColor: colors.background.primary,
           borderTopColor: colors.border.light,
         },
-        headerShown: false,
-      })}
+        headerStyle: {
+          backgroundColor: colors.background.primary,
+        },
+        headerTintColor: colors.text.primary,
+      }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Subscriptions" 
+      <Tab.Screen 
+        name="Home" 
+        component={HomeScreen} 
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Subscriptions" 
         component={SubscriptionsScreen} 
         options={{
-          title: 'Subscriptions',
-          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="card-outline" color={color} size={size} />
+          ),
         }}
       />
-      <Tab.Screen name="Add" 
-        component={HomeScreen} // Temporary, will be replaced with AddSubscriptionScreen
+      <Tab.Screen 
+        name="Add" 
+        component={AddSubscriptionScreen} 
         options={{
-          tabBarLabel: 'Add New',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="add-circle-outline" color={color} size={size} />
+          ),
         }}
       />
-      <Tab.Screen name="Calendar" 
-        component={HomeScreen} // Temporary, will be replaced with CalendarScreen 
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileScreen} 
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" color={color} size={size} />
+          ),
+        }}
       />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-      
-      {/* Hidden screens - not shown in tab bar */}
+      <Tab.Screen 
+        name="Settings" 
+        component={SettingsScreen} 
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" color={color} size={size} />
+          ),
+        }}
+      />
       <Tab.Screen 
         name="ChangePassword" 
         component={ChangePasswordScreen} 
-        options={{ 
+        options={{
           tabBarButton: () => null,
-          tabBarStyle: { display: 'none' },
+          headerShown: true,
+        }}
+      />
+      <Tab.Screen 
+        name="SubscriptionDetail" 
+        component={SubscriptionDetailScreen} 
+        options={{
+          tabBarButton: () => null,
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen 
+        name="EditSubscription" 
+        component={EditSubscriptionScreen} 
+        options={{
+          tabBarButton: () => null,
+          headerShown: false,
         }}
       />
     </Tab.Navigator>

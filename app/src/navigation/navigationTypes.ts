@@ -23,25 +23,33 @@ export type TabParamList = {
   Profile: undefined;
   Settings: undefined;
   ChangePassword: undefined;
+  SubscriptionDetail: { subscriptionId: string };
+  EditSubscription: { subscriptionId: string };
 };
 
 // Root navigator types that includes both Auth and Tabs
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
-  Tabs: NavigatorScreenParams<TabParamList>;
+  Main: NavigatorScreenParams<TabParamList>;
 };
 
-// Helper type for screen props in the Auth Navigator
-export type AuthScreenProps<Screen extends keyof AuthStackParamList> = 
-  NativeStackScreenProps<AuthStackParamList, Screen>;
+// Auth stack screen props
+export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<
+  AuthStackParamList,
+  T
+>;
 
-// Helper type for screen props in the Tab Navigator
-export type TabScreenProps<Screen extends keyof TabParamList> = 
-  BottomTabScreenProps<TabParamList, Screen>;
+// Tab screen props
+export type TabScreenProps<T extends keyof TabParamList> = BottomTabScreenProps<
+  TabParamList,
+  T
+>;
 
-// Helper type for the root navigation
-export type RootScreenProps<Screen extends keyof RootStackParamList> = 
-  NativeStackScreenProps<RootStackParamList, Screen>;
+// Root stack screen props
+export type RootScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
+  RootStackParamList,
+  T
+>;
 
 // Utility to make the navigation prop available throughout the app
 declare global {

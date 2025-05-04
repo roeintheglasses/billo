@@ -156,8 +156,8 @@ const SubscriptionsScreen: React.FC = () => {
 
   // Navigate to subscription detail when a card is pressed
   const handleSubscriptionPress = (subscriptionId: string) => {
-    // Will be implemented in a later task
-    console.log(`Navigate to subscription ${subscriptionId}`);
+    // Navigate to the subscription detail screen with the subscription ID
+    navigation.navigate('SubscriptionDetail', { subscriptionId });
   };
 
   // Format date for display
