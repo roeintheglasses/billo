@@ -1,0 +1,227 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Supabase Integration
+
+- **Setup and Configuration**
+  - **Initialize Supabase client consistently**
+    - Use a centralized client setup in services directory
+    - Initialize with environment variables
+    - Example:
+    ```typescript
+    // src/services/supabase.ts
+    import { createClient } from '@supabase/supabase-js';
+    import AsyncStorage from '@react-native-async-storage/async-storage';
+    
+    const supabaseUrl = process.env.SUPABASE_URL as string;
+    const supabaseKey = process.env.SUPABASE_ANON_KEY as string;
+    
+    export const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        storage: AsyncStorage,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+      },
+    });
+    ```
+  - **Environment Variables**
+    - Use `.env` file for Supabase credentials
+    - Import variables with `react-native-dotenv`
+    - Never hardcode Supabase URLs or keys
+
+- **Authentication**
+  - **Use standard auth patterns**
+    - Implement sign up, sign in, sign out, and password reset
+    - Handle auth state with a context provider
+    - Example:
+    ```typescript
+    // Sign Up
+    const signUp = async (email: string, password: string) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      return data;
+    };
+    
+    // Sign In
+    const signIn = async (email: string, password: string) => {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      return data;
+    };
+    ```
+  - **Session Management**
+    - Use AsyncStorage for session persistence
+    - Check session on app startup
+    - Implement token refresh logic
+    - Handle session timeouts gracefully
+
+- **Database Operations**
+  - **Organize database queries by entity**
+    - Create separate service files for each entity
+    - Use consistent naming conventions
+    - Example:
+    ```typescript
+    // src/services/subscriptionService.ts
+    export const subscriptionService = {
+      getAll: async () => {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*');
+          
+        if (error) throw error;
+        return data;
+      },
+      
+      getById: async (id: string) => {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error) throw error;
+        return data;
+      },
+      
+      // Additional methods...
+    };
+    ```
+  - **Query Patterns**
+    - Use chainable query methods
+    - Handle empty results consistently
+    - Implement proper error handling
+    - Use TypeScript types for data
+
+- **Error Handling**
+  - **Standardize error handling**
+    - Check for errors in all Supabase responses
+    - Throw or return standardized error objects
+    - Categorize errors (auth, data, network)
+    - Example:
+    ```typescript
+    try {
+      const { data, error } = await supabase.from('table').select('*');
+      
+      if (error) {
+        throw new Error(`Data error: ${error.message}`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Service error:', error);
+      throw error; // Re-throw for UI handling
+    }
+    ```
+
+- **Data Modeling**
+  - **Use TypeScript interfaces for all database tables**
+    - Define interfaces matching database schema
+    - Include proper types for all fields
+    - Use for type checking in queries
+    - Example:
+    ```typescript
+    // src/types/subscription.ts
+    export interface Subscription {
+      id: string;
+      user_id: string;
+      name: string;
+      amount: number;
+      billing_cycle: 'monthly' | 'yearly' | 'weekly';
+      next_billing_date: string;
+      category_id?: string;
+      created_at: string;
+    }
+    ```
+
+- **Migrations and Seeding**
+  - **Store database migrations in supabase/migrations/**
+    - Use SQL files for migrations
+    - Name files with timestamp and description
+    - Include up and down migration paths
+  - **Store seed data in supabase/seed_data/**
+    - Organize seed files by entity
+    - Include minimal required data for testing
+    - Document relationships between seed data
+
+- **Realtime Data**
+  - **Use subscription pattern for realtime updates**
+    - Subscribe to specific tables as needed
+    - Clean up subscriptions when components unmount
+    - Handle connection errors
+    - Example:
+    ```typescript
+    const [subscriptions, setSubscriptions] = useState([]);
+    
+    useEffect(() => {
+      // Initial data fetch
+      fetchSubscriptions();
+      
+      // Set up realtime subscription
+      const subscription = supabase
+        .channel('public:subscriptions')
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'subscriptions' }, 
+          payload => {
+            // Handle realtime update
+            handleRealtimeUpdate(payload);
+          }
+        )
+        .subscribe();
+      
+      // Cleanup on unmount
+      return () => {
+        supabase.removeChannel(subscription);
+      };
+    }, []);
+    ```
+
+- **Security**
+  - **Apply Row-Level Security (RLS) policies**
+    - Secure data at the database level
+    - Restrict data access to appropriate users
+    - Test policies thoroughly
+  - **Use the least privileged access approach**
+    - Use anon key for client-side code
+    - Use service role key only on server-side
+    - Define specific access permissions
+
+- **Storage**
+  - **Use Supabase Storage for file handling**
+    - Create appropriate buckets for different file types
+    - Set proper access controls for buckets
+    - Handle file uploads with progress indicators
+    - Example:
+    ```typescript
+    const uploadImage = async (uri: string, fileName: string) => {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      
+      const { data, error } = await supabase
+        .storage
+        .from('profile-images')
+        .upload(`public/${fileName}`, blob);
+        
+      if (error) throw error;
+      return data;
+    };
+    ```
+
+- **Best Practices**
+  - Separate database logic from UI components
+  - Create a dedicated service layer for Supabase operations
+  - Use proper error handling for all operations
+  - Implement data caching for better performance
+  - Follow TypeScript best practices for type safety
+  - Test database operations thoroughly
+  - Consider offline capabilities for critical features

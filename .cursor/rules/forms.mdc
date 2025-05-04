@@ -1,0 +1,193 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Form Handling and Validation
+
+- **Form Libraries**
+  - **Use Formik for form state management**
+    - The project uses `formik` for handling form state
+    - Import using: `import { Formik, Form, Field } from 'formik';`
+    - Always use Formik for complex forms with multiple fields
+    - Example:
+    ```typescript
+    import { Formik } from 'formik';
+    import { FormInput } from '../components';
+    
+    const MyForm = () => (
+      <Formik
+        initialValues={{ email: '', password: '' }}
+        onSubmit={values => handleSubmit(values)}
+        validationSchema={validationSchema}
+      >
+        {({ handleSubmit, values, errors, touched, handleChange }) => (
+          <FormContainer>
+            <FormInput 
+              name="email"
+              value={values.email}
+              onChangeText={handleChange('email')}
+              error={touched.email && errors.email}
+              label="Email"
+            />
+            {/* Additional form fields */}
+            <Button onPress={handleSubmit}>Submit</Button>
+          </FormContainer>
+        )}
+      </Formik>
+    );
+    ```
+
+- **Form Validation**
+  - **Use Yup for schema validation**
+    - The project uses `yup` for form validation
+    - Import using: `import * as Yup from 'yup';`
+    - Define validation schemas separately for reusability
+    - Example:
+    ```typescript
+    import * as Yup from 'yup';
+    
+    const validationSchema = Yup.object().shape({
+      email: Yup.string()
+        .email('Invalid email address')
+        .required('Email is required'),
+      password: Yup.string()
+        .min(8, 'Password must be at least 8 characters')
+        .required('Password is required')
+    });
+    ```
+  - **Common Validation Rules**
+    - Required fields: `.required('Field is required')`
+    - Email validation: `.email('Invalid email address')`
+    - Min/max length: `.min(8, 'Min 8 characters')` / `.max(50, 'Max 50 characters')`
+    - Numeric validation: `.number().typeError('Must be a number')`
+    - Pattern matching: `.matches(/pattern/, 'Message')`
+
+- **Form Components**
+  - **Use FormContainer for consistent form layout**
+    - Import using: `import { FormContainer } from '../components';`
+    - Provides consistent spacing and submission handling
+    - Example:
+    ```typescript
+    <FormContainer onSubmit={handleSubmit}>
+      {/* Form inputs */}
+    </FormContainer>
+    ```
+  - **Use FormInput for form fields**
+    - Import using: `import { FormInput } from '../components';`
+    - Provides consistent styling and error handling
+    - Example:
+    ```typescript
+    <FormInput
+      name="email"
+      label="Email Address"
+      placeholder="Enter your email"
+      keyboardType="email-address"
+      value={values.email}
+      onChangeText={handleChange('email')}
+      error={touched.email && errors.email}
+    />
+    ```
+
+- **Error Handling**
+  - **Display field-level errors**
+    - Show errors below the respective input field
+    - Only show errors after field has been touched
+    - Use consistent error styling (red text, error icon)
+    - Example:
+    ```typescript
+    <FormInput
+      // ...other props
+      error={touched.email && errors.email}
+    />
+    ```
+  - **Form-level errors**
+    - Display general form errors at the top of the form
+    - Use a dedicated error component for consistent styling
+    - Example:
+    ```typescript
+    {formError && (
+      <ErrorMessage>
+        {formError}
+      </ErrorMessage>
+    )}
+    ```
+
+- **Form Submission**
+  - **Handle loading states**
+    - Disable submit button during submission
+    - Show loading indicator during submission
+    - Prevent multiple form submissions
+    - Example:
+    ```typescript
+    <Button 
+      onPress={handleSubmit} 
+      disabled={isSubmitting}
+    >
+      {isSubmitting ? 'Submitting...' : 'Submit'}
+    </Button>
+    ```
+  - **Success and error states**
+    - Display success message after successful submission
+    - Clear form after successful submission if appropriate
+    - Show detailed error messages for failed submissions
+
+- **Form Organization**
+  - **Separate form logic from presentation**
+    - Keep validation schemas in separate files
+    - Extract complex form logic to custom hooks
+    - Example:
+    ```typescript
+    // useLoginForm.ts
+    export const useLoginForm = () => {
+      const initialValues = { email: '', password: '' };
+      const validationSchema = // ...
+      
+      const handleSubmit = async (values) => {
+        // Submission logic
+      };
+      
+      return { initialValues, validationSchema, handleSubmit };
+    };
+    
+    // LoginScreen.tsx
+    const LoginScreen = () => {
+      const { initialValues, validationSchema, handleSubmit } = useLoginForm();
+      
+      return (
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {/* Form UI */}
+        </Formik>
+      );
+    };
+    ```
+
+- **Form Accessibility**
+  - **Ensure all form fields are accessible**
+    - Use appropriate keyboard types for different inputs
+    - Set proper returnKeyType for better UX
+    - Use appropriate labels for screen readers
+    - Example:
+    ```typescript
+    <FormInput
+      label="Email Address"
+      accessibilityLabel="Email Address Input"
+      keyboardType="email-address"
+      returnKeyType="next"
+      // ...other props
+    />
+    ```
+
+- **Best Practices**
+  - Group related form fields logically
+  - Use consistent naming conventions for form values
+  - Validate forms both client-side and server-side
+  - Implement proper form focus management
+  - Reset form state appropriately after submission
+  - Consider form persistence for long forms
+  - Add proper keyboard handling (dismissal, next field)
+  - Use proper input types for different data types

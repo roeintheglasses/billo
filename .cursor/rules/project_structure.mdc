@@ -18,24 +18,74 @@ alwaysApply: true
   - `src/` - Source code directory
     - `components/` - Reusable UI components
       - `atoms/` - Smallest reusable components
-        - `visualization/` - Data visualization components (charts, progress indicators)
+        - `visualization/` - Data visualization components
+          - `BarChart.tsx`, `LineChart.tsx`, `PieChart.tsx`
+          - `ProgressBar.tsx`, `ProgressCircle.tsx`, `GaugeChart.tsx`
+          - `ChartContainer.tsx` - Base wrapper component
+        - `GridSystem/` - Grid layout components
+        - `Button.tsx`, `Input.tsx`, `Text.tsx`, `Card.tsx`, etc.
       - `molecules/` - Composite components built from atoms
+        - `layouts/` - Layout components
+        - `visualization/` - Complex visualization components
+          - `CategoryDistributionChart.tsx`, `MonthlyTrendChart.tsx`
+          - `BasicInsights.tsx`, `SubscriptionCountChart.tsx`
+        - `SubscriptionCard/` - Subscription-related components
+        - `FormField.tsx`, `BulkActionModal.tsx`, etc.
       - `organisms/` - Complex components combining multiple molecules
+      - `templates/` - Page templates and layouts
+      - Top-level components:
+        - `Button.tsx` - Enhanced button component
+        - `FormContainer.tsx` - Form wrapper
+        - `FormInput.tsx` - Form input field
+        - `ProtectedRoute.tsx` - Authentication route guard
+        - `SessionTimeoutDialog.tsx` - Session timeout handling
+        - `ThemeToggle.tsx` - Theme switcher component
     - `screens/` - Screen components for navigation
     - `contexts/` - React Context providers
     - `hooks/` - Custom React hooks
+    - `navigation/` - Navigation configuration
     - `services/` - API and external service interfaces
+      - `__tests__/` - Service tests
     - `utils/` - Utility functions and helpers
+      - `__tests__/` - Utility tests
+    - `theme/` - Theme definitions and styling
     - `types/` - TypeScript type definitions
     - `assets/` - Static assets (may be different from root assets)
   - `assets/` - Static assets (images, fonts)
+  - `supabase/` - Supabase configurations
+    - `migrations/` - Database migrations
+    - `seed_data/` - Seed data for testing
+  - `plugins/` - Expo plugins
+  - `.expo/` - Expo configuration
+  - `android/` - Android native code
   - `node_modules/` - Dependencies (installed at app level)
-  - Configuration files (`package.json`, `tsconfig.json`, etc.)
+  - Configuration files:
+    - `package.json` - Dependencies and scripts
+    - `tsconfig.json` - TypeScript configuration
+    - `app.json` - Expo app configuration
+    - `app.config.js` - Advanced Expo configuration
+    - `babel.config.js` - Babel configuration 
+    - `metro.config.js` - Metro bundler configuration
+    - `eslint.config.js` - ESLint configuration
+    - `.prettierrc` - Prettier configuration
+
+- **Component Organization**
+  - **Atomic Design Pattern**
+    - `atoms/` - Basic building blocks (buttons, inputs, etc.)
+    - `molecules/` - Groups of atoms functioning together
+    - `organisms/` - Complex UI sections composed of molecules and atoms
+    - `templates/` - Page-level component structures
+  - **Component Structure**
+    - Each component has its own file with matching name
+    - Index files export components for easier imports
+    - Components should use consistent prop interfaces
+    - JSDoc comments for props and component purpose
 
 - **Module Resolution**
   - Dependencies must be installed in `app/node_modules/`
   - Run npm/yarn commands from within the `app/` directory
   - All imports should reference modules installed in `app/`
+  - Relative imports are used for project files
 
 - **Development Rules**
   - Always change directory to `app/` before running npm/yarn commands
@@ -55,11 +105,22 @@ alwaysApply: true
   - Development workflow should acknowledge the project structure
   - When executing task commands, be aware of which directory you're in
 
+- **Key Dependencies**
+  - React Native & Expo ecosystem (`expo` v53.0.6, `react-native` v0.79.2)
+  - React Navigation (`@react-navigation/native` v7.1.7)
+  - Supabase for backend (`@supabase/supabase-js` v2.49.4)
+  - Form handling (`formik` v2.4.6, `yup` v1.6.1)
+  - Data visualization (`react-native-gifted-charts` v1.4.60, `react-native-svg` v15.11.2)
+  - Component styling (`styled-components` v6.1.17)
+  - Date handling (`date-fns` v4.1.0)
+
 - **Best Practices**
   - Keep related files close together in the directory structure
   - Maintain clear boundaries between different parts of the application
   - Follow the established pattern for new feature additions
   - Consider the project structure when determining import paths
+  - Use the atomic design pattern for component organization
+  - Ensure component directory placement matches its complexity level
   
 - **Maintenance Requirements**
   - **Update this documentation after completing any task that modifies the project structure**
@@ -68,3 +129,4 @@ alwaysApply: true
   - Keep the directory listings current as the project evolves
   - Document any changes to how dependencies are managed
   - Cross-reference with relevant rules that may be affected by structural changes
+  - Update key dependency versions when upgrading packages

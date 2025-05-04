@@ -16,16 +16,22 @@ alwaysApply: false
     ```
 
 - **Component Structure**
-  - **Visualization components are located in `src/components/atoms/visualization/`**
-    - All visualization components inherit from ChartContainer
-    - Components use a consistent prop interface pattern
-    - Available components:
+  - **Atomic Design Pattern**
+    - `src/components/atoms/visualization/`: Basic visualization components
       - `ChartContainer`: Base wrapper for all chart types
       - `LineChart`: For time series and trend visualization
       - `BarChart`: For categorical comparisons
       - `PieChart`: For part-to-whole relationships
       - `ProgressCircle`: For percentage/completion visualization
       - `ProgressBar`: For horizontal progress indicators
+      - `GaugeChart`: For gauge-style visualizations
+      - `UpcomingPaymentsList`: For listing upcoming payment data
+    - `src/components/molecules/visualization/`: Complex visualization components
+      - `BasicInsights`: Combined visualization of basic financial insights
+      - `MonthlyTrendChart`: Multi-month trend analysis
+      - `SubscriptionCountChart`: Subscription quantity visualization
+      - `CategoryDistributionChart`: Category distribution analysis
+      - `UpcomingPaymentsSection`: Comprehensive payments view
 
 - **Theme Integration**
   - **All visualization components must use the app's theme context**
@@ -50,11 +56,13 @@ alwaysApply: false
 
 - **Performance Considerations**
   - **Charts should be optimized for performance**
-    - Use `useMemo` for computed properties and styles
+    - Use `useMemo` for computed properties and data transformations
     - Keep re-renders to a minimum
     - Apply lazy loading for complex charts
     - Consider using `React.memo` for pure chart components
-    - Be careful with large datasets (consider data aggregation)
+    - Be careful with large datasets
+      - For large datasets, implement pagination or data aggregation
+      - Consider windowing techniques for long lists of data points
 
 - **Responsive Design**
   - **All charts must be responsive**
@@ -62,6 +70,32 @@ alwaysApply: false
     - Use relative dimensions when possible
     - Consider accessibility in small screens
     - Test on various device sizes
+    - Implement graceful fallbacks for extreme screen sizes
+
+- **Data Format Standards**
+  - **LineChart and BarChart data format**
+    ```typescript
+    // For basic line and bar charts
+    interface DataPoint {
+      value: number;
+      label: string;
+      frontColor?: string; // Optional custom color
+      dataPointLabelComponent?: () => React.ReactNode; // Custom label component
+    }
+    ```
+  - **PieChart data format**
+    ```typescript
+    interface PieDataItem {
+      value: number;
+      text: string;
+      color?: string;
+      focused?: boolean;
+    }
+    ```
+  - **Data Transformation**
+    - Use utility functions for consistent data transformation
+    - Format dates consistently across all charts
+    - Always validate incoming data before rendering
 
 - **Examples and Usage**
   ```typescript
@@ -100,6 +134,25 @@ alwaysApply: false
       />
     );
   };
+  
+  // Category distribution chart
+  import { CategoryDistributionChart } from '../components/molecules/visualization';
+  
+  const AnalyticsComponent = () => {
+    const categories = [
+      { name: 'Entertainment', value: 250, color: '#FF5733' },
+      { name: 'Utilities', value: 150, color: '#33FF57' },
+      { name: 'Subscriptions', value: 350, color: '#3357FF' },
+    ];
+    
+    return (
+      <CategoryDistributionChart
+        data={categories}
+        title="Monthly Expenses by Category"
+        height={300}
+      />
+    );
+  };
   ```
 
 - **Extension Guidelines**
@@ -109,4 +162,6 @@ alwaysApply: false
     - Support theme integration
     - Include thorough JSDoc comments
     - Consider performance for large datasets
-    - Add export to `index.ts`
+    - Add export to the appropriate `index.ts` file
+    - Create atoms first, then compose molecules
+    - Document the component in this rule file

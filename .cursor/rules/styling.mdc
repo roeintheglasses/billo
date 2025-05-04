@@ -1,0 +1,167 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Styling and Theming Guidelines
+
+- **Technology Stack**
+  - **Primary styling approach is styled-components**
+    - The project uses `styled-components` for styling
+    - Import using: `import styled from 'styled-components/native';`
+    - All component styling should use this approach for consistency
+    - Example:
+    ```typescript
+    import styled from 'styled-components/native';
+    
+    const Container = styled.View`
+      padding: 16px;
+      background-color: ${props => props.theme.colors.background};
+    `;
+    ```
+
+- **Theme System**
+  - **All components must use the app's theme context**
+    - Import the theme using: `import { useTheme } from '../../contexts/ThemeContext';`
+    - Access theme properties via the `theme` object
+    - Example:
+    ```typescript
+    const { theme } = useTheme();
+    const { colors, spacing } = theme;
+    
+    // Use theme values
+    const Container = styled.View`
+      padding: ${spacing.medium}px;
+      background-color: ${colors.background};
+    `;
+    ```
+  - **Theme Properties**
+    - `colors`: Color palette (primary, secondary, text, background, etc.)
+    - `spacing`: Spacing values (small, medium, large, etc.)
+    - `typography`: Text styles (fontSize, fontWeight, lineHeight)
+    - `borderRadius`: Border radius values
+    - `shadows`: Shadow styles for different elevations
+
+- **Dark and Light Mode Support**
+  - **All components must support both dark and light themes**
+    - Use theme-aware colors instead of hardcoded values
+    - Test components in both light and dark modes
+    - Use contrast-friendly color combinations
+    - Example:
+    ```typescript
+    // ✅ DO: Use theme colors
+    const Text = styled.Text`
+      color: ${props => props.theme.colors.text};
+    `;
+    
+    // ❌ DON'T: Use hardcoded colors
+    const Text = styled.Text`
+      color: #000000;
+    `;
+    ```
+
+- **Responsive Design**
+  - **Use relative units and flexible layouts**
+    - Prefer percentage, flex values over fixed dimensions
+    - Use the device dimensions API for responsive sizing
+    - Example:
+    ```typescript
+    import { Dimensions } from 'react-native';
+    
+    const { width, height } = Dimensions.get('window');
+    
+    const ResponsiveContainer = styled.View`
+      width: ${width * 0.9}px;
+      maxHeight: ${height * 0.7}px;
+    `;
+    ```
+  - **Support different device orientations**
+    - Test layouts in both portrait and landscape
+    - Use flexible layouts that adapt to orientation changes
+
+- **Spacing and Layout**
+  - **Use consistent spacing from the theme**
+    - Avoid magic numbers for margins and padding
+    - Use the spacing values from the theme
+    - Example:
+    ```typescript
+    const Card = styled.View`
+      margin: ${props => props.theme.spacing.medium}px;
+      padding: ${props => props.theme.spacing.small}px;
+    `;
+    ```
+  - **Use the grid system for complex layouts**
+    - Import grid components from `src/components/atoms/GridSystem/`
+    - Maintain consistent column structures
+
+- **Typography**
+  - **Use theme typography styles**
+    - Use predefined text styles from the theme
+    - Maintain consistent text hierarchy across the app
+    - Example:
+    ```typescript
+    const Title = styled.Text`
+      font-size: ${props => props.theme.typography.h1.fontSize}px;
+      font-weight: ${props => props.theme.typography.h1.fontWeight};
+      color: ${props => props.theme.colors.text};
+    `;
+    ```
+  - **Text component variants**
+    - Use the Text component with appropriate variant props
+    - Available variants: 'h1', 'h2', 'h3', 'body', 'caption', etc.
+    - Example:
+    ```typescript
+    import { Text } from '../components/atoms';
+    
+    const Component = () => (
+      <Text variant="h1">Heading</Text>
+    );
+    ```
+
+- **Component State Styling**
+  - **Style different component states consistently**
+    - Define styles for: default, hover, active, disabled, focused
+    - Use props to control component state styling
+    - Example:
+    ```typescript
+    const Button = styled.TouchableOpacity`
+      background-color: ${props => 
+        props.disabled 
+          ? props.theme.colors.disabled 
+          : props.theme.colors.primary
+      };
+      opacity: ${props => props.disabled ? 0.7 : 1};
+    `;
+    ```
+
+- **Style Props Pattern**
+  - **Use consistent prop names for style customizations**
+    - `color`: For text or element colors
+    - `size`: For component sizing
+    - `variant`: For component variations
+    - `fullWidth`: For width: 100% elements
+    - Example:
+    ```typescript
+    interface ButtonProps {
+      color?: string;
+      size?: 'small' | 'medium' | 'large';
+      variant?: 'primary' | 'secondary' | 'outlined';
+      fullWidth?: boolean;
+    }
+    ```
+
+- **Animation and Transitions**
+  - **Use React Native Reanimated for complex animations**
+    - Import using: `import Animated from 'react-native-reanimated';`
+    - Keep animations performant with native driver when possible
+    - Maintain consistent animation timings and curves
+
+- **Best Practices**
+  - Keep styles close to the components they apply to
+  - Extract reusable styles into separate files
+  - Avoid inline styles in JSX
+  - Use comments to explain complex style implementations
+  - Maintain consistent naming conventions for styled components
+  - Test components with different theme settings
+  - Consider accessibility when implementing styles (contrast, touch targets)
+  - Use a consistent approach to conditional styling
