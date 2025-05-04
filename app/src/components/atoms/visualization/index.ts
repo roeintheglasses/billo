@@ -11,3 +11,4 @@ export * from './BarChart';
 export * from './PieChart';
 export * from './ProgressCircle';
 export * from './ProgressBar'; 
+export * from './GaugeChart'; 

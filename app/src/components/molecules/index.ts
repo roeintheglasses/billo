@@ -14,4 +14,7 @@ export {
 export type { SubscriptionStatus, SubscriptionCycle } from './SubscriptionCard';
 
 export { EmptyState } from './EmptyState';
-export { FilterModal } from './FilterModal'; 
+export { FilterModal } from './FilterModal';
+
+// Export visualization components
+export { CategoryDistributionChart } from './visualization/CategoryDistributionChart'; 
