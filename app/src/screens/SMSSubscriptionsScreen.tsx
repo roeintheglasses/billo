@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSMSPermissions } from '../contexts/PermissionsContext';
 import { SMSService, SubscriptionSMSMessage } from '../services';
 import { SubscriptionCard } from '../components/molecules/SubscriptionCard';
 import { useTheme } from '../contexts/ThemeContext';
 import { DeviceEventEmitter } from 'react-native';
+import { SubscriptionConfirmationModal } from '../components/molecules/SubscriptionConfirmationModal';
+import { BatchSubscriptionConfirmation } from '../components/molecules/BatchSubscriptionConfirmation';
+import { IconButton } from '../components/atoms/IconButton';
 
 /**
  * SMSSubscriptionsScreen Component
@@ -16,6 +19,9 @@ const SMSSubscriptionsScreen: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionSMSMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionSMSMessage | null>(null);
+  const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
+  const [isBatchConfirmationVisible, setIsBatchConfirmationVisible] = useState(false);
   const { theme } = useTheme();
   const { colors } = theme;
   const { isSMSPermissionGranted, requestSMSPermission, showSMSPermissionExplanation } = useSMSPermissions();
@@ -84,8 +90,31 @@ const SMSSubscriptionsScreen: React.FC = () => {
 
   // Handle subscription selection
   const handleSubscriptionPress = (subscription: SubscriptionSMSMessage) => {
-    // TODO: Navigate to subscription detail screen or add to tracked subscriptions
-    console.log('Subscription selected:', subscription);
+    setSelectedSubscription(subscription);
+    setIsConfirmationModalVisible(true);
+  };
+
+  // Open batch confirmation modal
+  const openBatchConfirmation = () => {
+    if (subscriptions.length === 0) return;
+    setIsBatchConfirmationVisible(true);
+  };
+
+  // Close confirmation modal
+  const handleCloseConfirmationModal = () => {
+    setIsConfirmationModalVisible(false);
+    setSelectedSubscription(null);
+  };
+
+  // Close batch confirmation modal
+  const handleCloseBatchConfirmation = () => {
+    setIsBatchConfirmationVisible(false);
+  };
+
+  // Handle confirmation success
+  const handleConfirmationSuccess = () => {
+    // Refresh the list after confirmation
+    scanForSubscriptions();
   };
 
   // Request SMS permissions if not granted
@@ -94,6 +123,27 @@ const SMSSubscriptionsScreen: React.FC = () => {
     if (granted) {
       scanForSubscriptions();
     }
+  };
+
+  // Render header with batch confirmation button
+  const renderHeader = () => {
+    if (subscriptions.length === 0) return null;
+    
+    return (
+      <View style={styles.headerContainer}>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
+          Detected Subscriptions
+        </Text>
+        <TouchableOpacity
+          style={[styles.batchButton, { backgroundColor: colors.primary }]}
+          onPress={openBatchConfirmation}
+        >
+          <Text style={{ color: colors.text.inverted, fontWeight: 'bold' }}>
+            Batch Confirm
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   // Show empty state when no subscriptions found
@@ -148,6 +198,7 @@ const SMSSubscriptionsScreen: React.FC = () => {
       <FlatList
         data={subscriptions}
         keyExtractor={item => item._id.toString()}
+        ListHeaderComponent={renderHeader}
         renderItem={({ item }) => (
           <SubscriptionCard 
             subscription={item} 
@@ -165,6 +216,22 @@ const SMSSubscriptionsScreen: React.FC = () => {
           />
         }
       />
+
+      {/* Subscription Confirmation Modal */}
+      <SubscriptionConfirmationModal
+        visible={isConfirmationModalVisible}
+        onClose={handleCloseConfirmationModal}
+        subscription={selectedSubscription}
+        onConfirm={handleConfirmationSuccess}
+      />
+
+      {/* Batch Subscription Confirmation */}
+      <BatchSubscriptionConfirmation
+        visible={isBatchConfirmationVisible}
+        onClose={handleCloseBatchConfirmation}
+        subscriptions={subscriptions}
+        onConfirm={handleConfirmationSuccess}
+      />
     </View>
   );
 };
@@ -172,6 +239,18 @@ const SMSSubscriptionsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  batchButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
   listContent: {
     paddingVertical: 12,
@@ -206,6 +285,10 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

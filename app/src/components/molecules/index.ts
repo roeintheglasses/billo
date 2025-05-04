@@ -17,4 +17,7 @@ export { EmptyState } from './EmptyState';
 export { FilterModal } from './FilterModal';
 
 // Export visualization components
-export { CategoryDistributionChart } from './visualization/CategoryDistributionChart'; 
+export { CategoryDistributionChart } from './visualization/CategoryDistributionChart';
+
+export { SubscriptionConfirmationModal } from './SubscriptionConfirmationModal';
+export { BatchSubscriptionConfirmation } from './BatchSubscriptionConfirmation'; 
