@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { CategoryDistributionChart, UpcomingPaymentsSection } from '../components/molecules/visualization';
+import { 
+  CategoryDistributionChart, 
+  UpcomingPaymentsSection,
+  MonthlyTrendChart,
+  SubscriptionCountChart,
+  BasicInsights
+} from '../components/molecules/visualization';
 import subscriptionService from '../services/subscriptionService';
 import { formatCurrency } from '../utils/formatUtils';
 
@@ -19,6 +25,7 @@ export const HomeScreen = () => {
   const [subscriptionCount, setSubscriptionCount] = useState<number>(0);
   const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   
   // Fetch dashboard data
   useEffect(() => {
@@ -59,66 +66,33 @@ export const HomeScreen = () => {
     fetchDashboardData();
   }, []);
   
+  // Handle category selection
+  const handleCategorySelect = (categoryId: string, categoryName: string) => {
+    setSelectedCategoryId(prevId => prevId === categoryId ? null : categoryId);
+    // Here you could add additional logic to filter other components based on the selected category
+    console.log(`Category selected: ${categoryName} (${categoryId})`);
+  };
+  
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: colors.background.primary }]}
       contentContainerStyle={{ padding: spacing.screenPadding }}
     >
-      <Text style={[
-        styles.title, 
-        { color: colors.text.primary }
-      ]}>
-        Welcome to Billo
-      </Text>
-      
-      <Text style={[
-        styles.subtitle,
-        { color: colors.text.secondary }
-      ]}>
-        Manage your subscriptions in one place
-      </Text>
-      
-      <View style={[
-        styles.card, 
-        { 
-          backgroundColor: colors.background.secondary,
-          borderColor: colors.border.light 
-        }
-      ]}>
-        <Text style={[
-          styles.cardTitle,
-          { color: colors.text.primary }
-        ]}>
-          Quick Stats
-        </Text>
-        
-        <View style={styles.stat}>
-          <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-            Active Subscriptions
-          </Text>
-          <Text style={[styles.statValue, { color: colors.primary }]}>
-            {loading ? '...' : subscriptionCount}
-          </Text>
-        </View>
-        
-        <View style={styles.stat}>
-          <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-            Monthly Spending
-          </Text>
-          <Text style={[styles.statValue, { color: colors.primary }]}>
-            {loading ? '...' : formatCurrency(totalMonthlySpend)}
-          </Text>
-        </View>
-        
-        <View style={styles.stat}>
-          <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-            Next Payment
-          </Text>
-          <Text style={[styles.statValue, { color: colors.primary }]}>
-            {loading ? '...' : (nextPaymentDate || 'None')}
-          </Text>
-        </View>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: colors.text.primary }]}>Dashboard</Text>
+        <ThemeToggle />
       </View>
+      
+      <View style={styles.totalContainer}>
+        <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>
+          Total Monthly Spend
+        </Text>
+        <Text style={[styles.totalValue, { color: colors.text.primary }]}>
+          {loading ? '...' : formatCurrency(totalMonthlySpend)}
+        </Text>
+      </View>
+      
+      <BasicInsights title="Quick Insights" />
       
       {/* Category Distribution Chart */}
       <CategoryDistributionChart 
@@ -127,15 +101,29 @@ export const HomeScreen = () => {
         height={350}
       />
       
+      {/* Subscription Count by Category Chart */}
+      <SubscriptionCountChart
+        title="Subscriptions by Category"
+        height={350}
+        showValues={true}
+        onCategorySelect={handleCategorySelect}
+      />
+      
+      {/* Monthly Trend Chart */}
+      <MonthlyTrendChart
+        title="Monthly Spending Trend"
+        months={6}
+        height={300}
+        showArea={true}
+        curved={true}
+        showAverage={true}
+      />
+      
       {/* Upcoming Payments Section */}
       <UpcomingPaymentsSection 
         daysAhead={7}
         maxItems={3}
       />
-      
-      <View style={styles.themeToggleContainer}>
-        <ThemeToggle />
-      </View>
     </ScrollView>
   );
 };
@@ -144,40 +132,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 24,
-  },
-  card: {
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  stat: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  statLabel: {
-    fontSize: 16,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  themeToggleContainer: {
     alignItems: 'center',
-    marginTop: 20,
-  }
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  totalContainer: {
+    marginBottom: 24,
+  },
+  totalLabel: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  totalValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
 }); 

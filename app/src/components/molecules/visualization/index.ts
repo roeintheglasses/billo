@@ -7,4 +7,7 @@
  */
 
 export { CategoryDistributionChart } from './CategoryDistributionChart';
-export { UpcomingPaymentsSection } from './UpcomingPaymentsSection'; 
+export { UpcomingPaymentsSection } from './UpcomingPaymentsSection';
+export { MonthlyTrendChart } from './MonthlyTrendChart';
+export { SubscriptionCountChart } from './SubscriptionCountChart';
+export { BasicInsights } from './BasicInsights'; 
