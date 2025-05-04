@@ -5,6 +5,7 @@ import { HomeScreen, SettingsScreen, ChangePasswordScreen } from '../screens';
 import { TabParamList } from './navigationTypes';
 import { useTheme } from '../contexts/ThemeContext';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import SubscriptionsScreen from '../screens/SubscriptionsScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -53,9 +54,10 @@ export const TabNavigator = () => {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Subscriptions" 
-        component={HomeScreen} // Temporary, will be replaced with SubscriptionsScreen
+        component={SubscriptionsScreen} 
         options={{
-          title: 'My Subscriptions'
+          title: 'Subscriptions',
+          headerShown: false,
         }}
       />
       <Tab.Screen name="Add" 
