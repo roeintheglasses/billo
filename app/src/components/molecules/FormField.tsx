@@ -3,11 +3,12 @@ import { View, StyleSheet } from 'react-native';
 import { Input, InputProps } from '../atoms/Input';
 import { Text } from '../atoms/Text';
 
-export interface FormFieldProps extends InputProps {
+export interface FormFieldProps extends Partial<InputProps> {
   label: string;
   error?: string;
   helperText?: string;
   required?: boolean;
+  children?: React.ReactNode;
 }
 
 /**
@@ -20,6 +21,7 @@ export interface FormFieldProps extends InputProps {
  * @param {string} error - Error message to display below the input
  * @param {string} helperText - Helper text displayed below the input
  * @param {boolean} required - Whether the field is required (adds asterisk to label)
+ * @param {React.ReactNode} children - Optional children to render instead of default Input
  * @returns {React.ReactElement} A styled form field component
  *
  * @example
@@ -32,22 +34,17 @@ export interface FormFieldProps extends InputProps {
  *   required
  * />
  *
- * // With error and helper text
- * <FormField
- *   label="Password"
- *   isPassword
- *   value={password}
- *   onChangeText={setPassword}
- *   error={passwordError}
- *   helperText="Password must be at least 8 characters"
- *   required
- * />
+ * // With custom child component
+ * <FormField label="Custom Input" required>
+ *   <CustomInput />
+ * </FormField>
  */
 export const FormField = ({
   label,
   error,
   helperText,
   required = false,
+  children,
   ...rest
 }: FormFieldProps) => {
   return (
@@ -62,7 +59,15 @@ export const FormField = ({
           </Text>
         )}
       </View>
-      <Input {...rest} error={error} />
+
+      {children || <Input {...rest} error={error} />}
+
+      {error && !children && (
+        <Text variant="caption" style={styles.errorText}>
+          {error}
+        </Text>
+      )}
+
       {helperText && !error && (
         <Text variant="caption" style={styles.helperText}>
           {helperText}
@@ -86,6 +91,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   helperText: {
+    marginTop: 4,
+  },
+  errorText: {
+    color: '#e74c3c',
     marginTop: 4,
   },
 });

@@ -61,7 +61,7 @@ export const TabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Add"
+        name="AddSubscription"
         component={AddSubscriptionScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
