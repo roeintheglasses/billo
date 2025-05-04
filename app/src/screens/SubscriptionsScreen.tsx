@@ -6,17 +6,22 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
+  SafeAreaView,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { TabScreenProps } from '../navigation/navigationTypes';
 import { Text } from '../components/atoms/Text';
 import { Container } from '../components/atoms/Container';
 import { SearchInput } from '../components/atoms/SearchInput';
-import { SubscriptionCard } from '../components/molecules/SubscriptionCard';
+import { SubscriptionCard } from '../components/molecules/SubscriptionCard/SubscriptionCard';
 import { Ionicons } from '@expo/vector-icons';
 import { useStorage } from '../contexts/StorageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Subscription, Category } from '../types/supabase';
+import { EmptyState, FilterModal } from '../components/molecules';
+import { Modal as CustomModal } from '../components/atoms/Modal';
 
 type SortBy = 'name' | 'amount' | 'next_billing_date' | 'category';
 type SortDirection = 'asc' | 'desc';
@@ -24,16 +29,32 @@ type SortDirection = 'asc' | 'desc';
 interface SortOption {
   key: SortBy;
   label: string;
-  icon: string;
 }
 
-type SubscriptionsScreenProps = TabScreenProps<'Subscriptions'>;
+// Define the navigation screens available
+type NavigationScreens = {
+  Subscriptions: undefined;
+  Home: undefined;
+  SubscriptionDetail: { subscription: Subscription };
+  AddSubscription: undefined;
+  Add: undefined;
+  ChangePassword: undefined;
+};
+
+type SubscriptionsScreenProps = {
+  navigation: {
+    navigate: <T extends keyof NavigationScreens>(
+      screen: T,
+      params?: NavigationScreens[T]
+    ) => void;
+  };
+};
 
 const sortOptions: SortOption[] = [
-  { key: 'name', label: 'Name', icon: 'text' },
-  { key: 'amount', label: 'Amount', icon: 'cash-outline' },
-  { key: 'next_billing_date', label: 'Next Payment', icon: 'calendar-outline' },
-  { key: 'category', label: 'Category', icon: 'bookmark-outline' },
+  { key: 'name', label: 'Name' },
+  { key: 'amount', label: 'Amount' },
+  { key: 'next_billing_date', label: 'Payment Date' },
+  { key: 'category', label: 'Category' },
 ];
 
 const SubscriptionsScreen: React.FC = () => {
@@ -47,6 +68,7 @@ const SubscriptionsScreen: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<string | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showSortModal, setShowSortModal] = useState(false);
   const navigation = useNavigation<SubscriptionsScreenProps['navigation']>();
 
   // Fetch subscriptions when component mounts
@@ -68,65 +90,57 @@ const SubscriptionsScreen: React.FC = () => {
     return category ? category.name : 'Uncategorized';
   };
 
-  // Filter and sort subscriptions
+  const resetFilters = () => {
+    setSelectedCategory(null);
+    setSelectedBillingCycle(null);
+  };
+
+  const applyFilters = () => {
+    setShowFilterModal(false);
+    // Filters are already applied through the state variables
+  };
+
   const filteredSubscriptions = useMemo(() => {
-    // First filter by search query
-    let filtered = subscriptions.filter(sub => {
-      const matchesSearch = searchQuery === '' || 
-        sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getCategoryName(sub.category_id).toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Apply category filter if selected
-      const matchesCategory = selectedCategory === null || sub.category_id === selectedCategory;
-      
-      // Apply billing cycle filter if selected
-      const matchesBillingCycle = selectedBillingCycle === null || 
-        sub.billing_cycle.toLowerCase() === selectedBillingCycle.toLowerCase();
-      
-      return matchesSearch && matchesCategory && matchesBillingCycle;
-    });
-    
-    // Then sort
-    return filtered.sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'amount':
-          comparison = a.amount - b.amount;
-          break;
-        case 'next_billing_date':
-          // Handle null next_billing_date values by placing them at the end
-          if (!a.next_billing_date && !b.next_billing_date) {
-            comparison = 0;
-          } else if (!a.next_billing_date) {
-            comparison = 1;
-          } else if (!b.next_billing_date) {
-            comparison = -1;
-          } else {
-            comparison = new Date(a.next_billing_date).getTime() - 
-                        new Date(b.next_billing_date).getTime();
-          }
-          break;
-        case 'category':
-          comparison = getCategoryName(a.category_id).localeCompare(getCategoryName(b.category_id));
-          break;
-      }
-      
-      // Apply sort direction
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-  }, [
-    subscriptions, 
-    searchQuery, 
-    sortBy, 
-    sortDirection, 
-    selectedCategory, 
-    selectedBillingCycle, 
-    categories
-  ]);
+    if (!subscriptions) return [];
+
+    return subscriptions
+      .filter((sub) => {
+        if (searchQuery && !sub.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+          return false;
+        }
+        
+        if (selectedCategory && sub.category_id !== selectedCategory) {
+          return false;
+        }
+
+        if (selectedBillingCycle && sub.billing_cycle !== selectedBillingCycle) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'name') {
+          return a.name.localeCompare(b.name);
+        }
+        if (sortBy === 'amount') {
+          return a.amount - b.amount;
+        }
+        if (sortBy === 'next_billing_date') {
+          // Handle null dates
+          if (!a.next_billing_date && !b.next_billing_date) return 0;
+          if (!a.next_billing_date) return 1;
+          if (!b.next_billing_date) return -1;
+          return new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime();
+        }
+        if (sortBy === 'category') {
+          const catA = categories?.find(c => c.id === a.category_id)?.name || '';
+          const catB = categories?.find(c => c.id === b.category_id)?.name || '';
+          return catA.localeCompare(catB);
+        }
+        return 0;
+      });
+  }, [subscriptions, searchQuery, sortBy, selectedCategory, selectedBillingCycle, categories]);
 
   // Toggle sort direction when the same sort option is selected
   const handleSortPress = (option: SortBy) => {
@@ -162,22 +176,15 @@ const SubscriptionsScreen: React.FC = () => {
     return `$${amount.toFixed(2)}`;
   };
 
-  // Calculate subscription status based on renewal date
-  const calculateStatus = (subscription: Subscription): 'active' | 'pending' | 'expired' => {
-    if (!subscription.next_billing_date) return 'active';
+  // Calculate subscription status based on payment date
+  const calculateStatus = (subscription: Subscription): 'active' | 'pending' => {
+    if (!subscription.next_billing_date) return 'pending';
     
-    const today = new Date();
     const nextBillingDate = new Date(subscription.next_billing_date);
+    const now = new Date();
+    const diffDays = Math.ceil((nextBillingDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     
-    if (nextBillingDate < today) {
-      return 'expired';
-    } else if (
-      nextBillingDate.getTime() - today.getTime() < 7 * 24 * 60 * 60 * 1000 // 7 days
-    ) {
-      return 'pending';
-    } else {
-      return 'active';
-    }
+    return diffDays <= 7 ? 'pending' : 'active';
   };
 
   // Render subscription card
@@ -194,10 +201,11 @@ const SubscriptionsScreen: React.FC = () => {
         >
           <SubscriptionCard.Header 
             title={item.name} 
+            iconUrl={categories?.find(c => c.id === item.category_id)?.icon || undefined}
           />
           <SubscriptionCard.Details 
             amount={item.amount} 
-            cycle={item.billing_cycle as any} 
+            cycle={item.billing_cycle as any}
             category={getCategoryName(item.category_id)}
           />
           <SubscriptionCard.Actions />
@@ -263,99 +271,176 @@ const SubscriptionsScreen: React.FC = () => {
   };
 
   return (
-    <Container>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <View style={styles.header}>
-        <Text variant="heading1" style={styles.title}>My Subscriptions</Text>
-        
-        <View style={styles.searchContainer}>
-          <SearchInput
-            placeholder="Search subscriptions..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
-            testID="subscription-search-input"
-          />
-          <TouchableOpacity 
-            style={[styles.filterButton, selectedCategory || selectedBillingCycle ? { backgroundColor: colors.primary } : {}]}
-            onPress={() => setShowFilterModal(true)} 
-            testID="filter-button"
-          >
-            <Ionicons 
-              name="options-outline" 
-              size={24} 
-              color={selectedCategory || selectedBillingCycle ? colors.text.inverted : colors.text.primary} 
-            />
-          </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          <Text variant="heading1">Subscriptions</Text>
+          <Text variant="body" style={{ color: colors.text.secondary }}>
+            {filteredSubscriptions.length} {filteredSubscriptions.length === 1 ? 'subscription' : 'subscriptions'}
+          </Text>
         </View>
-        
-        <View style={styles.sortContainer}>
-          {sortOptions.map((option) => (
-            <TouchableOpacity
-              key={option.key}
-              style={[
-                styles.sortButton,
-                sortBy === option.key && { 
-                  backgroundColor: colors.background.secondary,
-                  borderColor: colors.primary,
-                }
-              ]}
-              onPress={() => handleSortPress(option.key)}
-              testID={`sort-by-${option.key}`}
-            >
-              <Ionicons
-                name={option.icon as any}
-                size={16}
-                color={sortBy === option.key ? colors.primary : colors.text.secondary}
-              />
-              <Text 
-                variant="caption" 
-                style={[
-                  styles.sortButtonText,
-                  sortBy === option.key && { color: colors.primary }
-                ]}
-              >
-                {option.label}
-              </Text>
-              {sortBy === option.key && (
-                <Ionicons
-                  name={sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'}
-                  size={16}
-                  color={colors.primary}
-                />
-              )}
-            </TouchableOpacity>
-          ))}
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={[styles.iconButton, { backgroundColor: colors.background.secondary }]}
+            onPress={() => setShowFilterModal(true)}
+          >
+            <Ionicons name="filter" size={24} color={colors.text.primary} />
+            {(selectedCategory || selectedBillingCycle) && (
+              <View style={[styles.filterBadge, { backgroundColor: colors.primary }]} />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.iconButton, { backgroundColor: colors.background.secondary }]}
+            onPress={() => setShowSortModal(true)}
+          >
+            <Ionicons name="swap-vertical" size={24} color={colors.text.primary} />
+          </TouchableOpacity>
         </View>
       </View>
 
-      <FlatList
-        data={filteredSubscriptions}
-        renderItem={renderSubscription}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
+      <View style={styles.searchContainer}>
+        <View style={[styles.searchBar, { backgroundColor: colors.background.secondary }]}>
+          <Ionicons name="search" size={20} color={colors.text.secondary} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text.primary }]}
+            placeholder="Search subscriptions..."
+            placeholderTextColor={colors.text.secondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
-        }
-        ListEmptyComponent={renderEmptyState()}
-        testID="subscriptions-list"
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color={colors.text.secondary} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+
+      {error ? (
+        <View style={styles.centerContainer}>
+          <Text variant="body" style={{ color: colors.error }}>
+            {error}
+          </Text>
+        </View>
+      ) : isLoading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : filteredSubscriptions.length === 0 ? (
+        <EmptyState
+          icon="folder-open-outline"
+          title="No subscriptions found"
+          message={
+            searchQuery || selectedCategory || selectedBillingCycle
+              ? "Try adjusting your search or filters"
+              : "Add your first subscription by tapping the '+' button"
+          }
+        />
+      ) : (
+        <FlatList
+          data={filteredSubscriptions}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={styles.cardContainer}
+              onPress={() => navigation.navigate('SubscriptionDetail', { subscription: item })}
+            >
+              <SubscriptionCard
+                status={calculateStatus(item)}
+                renewalDate={item.next_billing_date || undefined}
+              >
+                <SubscriptionCard.Header 
+                  title={item.name} 
+                  iconUrl={categories?.find(c => c.id === item.category_id)?.icon || undefined}
+                />
+                <SubscriptionCard.Details 
+                  amount={item.amount} 
+                  cycle={item.billing_cycle as any}
+                  category={getCategoryName(item.category_id)}
+                />
+              </SubscriptionCard>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        />
+      )}
+
+      {/* Sort Modal */}
+      <CustomModal
+        visible={showSortModal}
+        onClose={() => setShowSortModal(false)}
+        title="Sort By"
+      >
+        {sortOptions.map((option) => (
+          <TouchableOpacity
+            key={option.key}
+            style={[
+              styles.sortOption,
+              sortBy === option.key && {
+                backgroundColor: colors.primary + '20',
+              },
+            ]}
+            onPress={() => {
+              setSortBy(option.key);
+              setShowSortModal(false);
+            }}
+          >
+            <Text
+              variant="body"
+              style={[
+                sortBy === option.key && {
+                  color: colors.primary,
+                  fontWeight: 'bold',
+                },
+              ]}
+            >
+              {option.label}
+            </Text>
+            {sortBy === option.key && (
+              <Ionicons name="checkmark" size={20} color={colors.primary} />
+            )}
+          </TouchableOpacity>
+        ))}
+      </CustomModal>
+
+      {/* Filter Modal */}
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        categories={categories || []}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        selectedBillingCycle={selectedBillingCycle}
+        setSelectedBillingCycle={setSelectedBillingCycle}
+        onApplyFilters={applyFilters}
+        onResetFilters={resetFilters}
       />
 
-      {/* Filter Modal would be implemented here in a later task */}
-    </Container>
+      <TouchableOpacity
+        style={[styles.addButton, { backgroundColor: colors.primary }]}
+        onPress={() => navigation.navigate('AddSubscription')}
+      >
+        <Ionicons name="add" size={24} color={colors.background.primary} />
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   header: {
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   title: {
     marginBottom: 16,
@@ -364,40 +449,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 16,
   },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+  },
   searchInput: {
     flex: 1,
     marginRight: 8,
   },
-  filterButton: {
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
     width: 48,
     height: 48,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F5F5F5',
+    marginLeft: 8,
   },
-  sortContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  filterBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#3498db', // Default color, will be overridden
+    borderWidth: 2,
+    borderColor: '#FFFFFF', // Default color, will be overridden
   },
-  sortButton: {
-    flexDirection: 'row',
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
-    borderRadius: 16,
-    backgroundColor: '#F5F5F5',
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
   },
-  sortButtonText: {
-    marginHorizontal: 4,
-  },
-  list: {
+  listContent: {
     padding: 16,
     flexGrow: 1,
+  },
+  cardContainer: {
+    marginBottom: 16,
   },
   subscriptionItem: {
     marginBottom: 16,
@@ -420,6 +517,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
+  },
+  sortOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
   },
 });
 
