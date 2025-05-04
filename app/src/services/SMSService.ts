@@ -1,5 +1,18 @@
 import { NativeModules, NativeEventEmitter, DeviceEventEmitter, Platform } from 'react-native';
-import { containsSubscriptionPattern, extractPrice, extractServiceName } from '../utils/subscriptionPatternUtils';
+import { 
+  containsSubscriptionPattern, 
+  extractPrice, 
+  extractServiceName,
+  analyzeSubscriptionText,
+  PatternType,
+  PatternMatchResult
+} from '../utils/subscriptionPatternUtils';
+import { extractSubscriptionData } from '../utils/subscriptionDataExtractor';
+import subscriptionMessageService from './subscriptionMessageService';
+import subscriptionService from './subscriptionService';
+import { supabase } from './supabase';
+import { SubscriptionMessageInsert, SubscriptionInsert } from '../types/supabase';
+import logger from '../utils/logger';
 
 /**
  * Interface for SMS message object returned from native code
@@ -25,7 +38,12 @@ export interface SMSMessage {
 export interface SubscriptionSMSMessage extends SMSMessage {
   serviceName?: string;
   price?: number;
+  billingCycle?: string;
+  currency?: string;
+  confidence?: number;
+  patternType?: PatternType;
   isSubscription: boolean;
+  nextBillingDate?: string;
 }
 
 /**
@@ -67,18 +85,126 @@ class SMSService {
     }
 
     // Set up listener for incoming SMS
-    const subscription = DeviceEventEmitter.addListener('onSMSReceived', (event) => {
+    const subscription = DeviceEventEmitter.addListener('onSMSReceived', async (event) => {
       try {
         const data = typeof event === 'string' ? JSON.parse(event) : event;
         console.log('SMS received:', data);
-        const isSubscription = this.checkForSubscription({
-          messageBody: data.body || data.messageBody,
-          senderPhoneNumber: data.address || data.senderPhoneNumber
-        });
+        const messageBody = data.body || data.messageBody;
+        const senderAddress = data.address || data.senderPhoneNumber;
         
-        if (isSubscription) {
+        // Use the enhanced pattern analysis
+        const analysisResult = analyzeSubscriptionText(messageBody, senderAddress);
+        
+        // Also perform advanced data extraction 
+        const extractionResult = extractSubscriptionData(messageBody, senderAddress);
+        
+        // Merge the extraction data with analysis result for more complete data
+        if (extractionResult.service && !analysisResult.extractedData.serviceName) {
+          analysisResult.extractedData.serviceName = extractionResult.service.normalizedName;
+        }
+        
+        if (extractionResult.amount && !analysisResult.extractedData.price) {
+          analysisResult.extractedData.price = extractionResult.amount.value;
+          analysisResult.extractedData.currency = extractionResult.amount.currency;
+        }
+        
+        if (extractionResult.billingCycle && !analysisResult.extractedData.billingCycle) {
+          analysisResult.extractedData.billingCycle = extractionResult.billingCycle.cycle;
+        }
+        
+        if (extractionResult.date && !analysisResult.extractedData.date) {
+          analysisResult.extractedData.date = extractionResult.date.date.toISOString().split('T')[0];
+          
+          // For renewal or trial ending patterns, set next billing date
+          if (analysisResult.patternType === PatternType.RENEWAL_NOTICE || 
+              analysisResult.patternType === PatternType.TRIAL_ENDING) {
+            analysisResult.extractedData.nextBillingDate = extractionResult.date.date.toISOString().split('T')[0];
+          }
+        }
+        
+        // If no pattern match but extraction has high confidence, consider it a match
+        if (!analysisResult.matched && extractionResult.overallConfidence > 0.6) {
+          analysisResult.matched = true;
+          analysisResult.confidence = Math.floor(extractionResult.overallConfidence * 100);
+        }
+        
+        if (analysisResult.matched) {
           // Notify the app that a subscription SMS was detected
-          DeviceEventEmitter.emit('subscriptionDetected', data);
+          DeviceEventEmitter.emit('subscriptionDetected', {
+            ...data,
+            confidence: analysisResult.confidence,
+            patternType: analysisResult.patternType
+          });
+          
+          // Get current user
+          const { data: userData } = await supabase.auth.getSession();
+          if (userData?.session?.user) {
+            const userId = userData.session.user.id;
+            
+            try {
+              // Store subscription message in database with all the extracted data
+              const extractedData = {
+                ...analysisResult.extractedData,
+                original_sms_id: data._id?.toString(),
+                message_source: 'sms_listener',
+                confidence: analysisResult.confidence,
+                pattern_type: analysisResult.patternType,
+                currency: analysisResult.extractedData.currency || 'USD',
+                next_billing_date: analysisResult.extractedData.nextBillingDate
+              };
+              
+              const savedMessage = await subscriptionMessageService.createSMSDetectionMessage(
+                userId,
+                senderAddress,
+                messageBody,
+                extractedData,
+                data._id?.toString(),
+                analysisResult.confidence / 100 // Convert 0-100 to 0-1 range
+              );
+              
+              logger.info('Created subscription message from SMS listener', {
+                messageId: savedMessage.id,
+                confidence: analysisResult.confidence,
+                patternType: analysisResult.patternType
+              });
+              
+              // If we have both service name and price, create a potential subscription
+              if (analysisResult.extractedData.serviceName && analysisResult.extractedData.price) {
+                try {
+                  // Create subscription with enhanced data
+                  const subscriptionData: SubscriptionInsert = {
+                    user_id: userId,
+                    name: analysisResult.extractedData.serviceName,
+                    amount: analysisResult.extractedData.price,
+                    billing_cycle: analysisResult.extractedData.billingCycle || 'monthly', // Default to monthly if not detected
+                    start_date: new Date().toISOString().split('T')[0],
+                    source_type: 'sms',
+                    auto_detected: true,
+                    next_billing_date: analysisResult.extractedData.nextBillingDate || null,
+                    currency: analysisResult.extractedData.currency || 'USD'
+                  };
+                  
+                  const savedSubscription = await subscriptionService.createSubscription(subscriptionData);
+                  
+                  // Link message to subscription
+                  await subscriptionMessageService.linkMessageToSubscription(
+                    savedMessage.id,
+                    savedSubscription.id
+                  );
+                  
+                  logger.info('Created subscription from SMS listener', {
+                    subscriptionId: savedSubscription.id,
+                    messageId: savedMessage.id,
+                    confidence: analysisResult.confidence
+                  });
+                } catch (error) {
+                  logger.error('Failed to create subscription from SMS listener', error);
+                }
+              }
+            } catch (error) {
+              logger.error('Failed to store subscription message from SMS listener', error);
+            }
+          }
         }
       } catch (error) {
         console.error('Error processing SMS event:', error);
@@ -114,19 +240,134 @@ class SMSService {
       // Use the native module to get SMS messages
       const smsResults = await this.getSMSMessages(filter);
       
+      // Get current user
+      const { data: userData } = await supabase.auth.getSession();
+      const userId = userData?.session?.user?.id;
+      
       // Check each message for subscription patterns
       for (const sms of smsResults) {
-        if (containsSubscriptionPattern(sms.body)) {
-          const serviceName = extractServiceName(sms.body, sms.address);
-          const price = extractPrice(sms.body);
+        // Use the enhanced pattern analysis
+        const analysisResult = analyzeSubscriptionText(sms.body, sms.address);
+        
+        // Also perform advanced data extraction
+        const extractionResult = extractSubscriptionData(sms.body, sms.address);
+        
+        // Merge the extraction data with analysis result for more complete data
+        if (extractionResult.service && !analysisResult.extractedData.serviceName) {
+          analysisResult.extractedData.serviceName = extractionResult.service.normalizedName;
+        }
+        
+        if (extractionResult.amount && !analysisResult.extractedData.price) {
+          analysisResult.extractedData.price = extractionResult.amount.value;
+          analysisResult.extractedData.currency = extractionResult.amount.currency;
+        }
+        
+        if (extractionResult.billingCycle && !analysisResult.extractedData.billingCycle) {
+          analysisResult.extractedData.billingCycle = extractionResult.billingCycle.cycle;
+        }
+        
+        if (extractionResult.date && !analysisResult.extractedData.date) {
+          analysisResult.extractedData.date = extractionResult.date.date.toISOString().split('T')[0];
           
+          // For renewal or trial ending patterns, set next billing date
+          if (analysisResult.patternType === PatternType.RENEWAL_NOTICE || 
+              analysisResult.patternType === PatternType.TRIAL_ENDING) {
+            analysisResult.extractedData.nextBillingDate = extractionResult.date.date.toISOString().split('T')[0];
+          }
+        }
+        
+        // If no pattern match but extraction has high confidence, consider it a match
+        if (!analysisResult.matched && extractionResult.overallConfidence > 0.6) {
+          analysisResult.matched = true;
+          analysisResult.confidence = Math.floor(extractionResult.overallConfidence * 100);
+        }
+        
+        if (analysisResult.matched) {
+          // Create an enhanced SMS message with all extracted data
           const enhancedSMS: SubscriptionSMSMessage = {
             ...sms,
             isSubscription: true,
-            ...(serviceName && { serviceName }),
-            ...(price && { price })
+            confidence: analysisResult.confidence,
+            patternType: analysisResult.patternType,
+            ...(analysisResult.extractedData.serviceName && { 
+              serviceName: analysisResult.extractedData.serviceName 
+            }),
+            ...(analysisResult.extractedData.price && { 
+              price: analysisResult.extractedData.price 
+            }),
+            ...(analysisResult.extractedData.billingCycle && { 
+              billingCycle: analysisResult.extractedData.billingCycle 
+            }),
+            ...(analysisResult.extractedData.currency && { 
+              currency: analysisResult.extractedData.currency 
+            }),
+            ...(analysisResult.extractedData.nextBillingDate && { 
+              nextBillingDate: analysisResult.extractedData.nextBillingDate 
+            })
           };
+          
           subscriptions.push(enhancedSMS);
+          
+          // Store detected messages if user is authenticated
+          if (userId) {
+            try {
+              // Store the message in the database with all extracted data
+              const extractedData = {
+                ...analysisResult.extractedData,
+                original_sms_id: sms._id.toString(),
+                message_source: 'batch_scan',
+                confidence: analysisResult.confidence,
+                pattern_type: analysisResult.patternType,
+                currency: analysisResult.extractedData.currency || 'USD',
+                next_billing_date: analysisResult.extractedData.nextBillingDate
+              };
+              
+              const savedMessage = await subscriptionMessageService.createSMSDetectionMessage(
+                userId,
+                sms.address,
+                sms.body,
+                extractedData,
+                sms._id.toString(),
+                analysisResult.confidence / 100 // Convert 0-100 to 0-1 range
+              );
+              
+              // If we found both service name and price, create a potential subscription
+              if (analysisResult.extractedData.serviceName && analysisResult.extractedData.price) {
+                try {
+                  // Create a potential subscription with enhanced data
+                  const subscriptionData: SubscriptionInsert = {
+                    user_id: userId,
+                    name: analysisResult.extractedData.serviceName,
+                    amount: analysisResult.extractedData.price,
+                    billing_cycle: analysisResult.extractedData.billingCycle || 'monthly',
+                    start_date: new Date(sms.date).toISOString().split('T')[0],
+                    source_type: 'sms',
+                    auto_detected: true,
+                    next_billing_date: analysisResult.extractedData.nextBillingDate || null,
+                    currency: analysisResult.extractedData.currency || 'USD'
+                  };
+                  
+                  const savedSubscription = await subscriptionService.createSubscription(subscriptionData);
+                  
+                  // Link the message to the subscription
+                  await subscriptionMessageService.linkMessageToSubscription(
+                    savedMessage.id, 
+                    savedSubscription.id
+                  );
+                  
+                  logger.info('Created potential subscription from SMS scan', {
+                    subscriptionId: savedSubscription.id,
+                    messageId: savedMessage.id,
+                    confidence: analysisResult.confidence
+                  });
+                } catch (error) {
+                  logger.error('Failed to create subscription from SMS scan', error);
+                }
+              }
+            } catch (error) {
+              logger.error('Failed to store subscription message from SMS scan', error);
+            }
+          }
         }
       }
       
@@ -168,7 +409,8 @@ class SMSService {
    * Checks a single SMS for subscription content
    */
   private checkForSubscription(sms: { messageBody: string, senderPhoneNumber: string }): boolean {
-    return containsSubscriptionPattern(sms.messageBody);
+    const analysisResult = analyzeSubscriptionText(sms.messageBody, sms.senderPhoneNumber);
+    return analysisResult.matched;
   }
 }
 

@@ -120,6 +120,8 @@ export interface Database {
           notes: string | null;
           created_at: string;
           updated_at: string;
+          source_type: string;
+          auto_detected: boolean;
         };
         Insert: {
           id?: string;
@@ -133,6 +135,8 @@ export interface Database {
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
+          source_type?: string;
+          auto_detected?: boolean;
         };
         Update: {
           id?: string;
@@ -146,6 +150,8 @@ export interface Database {
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
+          source_type?: string;
+          auto_detected?: boolean;
         };
       };
       transactions: {
@@ -250,9 +256,79 @@ export interface Database {
           updated_at?: string;
         };
       };
+      subscription_messages: {
+        Row: {
+          id: string;
+          subscription_id: string | null;
+          user_id: string;
+          sender: string;
+          message_body: string;
+          detected_at: string;
+          confidence_score: number;
+          extracted_data: Json;
+          message_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          subscription_id?: string | null;
+          user_id: string;
+          sender: string;
+          message_body: string;
+          detected_at?: string;
+          confidence_score?: number;
+          extracted_data?: Json;
+          message_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          subscription_id?: string | null;
+          user_id?: string;
+          sender?: string;
+          message_body?: string;
+          detected_at?: string;
+          confidence_score?: number;
+          extracted_data?: Json;
+          message_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
-      [_ in never]: never;
+      subscription_with_messages: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          amount: number;
+          billing_cycle: string;
+          start_date: string;
+          next_billing_date: string | null;
+          category_id: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+          source_type: string;
+          auto_detected: boolean;
+          messages: Json;
+        };
+      };
+      subscription_analytics: {
+        Row: {
+          user_id: string;
+          total_subscriptions: number;
+          total_monthly_cost: number;
+          monthly_subscriptions: number;
+          yearly_subscriptions: number;
+          detected_messages_count: number;
+          auto_detected_count: number;
+          latest_subscription_date: string;
+        };
+      };
     };
     Functions: {
       [_ in never]: never;
@@ -299,6 +375,11 @@ export type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 export type SubscriptionInsert = Database['public']['Tables']['subscriptions']['Insert'];
 export type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update'];
 
+// Subscription message types
+export type SubscriptionMessage = Database['public']['Tables']['subscription_messages']['Row'];
+export type SubscriptionMessageInsert = Database['public']['Tables']['subscription_messages']['Insert'];
+export type SubscriptionMessageUpdate = Database['public']['Tables']['subscription_messages']['Update'];
+
 // Transaction-related types
 export type Transaction = Database['public']['Tables']['transactions']['Row'];
 export type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
@@ -319,6 +400,10 @@ export interface SubscriptionWithCategory extends Subscription {
   category?: Category;
 }
 
+export interface SubscriptionWithMessages extends Subscription {
+  messages?: SubscriptionMessage[];
+}
+
 export interface SubscriptionWithTransactions extends Subscription {
   transactions?: Transaction[];
 }
@@ -327,6 +412,17 @@ export interface SubscriptionWithTransactions extends Subscription {
 export interface SubscriptionWithCategoryAndTransactions extends Subscription {
   category?: Category;
   transactions?: Transaction[];
+}
+
+export interface SubscriptionWithCategoryAndMessages extends Subscription {
+  category?: Category;
+  messages?: SubscriptionMessage[];
+}
+
+export interface SubscriptionWithAllRelations extends Subscription {
+  category?: Category;
+  transactions?: Transaction[];
+  messages?: SubscriptionMessage[];
 }
 
 export interface CategoryWithSubscriptions extends Category {
