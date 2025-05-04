@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { CategoryDistributionChart } from '../components/molecules';
+import { CategoryDistributionChart, UpcomingPaymentsSection } from '../components/molecules/visualization';
 import subscriptionService from '../services/subscriptionService';
 import { formatCurrency } from '../utils/formatUtils';
 
@@ -125,6 +125,12 @@ export const HomeScreen = () => {
         title="Spending by Category"
         showLegend={true}
         height={350}
+      />
+      
+      {/* Upcoming Payments Section */}
+      <UpcomingPaymentsSection 
+        daysAhead={7}
+        maxItems={3}
       />
       
       <View style={styles.themeToggleContainer}>

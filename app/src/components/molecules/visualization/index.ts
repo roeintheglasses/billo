@@ -6,4 +6,5 @@
  * additional functionality like data fetching, formatting, and interactivity.
  */
 
-export { CategoryDistributionChart } from './CategoryDistributionChart'; 
+export { CategoryDistributionChart } from './CategoryDistributionChart';
+export { UpcomingPaymentsSection } from './UpcomingPaymentsSection'; 
