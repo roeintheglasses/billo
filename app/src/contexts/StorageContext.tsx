@@ -23,11 +23,18 @@ interface StorageContextType {
   createSubscription: (subscription: Omit<SubscriptionInsert, 'id'>) => Promise<Subscription>;
   updateSubscription: (id: string, updates: SubscriptionUpdate) => Promise<Subscription>;
   deleteSubscription: (id: string) => Promise<boolean>;
+  
+  // Bulk operations
+  bulkDeleteSubscriptions: (ids: string[]) => Promise<boolean>;
+  bulkUpdateCategory: (ids: string[], categoryId: string) => Promise<boolean>;
+  bulkUpdateBillingCycle: (ids: string[], billingCycle: string) => Promise<boolean>;
 
   // Category operations
   categories: Category[];
   fetchCategories: () => Promise<void>;
   createCategory: (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>) => Promise<Category>;
+  updateCategory: (id: string, updates: Omit<Partial<Category>, 'id' | 'created_at' | 'updated_at'>) => Promise<Category>;
+  deleteCategory: (id: string) => Promise<boolean>;
   
   // Status
   isLoading: boolean;
@@ -50,9 +57,15 @@ const StorageContext = createContext<StorageContextType>({
   updateSubscription: async () => ({} as Subscription),
   deleteSubscription: async () => false,
   
+  bulkDeleteSubscriptions: async () => false,
+  bulkUpdateCategory: async () => false,
+  bulkUpdateBillingCycle: async () => false,
+  
   categories: [],
   fetchCategories: async () => {},
   createCategory: async () => ({} as Category),
+  updateCategory: async () => ({} as Category),
+  deleteCategory: async () => false,
   
   isLoading: false,
   error: null
@@ -331,6 +344,282 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Update an existing category
+  const updateCategory = async (id: string, updates: Omit<Partial<Category>, 'id' | 'created_at' | 'updated_at'>): Promise<Category> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      let updatedCategory: Category;
+      
+      if (storageMethod === 'remote' && isOnline) {
+        updatedCategory = await categoryService.updateCategory(id, updates);
+        
+        // Also update in local storage as backup
+        try {
+          await localSubscriptionService.updateLocalCategory(id, updates);
+        } catch (localError) {
+          console.warn('Error updating category in local backup:', localError);
+        }
+      } else {
+        // This would be implemented in localSubscriptionService
+        // For now, just update the local state
+        const existingCategory = categories.find(cat => cat.id === id);
+        if (!existingCategory) {
+          throw new Error(`Category with ID ${id} not found`);
+        }
+        
+        updatedCategory = {
+          ...existingCategory,
+          ...updates,
+          updated_at: new Date().toISOString()
+        };
+      }
+      
+      // Update local state
+      setCategories(prev => 
+        prev.map(cat => cat.id === id ? updatedCategory : cat)
+      );
+      
+      return updatedCategory;
+    } catch (error) {
+      console.error(`Error updating category with id ${id}:`, error);
+      setError(`Failed to update category: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Delete a category
+  const deleteCategory = async (id: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      let success: boolean;
+      
+      if (storageMethod === 'remote' && isOnline) {
+        success = await categoryService.deleteCategory(id);
+        
+        // Also delete from local storage as backup
+        try {
+          await localSubscriptionService.deleteLocalCategory(id);
+        } catch (localError) {
+          console.warn('Error deleting category from local backup:', localError);
+        }
+      } else {
+        // This would be implemented in localSubscriptionService
+        // For now, just update the local state
+        const categoryToDelete = categories.find(cat => cat.id === id);
+        if (!categoryToDelete) {
+          throw new Error(`Category with ID ${id} not found`);
+        }
+        
+        if (categoryToDelete.is_default) {
+          throw new Error('Default categories cannot be deleted');
+        }
+        
+        success = true;
+      }
+      
+      // Update local state
+      if (success) {
+        setCategories(prev => prev.filter(cat => cat.id !== id));
+      }
+      
+      return success;
+    } catch (error) {
+      console.error(`Error deleting category with id ${id}:`, error);
+      setError(`Failed to delete category: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Bulk delete multiple subscriptions
+  const bulkDeleteSubscriptions = async (ids: string[]): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      let success = true;
+      
+      if (storageMethod === 'remote' && isOnline) {
+        // For remote storage, we can potentially make a bulk delete API call
+        // But for now, we'll loop through and delete individually
+        for (const id of ids) {
+          const deleted = await subscriptionService.deleteSubscription(id);
+          if (!deleted) {
+            success = false;
+          }
+          
+          // Also delete from local storage as backup
+          try {
+            await localSubscriptionService.deleteLocalSubscription(id);
+          } catch (localError) {
+            console.warn('Error deleting subscription from local backup:', localError);
+          }
+        }
+      } else {
+        // For local storage, we need to loop through and delete individually
+        for (const id of ids) {
+          const deleted = await localSubscriptionService.deleteLocalSubscription(id);
+          if (!deleted) {
+            success = false;
+          }
+        }
+      }
+      
+      // Update the local state by filtering out deleted subscriptions
+      if (success) {
+        setSubscriptions(prev => prev.filter(sub => !ids.includes(sub.id)));
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error bulk deleting subscriptions:', error);
+      setError(`Failed to delete subscriptions: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Bulk update category for multiple subscriptions
+  const bulkUpdateCategory = async (ids: string[], categoryId: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      let success = true;
+      
+      // Loop through each subscription and update the category
+      for (const id of ids) {
+        try {
+          if (storageMethod === 'remote' && isOnline) {
+            await subscriptionService.updateSubscription(id, { category_id: categoryId });
+            
+            // Also update in local storage as backup
+            try {
+              await localSubscriptionService.updateLocalSubscription(id, { category_id: categoryId });
+            } catch (localError) {
+              console.warn('Error updating subscription in local backup:', localError);
+            }
+          } else {
+            await localSubscriptionService.updateLocalSubscription(id, { category_id: categoryId });
+          }
+        } catch (error) {
+          console.error(`Error updating category for subscription ${id}:`, error);
+          success = false;
+        }
+      }
+      
+      // Update the local state to reflect the changes
+      if (success) {
+        setSubscriptions(prev => 
+          prev.map(sub => ids.includes(sub.id) ? { ...sub, category_id: categoryId } : sub)
+        );
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error bulk updating subscription categories:', error);
+      setError(`Failed to update categories: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Bulk update billing cycle for multiple subscriptions
+  const bulkUpdateBillingCycle = async (ids: string[], billingCycle: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      let success = true;
+      
+      // Loop through each subscription and update the billing cycle
+      for (const id of ids) {
+        try {
+          // First get the current subscription to calculate new next_billing_date
+          let subscription: Subscription | null = null;
+          
+          if (storageMethod === 'remote' && isOnline) {
+            subscription = await subscriptionService.getSubscriptionById(id);
+          } else {
+            subscription = await localSubscriptionService.getLocalSubscriptionById(id);
+          }
+          
+          if (!subscription) {
+            console.error(`Subscription with id ${id} not found`);
+            success = false;
+            continue;
+          }
+          
+          // Calculate new next_billing_date based on the new billing cycle
+          const nextBillingDate = subscriptionService.calculateNextBillingDate(
+            subscription.start_date,
+            billingCycle
+          ).toISOString().split('T')[0];
+          
+          // Update the subscription
+          const updates = { 
+            billing_cycle: billingCycle, 
+            next_billing_date: nextBillingDate 
+          };
+          
+          if (storageMethod === 'remote' && isOnline) {
+            await subscriptionService.updateSubscription(id, updates);
+            
+            // Also update in local storage as backup
+            try {
+              await localSubscriptionService.updateLocalSubscription(id, updates);
+            } catch (localError) {
+              console.warn('Error updating subscription in local backup:', localError);
+            }
+          } else {
+            await localSubscriptionService.updateLocalSubscription(id, updates);
+          }
+        } catch (error) {
+          console.error(`Error updating billing cycle for subscription ${id}:`, error);
+          success = false;
+        }
+      }
+      
+      // Update the local state to reflect the changes
+      if (success) {
+        setSubscriptions(prev => 
+          prev.map(sub => {
+            if (ids.includes(sub.id)) {
+              const nextBillingDate = subscriptionService.calculateNextBillingDate(
+                sub.start_date,
+                billingCycle
+              ).toISOString().split('T')[0];
+              
+              return { 
+                ...sub, 
+                billing_cycle: billingCycle, 
+                next_billing_date: nextBillingDate 
+              };
+            }
+            return sub;
+          })
+        );
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error bulk updating subscription billing cycles:', error);
+      setError(`Failed to update billing cycles: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Load initial data
   useEffect(() => {
     const loadInitialData = async () => {
@@ -356,9 +645,15 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateSubscription,
     deleteSubscription,
     
+    bulkDeleteSubscriptions,
+    bulkUpdateCategory,
+    bulkUpdateBillingCycle,
+    
     categories,
     fetchCategories,
     createCategory,
+    updateCategory,
+    deleteCategory,
     
     isLoading,
     error

@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { HomeScreen, SettingsScreen, ChangePasswordScreen, AddSubscriptionScreen, SubscriptionDetailScreen, EditSubscriptionScreen } from '../screens';
+import { HomeScreen, SettingsScreen, ChangePasswordScreen, AddSubscriptionScreen, SubscriptionDetailScreen, EditSubscriptionScreen, CategoryManagementScreen } from '../screens';
 import { TabParamList } from './navigationTypes';
 import { useTheme } from '../contexts/ThemeContext';
 import { ProfileScreen } from '../screens/ProfileScreen';
@@ -98,6 +98,14 @@ export const TabNavigator = () => {
       <Tab.Screen 
         name="EditSubscription" 
         component={EditSubscriptionScreen} 
+        options={{
+          tabBarButton: () => null,
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen 
+        name="CategoryManagement" 
+        component={CategoryManagementScreen} 
         options={{
           tabBarButton: () => null,
           headerShown: false,

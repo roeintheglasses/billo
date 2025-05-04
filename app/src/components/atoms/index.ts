@@ -4,9 +4,10 @@ export { Text } from './Text';
 export { Input } from './Input';
 export { default as Checkbox } from './Checkbox';
 export { default as Toggle } from './Toggle';
-export { default as RadioButton } from './RadioButton';
+export { RadioButton } from './RadioButton';
 export { default as IconButton } from './IconButton';
 export { default as SearchInput } from './SearchInput';
+export { FloatingActionButton } from './FloatingActionButton';
 
 // New layout and container components
 export { default as Card } from './Card';

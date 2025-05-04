@@ -14,6 +14,7 @@ import { SubscriptionCardDetails } from './SubscriptionCardDetails';
 import { SubscriptionCardActions } from './SubscriptionCardActions';
 import { SubscriptionStatusBadge } from './SubscriptionStatusBadge';
 import { Text } from '../../atoms/Text';
+import { Ionicons } from '@expo/vector-icons';
 
 export type SubscriptionStatus = 'active' | 'pending' | 'expired' | 'trial' | 'canceled';
 
@@ -25,6 +26,8 @@ export interface SubscriptionCardProps extends TouchableOpacityProps {
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  selectable?: boolean;
+  selected?: boolean;
 }
 
 /**
@@ -35,6 +38,8 @@ export interface SubscriptionCardProps extends TouchableOpacityProps {
  * @param {ReactNode} children - The card content (typically SubscriptionCard.Header, SubscriptionCard.Details, etc.)
  * @param {string} variant - Card display variant (default or compact)
  * @param {function} onPress - Function to call when card is pressed
+ * @param {boolean} selectable - Whether the card is in multi-select mode
+ * @param {boolean} selected - Whether the card is selected in multi-select mode
  * @returns {React.ReactElement} A subscription card component
  * 
  * @example
@@ -45,10 +50,10 @@ export interface SubscriptionCardProps extends TouchableOpacityProps {
  *   <SubscriptionCard.Actions />
  * </SubscriptionCard>
  * 
- * // Compact variant
- * <SubscriptionCard status="trial" variant="compact">
- *   <SubscriptionCard.Header title="Spotify" />
- *   <SubscriptionCard.Details amount={9.99} cycle="monthly" />
+ * // Selectable mode
+ * <SubscriptionCard status="active" selectable={true} selected={isSelected}>
+ *   <SubscriptionCard.Header title="Netflix" />
+ *   <SubscriptionCard.Details amount={14.99} cycle="monthly" />
  * </SubscriptionCard>
  */
 export const SubscriptionCard: React.FC<SubscriptionCardProps> & {
@@ -64,9 +69,12 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> & {
   onPress,
   style,
   testID,
+  selectable = false,
+  selected = false,
   ...rest
 }) => {
   const { theme } = useTheme();
+  const { colors } = theme;
   const isCompact = variant === 'compact';
 
   // Format renewal date if provided
@@ -93,8 +101,22 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> & {
       styles.container,
       isCompact && styles.compactContainer,
     ]}>
+      {/* Selection indicator (shown when in selectable mode) */}
+      {selectable && (
+        <View style={styles.selectIconContainer}>
+          <Ionicons 
+            name={selected ? "checkmark-circle" : "ellipse-outline"} 
+            size={24} 
+            color={selected ? colors.primary : colors.text.secondary} 
+          />
+        </View>
+      )}
+
       {/* Status badge (shown in the corner) */}
-      <View style={styles.badgeContainer}>
+      <View style={[
+        styles.badgeContainer,
+        selectable && styles.badgeWithSelectable
+      ]}>
         <SubscriptionStatusBadge status={status} />
       </View>
 
@@ -114,35 +136,25 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> & {
       )}
 
       {/* Main content */}
-      <View style={styles.contentContainer}>
+      <View style={[
+        styles.contentContainer,
+        selectable && styles.contentWithSelectable
+      ]}>
         {children}
       </View>
     </View>
   );
 
-  // If onPress is provided, wrap in a TouchableOpacity
-  if (onPress) {
-    return (
-      <Card 
-        style={[styles.card, style]}
-        variant="elevated"
-        testID={testID}
-      >
-        <TouchableOpacity 
-          onPress={onPress}
-          activeOpacity={0.7}
-          {...rest}
-        >
-          {renderContent()}
-        </TouchableOpacity>
-      </Card>
-    );
-  }
-
-  // Otherwise, render as a static card
   return (
     <Card 
-      style={[styles.card, style]}
+      style={[
+        styles.card, 
+        selected && [
+          styles.selectedCard,
+          { borderColor: colors.primary }
+        ],
+        style
+      ]}
       variant="elevated"
       testID={testID}
     >
@@ -162,6 +174,10 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
   },
+  selectedCard: {
+    borderWidth: 2,
+    // borderColor set dynamically from theme
+  },
   container: {
     padding: 16,
     position: 'relative',
@@ -175,8 +191,20 @@ const styles = StyleSheet.create({
     right: 12,
     zIndex: 1,
   },
+  badgeWithSelectable: {
+    right: 12,
+  },
+  selectIconContainer: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    zIndex: 1,
+  },
   contentContainer: {
     marginTop: 4,
+  },
+  contentWithSelectable: {
+    marginLeft: 32,
   },
   renewalBanner: {
     position: 'absolute',

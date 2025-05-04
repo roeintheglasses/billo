@@ -332,6 +332,87 @@ export const createLocalCategory = async (category: Omit<Category, 'id' | 'creat
   }
 };
 
+/**
+ * Update a category in local storage
+ * 
+ * @param id The ID of the category to update
+ * @param updates The category data to update
+ * @returns Promise resolving to the updated Category
+ */
+export const updateLocalCategory = async (
+  id: string, 
+  updates: Partial<Omit<Category, 'id' | 'created_at' | 'updated_at'>>
+): Promise<Category> => {
+  try {
+    // Get existing categories
+    const categories = await getLocalCategories();
+    
+    // Find the category to update
+    const categoryIndex = categories.findIndex(category => category.id === id);
+    if (categoryIndex === -1) {
+      throw new Error(`Category with ID ${id} not found`);
+    }
+    
+    // Check if it's a default category and trying to change is_default
+    if (categories[categoryIndex].is_default && updates.is_default === false) {
+      throw new Error('Default categories cannot be changed to non-default');
+    }
+    
+    // Update the category
+    const updatedCategory: Category = {
+      ...categories[categoryIndex],
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Update the category in the array
+    categories[categoryIndex] = updatedCategory;
+    
+    // Save all categories
+    await saveLocalCategories(categories);
+    
+    return updatedCategory;
+  } catch (error) {
+    console.error(`Error updating local category with id ${id}:`, error);
+    throw new Error(`Failed to update local category: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
+
+/**
+ * Delete a category from local storage
+ * 
+ * @param id The ID of the category to delete
+ * @returns Promise resolving to true if the deletion was successful
+ */
+export const deleteLocalCategory = async (id: string): Promise<boolean> => {
+  try {
+    // Get existing categories
+    const categories = await getLocalCategories();
+    
+    // Find the category to delete
+    const categoryIndex = categories.findIndex(category => category.id === id);
+    if (categoryIndex === -1) {
+      throw new Error(`Category with ID ${id} not found`);
+    }
+    
+    // Check if it's a default category
+    if (categories[categoryIndex].is_default) {
+      throw new Error('Default categories cannot be deleted');
+    }
+    
+    // Remove the category from the array
+    categories.splice(categoryIndex, 1);
+    
+    // Save the updated categories
+    await saveLocalCategories(categories);
+    
+    return true;
+  } catch (error) {
+    console.error(`Error deleting local category with id ${id}:`, error);
+    throw new Error(`Failed to delete local category: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
+
 export default {
   getLocalSubscriptions,
   getLocalSubscriptionById,
@@ -340,5 +421,7 @@ export default {
   deleteLocalSubscription,
   getLocalCategories,
   createDefaultLocalCategories,
-  createLocalCategory
+  createLocalCategory,
+  updateLocalCategory,
+  deleteLocalCategory
 }; 

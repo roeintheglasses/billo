@@ -267,6 +267,14 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           }
         ]}>Subscription Management</Text>
         
+        <TouchableOpacity 
+          style={styles.actionButton} 
+          onPress={() => navigation.navigate('CategoryManagement' as never)}
+        >
+          <Ionicons name="pricetags-outline" size={20} color="#4CAF50" />
+          <Text style={styles.actionButtonText}>Manage Categories</Text>
+        </TouchableOpacity>
+        
         <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
           <Ionicons name="cloud-download-outline" size={20} color="#2196F3" />
           <Text style={styles.actionButtonText}>Export Subscriptions</Text>

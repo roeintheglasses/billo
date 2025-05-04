@@ -7,14 +7,13 @@ import {
   RefreshControl,
   TouchableOpacity,
   SafeAreaView,
-  Modal,
+  Modal as RNModal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { TabScreenProps } from '../navigation/navigationTypes';
-import { Text } from '../components/atoms/Text';
-import { Container } from '../components/atoms/Container';
-import { SearchInput } from '../components/atoms/SearchInput';
+import { Text, Container, SearchInput, FloatingActionButton } from '../components/atoms';
 import { SubscriptionCard } from '../components/molecules/SubscriptionCard/SubscriptionCard';
 import { Ionicons } from '@expo/vector-icons';
 import { useStorage } from '../contexts/StorageContext';
@@ -22,6 +21,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { Subscription, Category } from '../types/supabase';
 import { EmptyState, FilterModal } from '../components/molecules';
 import { Modal as CustomModal } from '../components/atoms/Modal';
+import { BulkActionModal } from '../components/molecules/BulkActionModal';
 
 type SortBy = 'name' | 'amount' | 'next_billing_date' | 'category';
 type SortDirection = 'asc' | 'desc';
@@ -35,7 +35,7 @@ interface SortOption {
 type NavigationScreens = {
   Subscriptions: undefined;
   Home: undefined;
-  SubscriptionDetail: { subscription: Subscription };
+  SubscriptionDetail: { subscriptionId: string };
   AddSubscription: undefined;
   Add: undefined;
   ChangePassword: undefined;
@@ -60,7 +60,16 @@ const sortOptions: SortOption[] = [
 const SubscriptionsScreen: React.FC = () => {
   const { theme } = useTheme();
   const { colors } = theme;
-  const { subscriptions, categories, fetchSubscriptions, isLoading, error } = useStorage();
+  const { 
+    subscriptions, 
+    categories, 
+    fetchSubscriptions, 
+    isLoading, 
+    error,
+    bulkDeleteSubscriptions,
+    bulkUpdateCategory,
+    bulkUpdateBillingCycle
+  } = useStorage();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('name');
@@ -70,11 +79,23 @@ const SubscriptionsScreen: React.FC = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showSortModal, setShowSortModal] = useState(false);
   const navigation = useNavigation<SubscriptionsScreenProps['navigation']>();
+  
+  // Bulk action state
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedSubscriptions, setSelectedSubscriptions] = useState<Subscription[]>([]);
+  const [showBulkActionModal, setShowBulkActionModal] = useState(false);
 
   // Fetch subscriptions when component mounts
   useEffect(() => {
     fetchSubscriptions();
   }, []);
+
+  // Reset selection when exiting multi-select mode
+  useEffect(() => {
+    if (!isMultiSelectMode) {
+      setSelectedSubscriptions([]);
+    }
+  }, [isMultiSelectMode]);
 
   // Handle pull-to-refresh
   const onRefresh = async () => {
@@ -100,6 +121,61 @@ const SubscriptionsScreen: React.FC = () => {
     // Filters are already applied through the state variables
   };
 
+  // Toggle multi-select mode
+  const toggleMultiSelectMode = () => {
+    setIsMultiSelectMode(!isMultiSelectMode);
+    // Clear selections when exiting multi-select mode
+    if (isMultiSelectMode) {
+      setSelectedSubscriptions([]);
+    }
+  };
+
+  // Toggle selection of a subscription
+  const toggleSubscriptionSelection = (subscription: Subscription) => {
+    if (selectedSubscriptions.some(sub => sub.id === subscription.id)) {
+      setSelectedSubscriptions(selectedSubscriptions.filter(sub => sub.id !== subscription.id));
+    } else {
+      setSelectedSubscriptions([...selectedSubscriptions, subscription]);
+    }
+  };
+
+  // Check if a subscription is selected
+  const isSubscriptionSelected = (subscription: Subscription) => {
+    return selectedSubscriptions.some(sub => sub.id === subscription.id);
+  };
+
+  // Handle bulk actions
+  const handleBulkDelete = async (): Promise<void> => {
+    const subscriptionIds = selectedSubscriptions.map(sub => sub.id);
+    const success = await bulkDeleteSubscriptions(subscriptionIds);
+    
+    if (success) {
+      Alert.alert('Success', `Successfully deleted ${selectedSubscriptions.length} subscriptions.`);
+      setIsMultiSelectMode(false);
+    }
+  };
+
+  const handleBulkUpdateCategory = async (categoryId: string): Promise<void> => {
+    const subscriptionIds = selectedSubscriptions.map(sub => sub.id);
+    const success = await bulkUpdateCategory(subscriptionIds, categoryId);
+    
+    if (success) {
+      Alert.alert('Success', `Successfully updated category for ${selectedSubscriptions.length} subscriptions.`);
+      setIsMultiSelectMode(false);
+    }
+  };
+
+  const handleBulkUpdateBillingCycle = async (billingCycle: string): Promise<void> => {
+    const subscriptionIds = selectedSubscriptions.map(sub => sub.id);
+    const success = await bulkUpdateBillingCycle(subscriptionIds, billingCycle);
+    
+    if (success) {
+      Alert.alert('Success', `Successfully updated billing cycle for ${selectedSubscriptions.length} subscriptions.`);
+      setIsMultiSelectMode(false);
+    }
+  };
+
+  // Filter and sort subscriptions
   const filteredSubscriptions = useMemo(() => {
     if (!subscriptions) return [];
 
@@ -120,27 +196,36 @@ const SubscriptionsScreen: React.FC = () => {
         return true;
       })
       .sort((a, b) => {
+        let result = 0;
+        
         if (sortBy === 'name') {
-          return a.name.localeCompare(b.name);
-        }
-        if (sortBy === 'amount') {
-          return a.amount - b.amount;
-        }
-        if (sortBy === 'next_billing_date') {
+          result = a.name.localeCompare(b.name);
+        } else if (sortBy === 'amount') {
+          result = a.amount - b.amount;
+        } else if (sortBy === 'next_billing_date') {
           // Handle null dates
-          if (!a.next_billing_date && !b.next_billing_date) return 0;
-          if (!a.next_billing_date) return 1;
-          if (!b.next_billing_date) return -1;
-          return new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime();
-        }
-        if (sortBy === 'category') {
+          if (!a.next_billing_date && !b.next_billing_date) result = 0;
+          else if (!a.next_billing_date) result = 1;
+          else if (!b.next_billing_date) result = -1;
+          else result = new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime();
+        } else if (sortBy === 'category') {
           const catA = categories?.find(c => c.id === a.category_id)?.name || '';
           const catB = categories?.find(c => c.id === b.category_id)?.name || '';
-          return catA.localeCompare(catB);
+          result = catA.localeCompare(catB);
         }
-        return 0;
+        
+        // Apply sort direction
+        return sortDirection === 'asc' ? result : -result;
       });
-  }, [subscriptions, searchQuery, sortBy, selectedCategory, selectedBillingCycle, categories]);
+  }, [
+    subscriptions,
+    searchQuery,
+    sortBy,
+    sortDirection,
+    selectedCategory,
+    selectedBillingCycle,
+    categories
+  ]);
 
   // Toggle sort direction when the same sort option is selected
   const handleSortPress = (option: SortBy) => {
@@ -152,12 +237,18 @@ const SubscriptionsScreen: React.FC = () => {
       setSortBy(option);
       setSortDirection('asc');
     }
+    
+    setShowSortModal(false);
   };
 
-  // Navigate to subscription detail when a card is pressed
-  const handleSubscriptionPress = (subscriptionId: string) => {
-    // Navigate to the subscription detail screen with the subscription ID
-    navigation.navigate('SubscriptionDetail', { subscriptionId });
+  // Handle subscription press
+  const handleSubscriptionPress = (subscription: Subscription) => {
+    if (isMultiSelectMode) {
+      toggleSubscriptionSelection(subscription);
+    } else {
+      // Navigate to the subscription detail screen
+      navigation.navigate('SubscriptionDetail', { subscriptionId: subscription.id });
+    }
   };
 
   // Format date for display
@@ -190,13 +281,22 @@ const SubscriptionsScreen: React.FC = () => {
   // Render subscription card
   const renderSubscription = ({ item }: { item: Subscription }) => {
     const status = calculateStatus(item);
+    const isSelected = isSubscriptionSelected(item);
     
     return (
-      <View style={styles.subscriptionItem}>
+      <TouchableOpacity
+        style={[
+          styles.subscriptionItem,
+          isSelected && styles.selectedSubscriptionItem
+        ]}
+        onPress={() => handleSubscriptionPress(item)}
+        activeOpacity={0.7}
+      >
         <SubscriptionCard 
           status={status} 
           renewalDate={item.next_billing_date || undefined}
-          onPress={() => handleSubscriptionPress(item.id)}
+          selected={isSelected}
+          selectable={isMultiSelectMode}
           testID={`subscription-card-${item.id}`}
         >
           <SubscriptionCard.Header 
@@ -210,9 +310,67 @@ const SubscriptionsScreen: React.FC = () => {
           />
           <SubscriptionCard.Actions />
         </SubscriptionCard>
-      </View>
+      </TouchableOpacity>
     );
   };
+
+  // Render header with search and filter options
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <View style={styles.searchContainer}>
+        <SearchInput
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search subscriptions..."
+          style={styles.searchInput}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="never"
+          accessibilityLabel="Search subscriptions"
+        />
+      </View>
+      
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, { backgroundColor: colors.background.secondary }]}
+          onPress={() => setShowFilterModal(true)}
+          accessibilityLabel="Filter subscriptions"
+        >
+          <Ionicons name="filter" size={18} color={colors.text.primary} />
+          {(selectedCategory || selectedBillingCycle) && (
+            <View style={[styles.filterBadge, { backgroundColor: colors.primary }]} />
+          )}
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.filterButton, { backgroundColor: colors.background.secondary }]}
+          onPress={() => setShowSortModal(true)}
+          accessibilityLabel="Sort subscriptions"
+        >
+          <Ionicons 
+            name={sortDirection === 'asc' ? "arrow-up" : "arrow-down"} 
+            size={18} 
+            color={colors.text.primary} 
+          />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            { backgroundColor: isMultiSelectMode ? colors.primary : colors.background.secondary }
+          ]}
+          onPress={toggleMultiSelectMode}
+          accessibilityLabel={isMultiSelectMode ? "Exit selection mode" : "Select multiple subscriptions"}
+        >
+          <Ionicons 
+            name={isMultiSelectMode ? "checkmark-done" : "checkmark-circle-outline"} 
+            size={18} 
+            color={isMultiSelectMode ? colors.text.inverted : colors.text.primary} 
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   // Render empty state
   const renderEmptyState = () => {
@@ -248,20 +406,15 @@ const SubscriptionsScreen: React.FC = () => {
     return (
       <View style={styles.emptyStateContainer}>
         <Ionicons 
-          name={searchQuery ? "search-outline" : "document-outline"} 
+          name={searchQuery || selectedCategory || selectedBillingCycle ? "search" : "wallet-outline"} 
           size={48} 
-          color={colors.text.secondary} 
+          color={colors.text.tertiary} 
         />
-        <Text 
-          variant="heading3" 
-          style={{ marginTop: 16, color: colors.text.secondary }}
-        >
-          {noResultsText}
-        </Text>
+        <Text variant="body" style={{ marginTop: 16, color: colors.text.secondary }}>{noResultsText}</Text>
         {!searchQuery && !selectedCategory && !selectedBillingCycle && (
           <TouchableOpacity 
+            onPress={() => navigation.navigate('AddSubscription')}
             style={[styles.addButton, { backgroundColor: colors.primary }]}
-            onPress={() => navigation.navigate('Add')}
           >
             <Text variant="caption" style={{ color: colors.text.inverted }}>Add Subscription</Text>
           </TouchableOpacity>
@@ -270,258 +423,214 @@ const SubscriptionsScreen: React.FC = () => {
     );
   };
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <View style={styles.header}>
-        <View style={styles.titleContainer}>
-          <Text variant="heading1">Subscriptions</Text>
-          <Text variant="body" style={{ color: colors.text.secondary }}>
-            {filteredSubscriptions.length} {filteredSubscriptions.length === 1 ? 'subscription' : 'subscriptions'}
-          </Text>
-        </View>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: colors.background.secondary }]}
-            onPress={() => setShowFilterModal(true)}
-          >
-            <Ionicons name="filter" size={24} color={colors.text.primary} />
-            {(selectedCategory || selectedBillingCycle) && (
-              <View style={[styles.filterBadge, { backgroundColor: colors.primary }]} />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: colors.background.secondary }]}
-            onPress={() => setShowSortModal(true)}
-          >
-            <Ionicons name="swap-vertical" size={24} color={colors.text.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: colors.background.secondary }]}>
-          <Ionicons name="search" size={20} color={colors.text.secondary} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.text.primary }]}
-            placeholder="Search subscriptions..."
-            placeholderTextColor={colors.text.secondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color={colors.text.secondary} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      </View>
-
-      {error ? (
-        <View style={styles.centerContainer}>
-          <Text variant="body" style={{ color: colors.error }}>
-            {error}
-          </Text>
-        </View>
-      ) : isLoading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : filteredSubscriptions.length === 0 ? (
-        <EmptyState
-          icon="folder-open-outline"
-          title="No subscriptions found"
-          message={
-            searchQuery || selectedCategory || selectedBillingCycle
-              ? "Try adjusting your search or filters"
-              : "Add your first subscription by tapping the '+' button"
-          }
-        />
-      ) : (
-        <FlatList
-          data={filteredSubscriptions}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={styles.cardContainer}
-              onPress={() => navigation.navigate('SubscriptionDetail', { subscription: item })}
-            >
-              <SubscriptionCard
-                status={calculateStatus(item)}
-                renewalDate={item.next_billing_date || undefined}
-              >
-                <SubscriptionCard.Header 
-                  title={item.name} 
-                  iconUrl={categories?.find(c => c.id === item.category_id)?.icon || undefined}
-                />
-                <SubscriptionCard.Details 
-                  amount={item.amount} 
-                  cycle={item.billing_cycle as any}
-                  category={getCategoryName(item.category_id)}
-                />
-              </SubscriptionCard>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
-      )}
-
-      {/* Sort Modal */}
-      <CustomModal
-        visible={showSortModal}
-        onClose={() => setShowSortModal(false)}
-        title="Sort By"
-      >
-        {sortOptions.map((option) => (
-          <TouchableOpacity
-            key={option.key}
-            style={[
-              styles.sortOption,
-              sortBy === option.key && {
-                backgroundColor: colors.primary + '20',
-              },
-            ]}
-            onPress={() => {
-              setSortBy(option.key);
-              setShowSortModal(false);
-            }}
-          >
-            <Text
-              variant="body"
-              style={[
-                sortBy === option.key && {
-                  color: colors.primary,
-                  fontWeight: 'bold',
-                },
-              ]}
-            >
-              {option.label}
-            </Text>
-            {sortBy === option.key && (
-              <Ionicons name="checkmark" size={20} color={colors.primary} />
-            )}
-          </TouchableOpacity>
-        ))}
-      </CustomModal>
-
-      {/* Filter Modal */}
-      <FilterModal
-        visible={showFilterModal}
-        onClose={() => setShowFilterModal(false)}
-        categories={categories || []}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        selectedBillingCycle={selectedBillingCycle}
-        setSelectedBillingCycle={setSelectedBillingCycle}
-        onApplyFilters={applyFilters}
-        onResetFilters={resetFilters}
+  // Render selected count action button when in multi-select mode
+  const renderMultiSelectActionButton = () => {
+    if (!isMultiSelectMode || selectedSubscriptions.length === 0) return null;
+    
+    return (
+      <FloatingActionButton
+        title={`${selectedSubscriptions.length} selected`}
+        icon="checkbox-outline"
+        onPress={() => setShowBulkActionModal(true)}
       />
+    );
+  };
 
-      <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: colors.primary }]}
-        onPress={() => navigation.navigate('AddSubscription')}
-      >
-        <Ionicons name="add" size={24} color={colors.background.primary} />
-      </TouchableOpacity>
-    </SafeAreaView>
+  return (
+    <Container>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Text variant="heading2" style={styles.title}>
+            Your Subscriptions
+          </Text>
+          
+          {renderHeader()}
+          
+          {isMultiSelectMode && (
+            <View style={[styles.selectionModeBar, { backgroundColor: colors.background.secondary }]}>
+              <Text variant="body">
+                {selectedSubscriptions.length > 0 
+                  ? `${selectedSubscriptions.length} subscription${selectedSubscriptions.length > 1 ? 's' : ''} selected` 
+                  : 'Tap items to select them'}
+              </Text>
+              {selectedSubscriptions.length > 0 && (
+                <TouchableOpacity 
+                  onPress={() => setSelectedSubscriptions([])}
+                  style={styles.clearSelectionButton}
+                >
+                  <Text variant="caption" style={{ color: colors.primary }}>Clear</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+          
+          <FlatList
+            data={filteredSubscriptions}
+            renderItem={renderSubscription}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={renderEmptyState}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[colors.primary]}
+              />
+            }
+          />
+          
+          {/* Filter Modal */}
+          <FilterModal
+            visible={showFilterModal}
+            onClose={() => setShowFilterModal(false)}
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedBillingCycle={selectedBillingCycle}
+            setSelectedBillingCycle={setSelectedBillingCycle}
+            onApplyFilters={applyFilters}
+            onResetFilters={resetFilters}
+          />
+          
+          {/* Sort Modal */}
+          <CustomModal
+            visible={showSortModal}
+            onClose={() => setShowSortModal(false)}
+            title="Sort Subscriptions"
+            size="medium"
+          >
+            <View style={styles.sortModalContent}>
+              {sortOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.key}
+                  style={styles.sortOption}
+                  onPress={() => handleSortPress(option.key)}
+                >
+                  <Text variant="body">{option.label}</Text>
+                  {sortBy === option.key && (
+                    <Ionicons
+                      name={sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'}
+                      size={18}
+                      color={colors.primary}
+                    />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </CustomModal>
+          
+          {/* Bulk Action Modal */}
+          <BulkActionModal
+            visible={showBulkActionModal}
+            onClose={() => setShowBulkActionModal(false)}
+            selectedSubscriptions={selectedSubscriptions}
+            categories={categories}
+            onBulkDelete={handleBulkDelete}
+            onBulkUpdateCategory={handleBulkUpdateCategory}
+            onBulkUpdateBillingCycle={handleBulkUpdateBillingCycle}
+          />
+          
+          {renderMultiSelectActionButton()}
+        </View>
+      </SafeAreaView>
+    </Container>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
   },
-  header: {
+  container: {
+    flex: 1,
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   title: {
     marginBottom: 16,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  searchBar: {
+  headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
+  },
+  searchContainer: {
     flex: 1,
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#F5F5F5',
   },
   searchInput: {
     flex: 1,
-    marginRight: 8,
   },
-  headerButtons: {
+  filterContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginLeft: 8,
   },
-  filterBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#3498db', // Default color, will be overridden
-    borderWidth: 2,
-    borderColor: '#FFFFFF', // Default color, will be overridden
+  filterButton: {
+    padding: 8,
+    borderRadius: 8,
+    marginLeft: 8,
+    position: 'relative',
   },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  filterBadge: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    position: 'absolute',
+    top: 4,
+    right: 4,
   },
   listContent: {
-    padding: 16,
     flexGrow: 1,
-  },
-  cardContainer: {
-    marginBottom: 16,
+    paddingBottom: 80, // Extra padding for FAB
   },
   subscriptionItem: {
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  selectedSubscriptionItem: {
+    opacity: 0.9,
   },
   emptyStateContainer: {
     flex: 1,
-    minHeight: 300,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    paddingTop: 60,
+    paddingBottom: 60,
   },
   retryButton: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 8,
+    marginTop: 16,
   },
   addButton: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 8,
+    marginTop: 16,
+  },
+  sortModalContent: {
+    padding: 16,
   },
   sortOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  selectionModeBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 8,
+    borderRadius: 8,
+  },
+  clearSelectionButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
 });
 
