@@ -18,6 +18,13 @@ import { validateSubscription } from '../utils/validationUtils';
 import errorHandler from '../utils/errorHandler';
 import logger from '../utils/logger';
 import { NotFoundError, DatabaseError } from '../utils/errors';
+import {
+  detectDuplicateSubscription,
+  determinePreferredSubscription,
+  DEFAULT_DUPLICATE_DETECTION_CONFIG,
+  DuplicateDetectionConfig,
+  DuplicateDetectionResult,
+} from '../utils/duplicateDetectionUtils';
 
 /**
  * Supported billing cycle values
@@ -556,6 +563,240 @@ export const calculateSpendForPeriod = errorHandler.withErrorHandling(
   'Subscription'
 );
 
+/**
+ * Find potential duplicate subscriptions for a given subscription
+ *
+ * @param subscription The subscription to check for duplicates, or its ID
+ * @param config Duplicate detection configuration
+ * @returns Promise resolving to duplicate detection result
+ */
+export const findDuplicateSubscriptions = errorHandler.withErrorHandling(
+  async (
+    subscription: Subscription | string,
+    config: DuplicateDetectionConfig = DEFAULT_DUPLICATE_DETECTION_CONFIG
+  ): Promise<DuplicateDetectionResult> => {
+    // If subscription is a string (ID), fetch the subscription
+    const subscriptionObj =
+      typeof subscription === 'string' ? await getSubscriptionById(subscription) : subscription;
+
+    // Get all subscriptions for the user
+    const userSubscriptions = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', subscriptionObj.user_id);
+
+    if (userSubscriptions.error) {
+      throw userSubscriptions.error;
+    }
+
+    // Filter out the current subscription from the list
+    const otherSubscriptions = (userSubscriptions.data || []).filter(
+      sub => sub.id !== subscriptionObj.id
+    );
+
+    // Use the duplicate detection utility to find duplicates
+    return detectDuplicateSubscription(subscriptionObj, otherSubscriptions, config);
+  },
+  'Subscription'
+);
+
+/**
+ * Merge duplicate subscriptions into a single subscription
+ *
+ * @param subscriptions Array of duplicate subscriptions to merge
+ * @param keepId Optional ID of the subscription to keep (if not provided, the best one will be chosen)
+ * @returns Promise resolving to the merged subscription
+ */
+export const mergeSubscriptions = errorHandler.withErrorHandling(
+  async (subscriptions: Subscription[], keepId?: string): Promise<Subscription> => {
+    if (!subscriptions.length) {
+      throw new Error('No subscriptions provided for merging');
+    }
+
+    if (subscriptions.length === 1) {
+      return subscriptions[0];
+    }
+
+    // Determine which subscription to keep
+    let subscriptionToKeep: Subscription;
+
+    if (keepId) {
+      const found = subscriptions.find(sub => sub.id === keepId);
+      if (!found) {
+        throw new Error(`Subscription with ID ${keepId} not found in the provided subscriptions`);
+      }
+      subscriptionToKeep = found;
+    } else {
+      subscriptionToKeep = determinePreferredSubscription(subscriptions);
+    }
+
+    // Get IDs of the subscriptions to delete
+    const subscriptionIdsToDelete = subscriptions
+      .filter(sub => sub.id !== subscriptionToKeep.id)
+      .map(sub => sub.id);
+
+    // Start a transaction
+    const { error: transactionError } = await supabase.rpc('merge_subscriptions', {
+      keep_id: subscriptionToKeep.id,
+      delete_ids: subscriptionIdsToDelete,
+    });
+
+    if (transactionError) {
+      // If the RPC fails, do it manually
+      logger.warn('Merge subscriptions RPC failed, falling back to manual merge', {
+        error: transactionError,
+        keepId: subscriptionToKeep.id,
+        deleteIds: subscriptionIdsToDelete,
+      });
+
+      // Update subscription messages to link to the kept subscription
+      for (const deleteId of subscriptionIdsToDelete) {
+        const { error: updateError } = await supabase
+          .from('subscription_messages')
+          .update({ subscription_id: subscriptionToKeep.id })
+          .eq('subscription_id', deleteId);
+
+        if (updateError) {
+          logger.error('Failed to update subscription messages during merge', {
+            error: updateError,
+            keepId: subscriptionToKeep.id,
+            deleteId,
+          });
+        }
+
+        // Update transactions to link to the kept subscription
+        const { error: transactionUpdateError } = await supabase
+          .from('transactions')
+          .update({ subscription_id: subscriptionToKeep.id })
+          .eq('subscription_id', deleteId);
+
+        if (transactionUpdateError) {
+          logger.error('Failed to update transactions during merge', {
+            error: transactionUpdateError,
+            keepId: subscriptionToKeep.id,
+            deleteId,
+          });
+        }
+
+        // Delete the duplicate subscription
+        const { error: deleteError } = await supabase
+          .from('subscriptions')
+          .delete()
+          .eq('id', deleteId);
+
+        if (deleteError) {
+          logger.error('Failed to delete duplicate subscription during merge', {
+            error: deleteError,
+            deleteId,
+          });
+        }
+      }
+    }
+
+    // Get the updated subscription
+    return getSubscriptionById(subscriptionToKeep.id);
+  },
+  'Subscription'
+);
+
+/**
+ * Create a subscription, checking for duplicates
+ *
+ * @param subscription The subscription data to insert
+ * @param checkDuplicates Whether to check for duplicates
+ * @param autoMergeDuplicates Whether to automatically merge duplicates if found
+ * @returns Promise resolving to the created subscription or duplicate detection result
+ */
+export const createSubscriptionWithDuplicateCheck = errorHandler.withErrorHandling(
+  async (
+    subscription: SubscriptionInsert,
+    checkDuplicates: boolean = true,
+    autoMergeDuplicates: boolean = false
+  ): Promise<
+    Subscription | { subscription: Subscription; duplicates: DuplicateDetectionResult }
+  > => {
+    // First create the subscription
+    const newSubscription = await createSubscription(subscription);
+
+    // If duplicate checking is disabled, return the new subscription
+    if (!checkDuplicates) {
+      return newSubscription;
+    }
+
+    // Check for duplicates
+    const duplicateResult = await findDuplicateSubscriptions(newSubscription);
+
+    // If no duplicates found, return the new subscription
+    if (!duplicateResult.isDuplicate) {
+      return newSubscription;
+    }
+
+    // If duplicates found and auto-merge is enabled, merge them
+    if (autoMergeDuplicates) {
+      const allSubscriptions = [newSubscription, ...duplicateResult.duplicates];
+      return mergeSubscriptions(allSubscriptions);
+    }
+
+    // Otherwise, return the new subscription along with duplicate information for UI handling
+    return {
+      subscription: newSubscription,
+      duplicates: duplicateResult,
+    };
+  },
+  'Subscription'
+);
+
+/**
+ * Run a batch duplicate detection on all subscriptions for a user
+ *
+ * @param userId The user ID
+ * @param config Duplicate detection configuration
+ * @returns Promise resolving to an array of duplicate groups
+ */
+export const batchFindDuplicates = errorHandler.withErrorHandling(
+  async (
+    userId: string,
+    config: DuplicateDetectionConfig = DEFAULT_DUPLICATE_DETECTION_CONFIG
+  ): Promise<Subscription[][]> => {
+    // Get all subscriptions for the user
+    const { data, error } = await supabase.from('subscriptions').select('*').eq('user_id', userId);
+
+    if (error) throw error;
+    if (!data || !data.length) return [];
+
+    const subscriptions = data as Subscription[];
+    const duplicateGroups: Subscription[][] = [];
+    const processedIds = new Set<string>();
+
+    // Check each subscription against others
+    for (const subscription of subscriptions) {
+      // Skip if already processed
+      if (processedIds.has(subscription.id)) continue;
+
+      const result = detectDuplicateSubscription(
+        subscription,
+        subscriptions.filter(s => s.id !== subscription.id),
+        config
+      );
+
+      if (result.isDuplicate && result.duplicates.length > 0) {
+        // Add this subscription and its duplicates to a group
+        const group = [subscription, ...result.duplicates];
+        duplicateGroups.push(group);
+
+        // Mark all as processed
+        group.forEach(s => processedIds.add(s.id));
+      } else {
+        // Just mark this one as processed
+        processedIds.add(subscription.id);
+      }
+    }
+
+    return duplicateGroups;
+  },
+  'Subscription'
+);
+
 export default {
   getSubscriptions,
   getSubscriptionsWithCategories,
@@ -571,4 +812,8 @@ export default {
   calculateSpendForPeriod,
   calculateNextBillingDate,
   normalizeAmountToMonthly,
+  findDuplicateSubscriptions,
+  mergeSubscriptions,
+  createSubscriptionWithDuplicateCheck,
+  batchFindDuplicates,
 };

@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Modal } from '../atoms/Modal';
@@ -17,6 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SubscriptionInsert } from '../../types/supabase';
 import subscriptionMessageService from '../../services/subscriptionMessageService';
 import { supabase } from '../../services/supabase';
+import feedbackService, { FeedbackType } from '../../services/feedbackService';
 
 // Validation schema for subscription form
 const validationSchema = Yup.object().shape({
@@ -54,6 +62,9 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
   const { theme } = useTheme();
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
+  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackType, setFeedbackType] = useState<FeedbackType>(FeedbackType.GENERAL_FEEDBACK);
 
   // Generate initial form values from the detected subscription
   const getInitialValues = () => {
@@ -154,6 +165,22 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
         );
       }
 
+      // Submit feedback if provided
+      if (showFeedbackInput && feedbackText.trim()) {
+        try {
+          await feedbackService.submitSubscriptionFeedback(
+            savedSubscription.id,
+            feedbackType,
+            feedbackText,
+            // Pass confidence as a rating if available
+            subscription.confidence ? Math.ceil(subscription.confidence / 20) : undefined // Convert 0-100 to 1-5 scale
+          );
+        } catch (feedbackError) {
+          // Don't fail the whole operation if feedback submission fails
+          console.error('Error submitting feedback:', feedbackError);
+        }
+      }
+
       // Success feedback
       Alert.alert(
         'Subscription Added',
@@ -215,6 +242,144 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
         },
       },
     ]);
+  };
+
+  // Render feedback options
+  const renderFeedbackSection = () => {
+    if (!showFeedbackInput) {
+      return (
+        <TouchableOpacity
+          style={[
+            styles.feedbackButton,
+            { backgroundColor: colors.background.secondary, borderColor: colors.border.light },
+          ]}
+          onPress={() => setShowFeedbackInput(true)}
+        >
+          <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
+          <Text variant="body" style={{ color: colors.primary, marginLeft: 8 }}>
+            Provide feedback on detection accuracy
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <View style={styles.feedbackSection}>
+        <Text variant="label" style={{ color: colors.text.secondary, marginBottom: 8 }}>
+          Help us improve
+        </Text>
+
+        <View style={styles.feedbackTypeContainer}>
+          <TouchableOpacity
+            style={[
+              styles.feedbackTypeButton,
+              {
+                backgroundColor:
+                  feedbackType === FeedbackType.GENERAL_FEEDBACK
+                    ? colors.primary
+                    : colors.background.secondary,
+                borderColor: colors.border.light,
+              },
+            ]}
+            onPress={() => setFeedbackType(FeedbackType.GENERAL_FEEDBACK)}
+          >
+            <Text
+              variant="caption"
+              style={{
+                color:
+                  feedbackType === FeedbackType.GENERAL_FEEDBACK
+                    ? colors.text.inverted
+                    : colors.text.primary,
+              }}
+            >
+              General
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.feedbackTypeButton,
+              {
+                backgroundColor:
+                  feedbackType === FeedbackType.INCORRECT_SERVICE
+                    ? colors.primary
+                    : colors.background.secondary,
+                borderColor: colors.border.light,
+              },
+            ]}
+            onPress={() => setFeedbackType(FeedbackType.INCORRECT_SERVICE)}
+          >
+            <Text
+              variant="caption"
+              style={{
+                color:
+                  feedbackType === FeedbackType.INCORRECT_SERVICE
+                    ? colors.text.inverted
+                    : colors.text.primary,
+              }}
+            >
+              Wrong Service
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.feedbackTypeButton,
+              {
+                backgroundColor:
+                  feedbackType === FeedbackType.INCORRECT_AMOUNT
+                    ? colors.primary
+                    : colors.background.secondary,
+                borderColor: colors.border.light,
+              },
+            ]}
+            onPress={() => setFeedbackType(FeedbackType.INCORRECT_AMOUNT)}
+          >
+            <Text
+              variant="caption"
+              style={{
+                color:
+                  feedbackType === FeedbackType.INCORRECT_AMOUNT
+                    ? colors.text.inverted
+                    : colors.text.primary,
+              }}
+            >
+              Wrong Amount
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <TextInput
+          style={[
+            styles.feedbackInput,
+            {
+              backgroundColor: colors.background.secondary,
+              borderColor: colors.border.light,
+              color: colors.text.primary,
+            },
+          ]}
+          placeholder="What could be improved? (optional)"
+          placeholderTextColor={colors.text.tertiary}
+          value={feedbackText}
+          onChangeText={setFeedbackText}
+          multiline
+          numberOfLines={3}
+          textAlignVertical="top"
+        />
+
+        <TouchableOpacity
+          style={styles.cancelFeedbackButton}
+          onPress={() => {
+            setShowFeedbackInput(false);
+            setFeedbackText('');
+          }}
+        >
+          <Text variant="caption" style={{ color: colors.text.secondary }}>
+            Cancel feedback
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   if (!subscription) return null;
@@ -303,6 +468,8 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
                 />
               </View>
 
+              {renderFeedbackSection()}
+
               <View style={styles.buttonsContainer}>
                 <Button
                   title="Reject"
@@ -312,7 +479,7 @@ export const SubscriptionConfirmationModal: React.FC<SubscriptionConfirmationMod
                   disabled={isLoading}
                 />
                 <Button
-                  title={isLoading ? 'Saving...' : 'Confirm'}
+                  title={isLoading ? 'Saving...' : 'Confirm and Save'}
                   variant="primary"
                   onPress={() => handleSubmit()}
                   style={styles.confirmButton}
@@ -393,5 +560,43 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 20,
+  },
+  feedbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  feedbackSection: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  feedbackInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    height: 80,
+  },
+  feedbackTypeContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 8,
+  },
+  feedbackTypeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+  },
+  cancelFeedbackButton: {
+    alignSelf: 'flex-end',
+    padding: 8,
+    marginTop: 4,
   },
 });

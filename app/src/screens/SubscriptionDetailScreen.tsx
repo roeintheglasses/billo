@@ -17,6 +17,7 @@ import { Subscription } from '../types/supabase';
 import { formatDate } from '../utils/dateUtils';
 import { BillingCycle } from '../services/subscriptionService';
 import { TabParamList } from '../navigation/navigationTypes';
+import { FeedbackModal } from '../components/molecules/FeedbackModal';
 
 // Define the route params type
 type DetailRouteParams = {
@@ -39,6 +40,7 @@ const SubscriptionDetailScreen = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
 
   const subscriptionId = route.params?.subscriptionId;
 
@@ -160,6 +162,17 @@ const SubscriptionDetailScreen = () => {
     return 'Active';
   };
 
+  const handleFeedbackPress = () => {
+    setFeedbackModalVisible(true);
+  };
+
+  const handleFeedbackSuccess = () => {
+    Alert.alert(
+      'Thank You',
+      'Your feedback has been submitted and will help us improve our detection algorithms.'
+    );
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
@@ -192,6 +205,10 @@ const SubscriptionDetailScreen = () => {
         <Text variant="heading1" style={styles.title}>
           {subscription.name}
         </Text>
+
+        <TouchableOpacity style={styles.feedbackButton} onPress={handleFeedbackPress}>
+          <Ionicons name="chatbubble-ellipses-outline" size={24} color={theme.colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView}>
@@ -315,6 +332,13 @@ const SubscriptionDetailScreen = () => {
           </View>
         </View>
       </ScrollView>
+
+      <FeedbackModal
+        visible={feedbackModalVisible}
+        onClose={() => setFeedbackModalVisible(false)}
+        onSubmitSuccess={handleFeedbackSuccess}
+        subscriptionId={subscription.id}
+      />
     </View>
   );
 };
@@ -407,6 +431,9 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     marginHorizontal: 8,
+  },
+  feedbackButton: {
+    padding: 8,
   },
 });
 

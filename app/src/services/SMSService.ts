@@ -13,6 +13,7 @@ import subscriptionService from './subscriptionService';
 import { supabase } from './supabase';
 import { SubscriptionMessageInsert, SubscriptionInsert } from '../types/supabase';
 import logger from '../utils/logger';
+import { isMessageDuplicate, calculateMessageFingerprint } from '../utils/duplicateDetectionUtils';
 
 /**
  * Interface for SMS message object returned from native code
@@ -92,6 +93,33 @@ class SMSService {
         const messageBody = data.body || data.messageBody;
         const senderAddress = data.address || data.senderPhoneNumber;
 
+        // Get current user
+        const { data: userData } = await supabase.auth.getSession();
+        if (!userData?.session?.user) {
+          logger.warn('No authenticated user found, cannot process SMS');
+          return;
+        }
+
+        const userId = userData.session.user.id;
+
+        // Generate a fingerprint for message deduplication
+        const messageFingerprint = calculateMessageFingerprint(messageBody);
+
+        // Check if this message has been processed before
+        const { data: existingMessages } = await supabase
+          .from('subscription_messages')
+          .select('*')
+          .eq('user_id', userId);
+
+        const isDuplicate = isMessageDuplicate(messageBody, existingMessages || []);
+        if (isDuplicate) {
+          logger.info('Duplicate SMS message detected, skipping processing', {
+            fingerprint: messageFingerprint,
+            sender: senderAddress,
+          });
+          return;
+        }
+
         // Use the enhanced pattern analysis
         const analysisResult = analyzeSubscriptionText(messageBody, senderAddress);
 
@@ -142,56 +170,82 @@ class SMSService {
             patternType: analysisResult.patternType,
           });
 
-          // Get current user
-          const { data: userData } = await supabase.auth.getSession();
-          if (userData?.session?.user) {
-            const userId = userData.session.user.id;
+          try {
+            // Store subscription message in database with all the extracted data
+            const extractedData = {
+              ...analysisResult.extractedData,
+              original_sms_id: data._id?.toString(),
+              message_source: 'sms_listener',
+              confidence: analysisResult.confidence,
+              pattern_type: analysisResult.patternType,
+              currency: analysisResult.extractedData.currency || 'USD',
+              next_billing_date: analysisResult.extractedData.nextBillingDate,
+              fingerprint: messageFingerprint, // Add fingerprint for deduplication
+            };
 
-            try {
-              // Store subscription message in database with all the extracted data
-              const extractedData = {
-                ...analysisResult.extractedData,
-                original_sms_id: data._id?.toString(),
-                message_source: 'sms_listener',
-                confidence: analysisResult.confidence,
-                pattern_type: analysisResult.patternType,
-                currency: analysisResult.extractedData.currency || 'USD',
-                next_billing_date: analysisResult.extractedData.nextBillingDate,
-              };
+            const savedMessage = await subscriptionMessageService.createSMSDetectionMessage(
+              userId,
+              senderAddress,
+              messageBody,
+              extractedData,
+              data._id?.toString(),
+              analysisResult.confidence / 100 // Convert 0-100 to 0-1 range
+            );
 
-              const savedMessage = await subscriptionMessageService.createSMSDetectionMessage(
-                userId,
-                senderAddress,
-                messageBody,
-                extractedData,
-                data._id?.toString(),
-                analysisResult.confidence / 100 // Convert 0-100 to 0-1 range
-              );
+            logger.info('Created subscription message from SMS listener', {
+              messageId: savedMessage.id,
+              confidence: analysisResult.confidence,
+              patternType: analysisResult.patternType,
+            });
 
-              logger.info('Created subscription message from SMS listener', {
-                messageId: savedMessage.id,
-                confidence: analysisResult.confidence,
-                patternType: analysisResult.patternType,
-              });
+            // If we have both service name and price, create a potential subscription
+            if (analysisResult.extractedData.serviceName && analysisResult.extractedData.price) {
+              try {
+                // Create subscription with enhanced data
+                const subscriptionData: SubscriptionInsert = {
+                  user_id: userId,
+                  name: analysisResult.extractedData.serviceName,
+                  amount: analysisResult.extractedData.price,
+                  billing_cycle: analysisResult.extractedData.billingCycle || 'monthly', // Default to monthly if not detected
+                  start_date: new Date().toISOString().split('T')[0],
+                  source_type: 'sms',
+                  auto_detected: true,
+                  next_billing_date: analysisResult.extractedData.nextBillingDate || null,
+                };
 
-              // If we have both service name and price, create a potential subscription
-              if (analysisResult.extractedData.serviceName && analysisResult.extractedData.price) {
-                try {
-                  // Create subscription with enhanced data
-                  const subscriptionData: SubscriptionInsert = {
-                    user_id: userId,
-                    name: analysisResult.extractedData.serviceName,
-                    amount: analysisResult.extractedData.price,
-                    billing_cycle: analysisResult.extractedData.billingCycle || 'monthly', // Default to monthly if not detected
-                    start_date: new Date().toISOString().split('T')[0],
-                    source_type: 'sms',
-                    auto_detected: true,
-                    next_billing_date: analysisResult.extractedData.nextBillingDate || null,
-                    currency: analysisResult.extractedData.currency || 'USD',
-                  };
+                // Check for duplicates when creating subscription
+                const result = await subscriptionService.createSubscriptionWithDuplicateCheck(
+                  subscriptionData,
+                  true, // Check for duplicates
+                  false // Don't auto merge, we'll show UI for user to decide
+                );
 
-                  const savedSubscription =
-                    await subscriptionService.createSubscription(subscriptionData);
+                // Check if we got a subscription with duplicates
+                if ('subscription' in result && 'duplicates' in result) {
+                  const { subscription: savedSubscription, duplicates } = result;
+
+                  // Link message to subscription
+                  await subscriptionMessageService.linkMessageToSubscription(
+                    savedMessage.id,
+                    savedSubscription.id
+                  );
+
+                  // Emit an event with duplicate information
+                  DeviceEventEmitter.emit('duplicateSubscriptionDetected', {
+                    subscription: savedSubscription,
+                    duplicates: duplicates.duplicates,
+                    confidence: duplicates.confidence,
+                  });
+
+                  logger.info('Created subscription with duplicates from SMS listener', {
+                    subscriptionId: savedSubscription.id,
+                    messageId: savedMessage.id,
+                    duplicatesCount: duplicates.duplicates.length,
+                    confidence: duplicates.confidence,
+                  });
+                } else {
+                  // No duplicates, just a regular subscription
+                  const savedSubscription = result;
 
                   // Link message to subscription
                   await subscriptionMessageService.linkMessageToSubscription(
@@ -204,13 +258,13 @@ class SMSService {
                     messageId: savedMessage.id,
                     confidence: analysisResult.confidence,
                   });
-                } catch (error) {
-                  logger.error('Failed to create subscription from SMS listener', error);
                 }
+              } catch (error) {
+                logger.error('Failed to create subscription from SMS listener', error);
               }
-            } catch (error) {
-              logger.error('Failed to store subscription message from SMS listener', error);
             }
+          } catch (error) {
+            logger.error('Failed to store subscription message from SMS listener', error);
           }
         }
       } catch (error) {
@@ -357,7 +411,6 @@ class SMSService {
                     source_type: 'sms',
                     auto_detected: true,
                     next_billing_date: analysisResult.extractedData.nextBillingDate || null,
-                    currency: analysisResult.extractedData.currency || 'USD',
                   };
 
                   const savedSubscription =

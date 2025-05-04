@@ -291,6 +291,47 @@ export interface Database {
           updated_at?: string;
         };
       };
+      user_feedback: {
+        Row: {
+          id: string;
+          user_id: string;
+          subscription_id: string | null;
+          message_id: string | null;
+          feedback_type: string;
+          description: string;
+          accuracy_rating: number | null;
+          source_screen: string;
+          metadata: Json | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          subscription_id?: string | null;
+          message_id?: string | null;
+          feedback_type: string;
+          description: string;
+          accuracy_rating?: number | null;
+          source_screen: string;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          subscription_id?: string | null;
+          message_id?: string | null;
+          feedback_type?: string;
+          description?: string;
+          accuracy_rating?: number | null;
+          source_screen?: string;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       subscription_with_messages: {
@@ -445,4 +486,13 @@ export interface SpendingAnalytics {
     period: string;
     amount: number;
   }[];
+}
+
+// User Feedback-related types
+export type UserFeedback = Database['public']['Tables']['user_feedback']['Row'];
+export type UserFeedbackInsert = Database['public']['Tables']['user_feedback']['Insert'];
+export type UserFeedbackUpdate = Database['public']['Tables']['user_feedback']['Update'];
+
+export interface SubscriptionWithFeedback extends Subscription {
+  feedback?: UserFeedback[];
 }
