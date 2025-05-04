@@ -26,6 +26,31 @@ export const BILLING_CYCLES = ['monthly', 'yearly', 'weekly', 'quarterly', 'bian
 export type BillingCycle = typeof BILLING_CYCLES[number];
 
 /**
+ * Normalize subscription amount to a monthly value
+ * 
+ * @param amount The subscription amount
+ * @param billingCycle The billing cycle
+ * @returns The equivalent monthly amount
+ */
+export const normalizeAmountToMonthly = (amount: number, billingCycle: string): number => {
+  switch (billingCycle) {
+    case 'weekly':
+      return amount * 4.33; // Average weeks in a month
+    case 'yearly':
+      return amount / 12;
+    case 'quarterly':
+      return amount / 3;
+    case 'biannually':
+      return amount / 6;
+    case 'monthly':
+      return amount;
+    default:
+      logger.warn(`Unknown billing cycle: ${billingCycle}, treating as monthly`);
+      return amount;
+  }
+};
+
+/**
  * Calculates the next billing date based on the start date and billing cycle
  * 
  * @param startDate The start date of the subscription
@@ -394,24 +419,7 @@ export const calculateTotalMonthlySpend = errorHandler.withErrorHandling(
     
     return subscriptions.reduce((total, subscription) => {
       // Convert all billing cycles to monthly equivalent
-      let monthlyAmount = subscription.amount;
-      
-      switch (subscription.billing_cycle) {
-        case 'weekly':
-          monthlyAmount = subscription.amount * 4.33; // Average weeks in a month
-          break;
-        case 'yearly':
-          monthlyAmount = subscription.amount / 12;
-          break;
-        case 'quarterly':
-          monthlyAmount = subscription.amount / 3;
-          break;
-        case 'biannually':
-          monthlyAmount = subscription.amount / 6;
-          break;
-        // Monthly is already correct
-      }
-      
+      let monthlyAmount = normalizeAmountToMonthly(subscription.amount, subscription.billing_cycle);
       return total + monthlyAmount;
     }, 0);
   },
@@ -452,23 +460,7 @@ export const calculateSpendingByCategory = errorHandler.withErrorHandling(
     for (const { category, subscriptions } of categoryMap.values()) {
       const totalAmount = subscriptions.reduce((sum, subscription) => {
         // Convert to monthly amount
-        let monthlyAmount = subscription.amount;
-        
-        switch (subscription.billing_cycle) {
-          case 'weekly':
-            monthlyAmount = subscription.amount * 4.33;
-            break;
-          case 'yearly':
-            monthlyAmount = subscription.amount / 12;
-            break;
-          case 'quarterly':
-            monthlyAmount = subscription.amount / 3;
-            break;
-          case 'biannually':
-            monthlyAmount = subscription.amount / 6;
-            break;
-        }
-        
+        let monthlyAmount = normalizeAmountToMonthly(subscription.amount, subscription.billing_cycle);
         return sum + monthlyAmount;
       }, 0);
       
@@ -480,6 +472,88 @@ export const calculateSpendingByCategory = errorHandler.withErrorHandling(
     
     // Sort by amount (highest first)
     return result.sort((a, b) => b.amount - a.amount);
+  },
+  'Subscription'
+);
+
+/**
+ * Calculate the spending for a specific time period
+ * 
+ * @param startDate The start date of the period (YYYY-MM-DD)
+ * @param endDate The end date of the period (YYYY-MM-DD)
+ * @returns Promise resolving to the total amount spent in the period
+ */
+export const calculateSpendForPeriod = errorHandler.withErrorHandling(
+  async (startDate: string, endDate: string): Promise<number> => {
+    // Validate input dates
+    if (!startDate || !endDate) {
+      throw new Error('Start date and end date are required');
+    }
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new Error('Invalid date format. Use YYYY-MM-DD format');
+    }
+    
+    if (start > end) {
+      throw new Error('Start date must be before end date');
+    }
+    
+    // Get all subscriptions
+    const subscriptions = await getSubscriptions();
+    
+    // Calculate the total spending for the period
+    let totalSpent = 0;
+    
+    for (const subscription of subscriptions) {
+      const subscriptionStartDate = new Date(subscription.start_date);
+      
+      // Skip if subscription starts after the period ends
+      if (subscriptionStartDate > end) {
+        continue;
+      }
+      
+      // Calculate how many times the subscription was billed in this period
+      const billingDates = [];
+      let currentDate = new Date(subscriptionStartDate);
+      
+      // Generate all billing dates for this subscription within the period
+      while (currentDate <= end) {
+        if (currentDate >= start) {
+          billingDates.push(new Date(currentDate));
+        }
+        
+        // Move to next billing date based on cycle
+        switch (subscription.billing_cycle) {
+          case 'weekly':
+            currentDate.setDate(currentDate.getDate() + 7);
+            break;
+          case 'monthly':
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+          case 'quarterly':
+            currentDate.setMonth(currentDate.getMonth() + 3);
+            break;
+          case 'biannually':
+            currentDate.setMonth(currentDate.getMonth() + 6);
+            break;
+          case 'yearly':
+            currentDate.setFullYear(currentDate.getFullYear() + 1);
+            break;
+          default:
+            // Skip unknown billing cycles
+            logger.warn(`Unknown billing cycle: ${subscription.billing_cycle} for subscription ${subscription.id}`);
+            currentDate = new Date(end.getTime() + 1); // Exit the loop
+        }
+      }
+      
+      // Add subscription cost for each billing date in the period
+      totalSpent += subscription.amount * billingDates.length;
+    }
+    
+    return totalSpent;
   },
   'Subscription'
 );
@@ -496,6 +570,7 @@ export default {
   deleteSubscription,
   calculateTotalMonthlySpend,
   calculateSpendingByCategory,
+  calculateSpendForPeriod,
   calculateNextBillingDate,
-  BILLING_CYCLES
+  normalizeAmountToMonthly
 }; 
