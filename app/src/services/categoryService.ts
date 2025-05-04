@@ -274,6 +274,73 @@ export const createDefaultCategoriesForUser = async (userId: string): Promise<Ca
   }
 };
 
+/**
+ * Create default categories if they don't exist
+ * 
+ * @returns The created default categories
+ */
+export const createDefaultCategories = async (): Promise<Category[]> => {
+  try {
+    // Check if default categories already exist
+    const { data: existingCategories, error: checkError } = await supabase
+      .from("categories")
+      .select("*")
+      .eq("is_default", true);
+
+    if (checkError) {
+      throw new Error(checkError.message);
+    }
+
+    // If default categories already exist, return them
+    if (existingCategories && existingCategories.length > 0) {
+      return existingCategories;
+    }
+
+    // Define default categories
+    const defaultCategories = [
+      {
+        name: "Entertainment",
+        icon: "film",
+        color: "#FF5252",
+        is_default: true,
+      },
+      {
+        name: "Software",
+        icon: "code",
+        color: "#2196F3",
+        is_default: true,
+      },
+      {
+        name: "Utilities",
+        icon: "home",
+        color: "#4CAF50",
+        is_default: true,
+      },
+      {
+        name: "Shopping",
+        icon: "shopping-cart",
+        color: "#FFC107",
+        is_default: true,
+      },
+    ];
+
+    // Insert default categories
+    const { data, error } = await supabase
+      .from("categories")
+      .insert(defaultCategories)
+      .select();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error("Error creating default categories:", error);
+    throw error;
+  }
+};
+
 export default {
   getCategories,
   getCategoryById,
