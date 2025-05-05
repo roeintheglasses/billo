@@ -14,6 +14,8 @@ import { TabParamList } from './navigationTypes';
 import { useTheme } from '../contexts/ThemeContext';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import SubscriptionsScreen from '../screens/SubscriptionsScreen';
+import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
+import NotificationCenterScreen from '../screens/NotificationCenterScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -117,6 +119,24 @@ export const TabNavigator = () => {
         options={{
           tabBarButton: () => null,
           headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="NotificationCenter"
+        component={NotificationCenterScreen}
+        options={{
+          tabBarButton: () => null,
+          headerShown: false,
+          title: 'Notifications',
+        }}
+      />
+      <Tab.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
+        options={{
+          tabBarButton: () => null,
+          headerShown: false,
+          title: 'Notification Settings',
         }}
       />
     </Tab.Navigator>

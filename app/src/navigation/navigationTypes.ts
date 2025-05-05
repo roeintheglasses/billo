@@ -26,6 +26,8 @@ export type TabParamList = {
   SubscriptionDetail: { subscriptionId: string };
   EditSubscription: { subscriptionId: string };
   CategoryManagement: undefined;
+  NotificationCenter: undefined;
+  NotificationSettings: undefined;
 };
 
 // Root navigator types that includes both Auth and Tabs

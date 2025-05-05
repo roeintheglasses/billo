@@ -2,7 +2,7 @@
   "expo": {
     "name": "Billo",
     "slug": "billo",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -13,32 +13,64 @@
       "backgroundColor": "#ffffff"
     },
     "description": "Subscription management app for Android",
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.billo",
+      "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "permissions": [
-        "READ_SMS",
-        "RECEIVE_SMS"
+      "intentFilters": [
+        {
+          "action": "android.intent.action.SEND",
+          "data": {
+            "mimeType": "text/plain"
+          },
+          "category": ["android.intent.category.DEFAULT"]
+        }
       ],
-      "package": "com.billo.app"
+      "permissions": ["RECEIVE_SMS"],
+      "package": "com.billo.app",
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "router": {
+        "origin": false
+      },
       "eas": {
         "projectId": "billo-app"
       }
     },
     "plugins": [
       "./plugins/withSmsModule.js",
-      "./plugins/withSMSScannerModule.js"
-    ]
+      "./plugins/withSMSScannerModule.js",
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#ffffff",
+          "sounds": ["./assets/notification-sound.wav"]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#1D77D9",
+      "androidMode": "default",
+      "androidCollapsedTitle": "#{unread_notifications} new notifications",
+      "iosDisplayInForeground": true
+    }
   }
 }
