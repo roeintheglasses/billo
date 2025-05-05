@@ -40,7 +40,7 @@ module.exports = ({ config }) => {
       supabaseUrl: SUPABASE_URL || defaultSupabaseUrl,
       supabaseAnonKey: SUPABASE_ANON_KEY || defaultSupabaseAnonKey,
       eas: {
-        projectId: 'your-project-id',
+        projectId: 'bab82c4e-3feb-4765-8a70-dc2bc99c6b11',
       },
     },
     plugins: [

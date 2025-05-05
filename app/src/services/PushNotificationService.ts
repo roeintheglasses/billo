@@ -23,7 +23,8 @@ const DEFAULT_CHANNEL_ID = 'default';
 // The channel for high priority notifications
 const HIGH_PRIORITY_CHANNEL_ID = 'high-priority';
 // Project ID from app.json
-const PROJECT_ID = Constants?.expoConfig?.extra?.eas?.projectId || 'billo-app';
+const PROJECT_ID =
+  Constants?.expoConfig?.extra?.eas?.projectId || 'bab82c4e-3feb-4765-8a70-dc2bc99c6b11';
 
 // Notification category identifiers
 export enum NotificationCategory {
@@ -426,7 +427,7 @@ export class PushNotificationService {
         return undefined;
       }
 
-      // Get the Expo push token
+      // Get the Expo push token - using only projectId, not experienceId
       this.expoPushToken = await Notifications.getExpoPushTokenAsync({
         projectId: PROJECT_ID,
       });
