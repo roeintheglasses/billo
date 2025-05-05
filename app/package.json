@@ -43,7 +43,6 @@
     "expo-status-bar": "~2.2.3",
     "expo-task-manager": "^13.1.5",
     "formik": "^2.4.6",
-    "node-schedule": "^2.1.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.2",
@@ -56,14 +55,14 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
     "styled-components": "^6.1.17",
-    "yup": "^1.6.1"
+    "yup": "^1.6.1",
+    "expo-linking": "~7.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.26.0",
     "@types/jest": "^29.5.14",
-    "@types/node-schedule": "^2.1.7",
     "@types/react": "~19.0.10",
     "@types/react-native-vector-icons": "^6.4.18",
     "@types/uuid": "^10.0.0",
