@@ -17,7 +17,7 @@ export enum PermissionState {
  * Permission types supported by the application
  */
 export enum PermissionType {
-  SMS = 'SMS',
+  SMS = 'READ_SMS',
   CAMERA = 'CAMERA',
 }
 

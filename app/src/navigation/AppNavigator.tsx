@@ -70,7 +70,7 @@ export const AppNavigator = () => {
 
       return null;
     },
-    subscribe(listener) {
+    subscribe(listener: (url: string) => void) {
       // Listen to incoming links when app is already open
       const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
         // Try our custom handler first
@@ -110,6 +110,7 @@ export const AppNavigator = () => {
         ref={navigationRef}
         linking={linking}
         onReady={() => {
+          // @ts-ignore - isReady property is added at runtime
           NavigationService.isReady = true;
         }}
         fallback={

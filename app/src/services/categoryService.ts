@@ -35,11 +35,11 @@ export const isValidIcon = (icon: string): boolean => {
   // Valid icon names - this would ideally be imported from a config file
   const validIcons = [
     'film',
-    'utility-pole',
+    'build',
     'code',
     'heart',
     'pizza',
-    'question',
+    'medical',
     'shopping-cart',
     'home',
     'music',
@@ -256,7 +256,7 @@ export const createDefaultCategoriesForUser = async (userId: string): Promise<Ca
       { name: 'Entertainment', icon: 'film', color: '#FF5733', user_id: userId, is_default: true },
       {
         name: 'Utilities',
-        icon: 'utility-pole',
+        icon: 'build',
         color: '#33FFF6',
         user_id: userId,
         is_default: true,
@@ -264,7 +264,7 @@ export const createDefaultCategoriesForUser = async (userId: string): Promise<Ca
       { name: 'Software', icon: 'code', color: '#337DFF', user_id: userId, is_default: true },
       { name: 'Health', icon: 'heart', color: '#FF33E6', user_id: userId, is_default: true },
       { name: 'Food', icon: 'pizza', color: '#76FF33', user_id: userId, is_default: true },
-      { name: 'Other', icon: 'question', color: '#A233FF', user_id: userId, is_default: true },
+      { name: 'Other', icon: 'medical', color: '#A233FF', user_id: userId, is_default: true },
     ];
 
     const { data, error } = await supabase.from('categories').insert(defaultCategories).select();

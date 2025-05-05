@@ -31,6 +31,8 @@ module.exports = ({ config }) => {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
+      permissions: ['RECEIVE_SMS', 'READ_SMS'],
+      package: 'com.billo.app',
     },
     web: {
       favicon: './assets/favicon.png',

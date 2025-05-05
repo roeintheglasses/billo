@@ -460,37 +460,56 @@ export class PushNotificationService {
 
       // Check if token already exists
       const { data: existingToken, error: queryError } = await supabase
-        .from('device_tokens')
+        .from('user_push_tokens')
         .select('*')
         .eq('token', token)
         .eq('user_id', userId)
         .maybeSingle();
 
       if (queryError) {
-        throw queryError;
+        // Table might not exist, log the error but don't fail
+        console.log('Error querying user_push_tokens table:', queryError.message);
+        return;
       }
 
       if (!existingToken) {
         // Insert new token
-        const { error: insertError } = await supabase.from('device_tokens').insert({
+        const { error: insertError } = await supabase.from('user_push_tokens').insert({
           user_id: userId,
           token: token,
           device_type: Platform.OS,
+          device_id: Device.deviceName || 'unknown',
+          device_name: Device.modelName || 'unknown',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
 
         if (insertError) {
-          throw insertError;
+          // Table might not exist, log the error but don't fail
+          console.log('Error inserting device token:', insertError.message);
+          return;
         }
 
         console.log('Push token saved to database');
       } else {
-        console.log('Push token already exists in database');
+        // Update last_used_at timestamp
+        const { error: updateError } = await supabase
+          .from('user_push_tokens')
+          .update({
+            updated_at: new Date().toISOString(),
+            last_used_at: new Date().toISOString(),
+          })
+          .eq('id', existingToken.id);
+
+        if (updateError) {
+          console.log('Error updating token last used time:', updateError.message);
+        } else {
+          console.log('Push token last used time updated');
+        }
       }
     } catch (error) {
+      // Log the error but don't rethrow, to prevent app crashes
       console.error('Failed to save push token:', error);
-      throw error;
     }
   }
 

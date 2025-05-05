@@ -41,7 +41,7 @@
           }
         }
       ],
-      "permissions": ["RECEIVE_SMS"],
+      "permissions": ["RECEIVE_SMS", "READ_SMS"],
       "package": "com.billo.app",
       "googleServicesFile": "./google-services.json",
       "versionCode": 1
@@ -81,6 +81,6 @@
       "iosDisplayInForeground": true
     },
     "scheme": "billo",
-    "owner": "billo"
+    "owner": "roeintheglasses"
   }
 }
