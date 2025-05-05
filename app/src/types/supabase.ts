@@ -427,6 +427,23 @@ export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
 export type NotificationUpdate = Database['public']['Tables']['notifications']['Update'];
 
+// Extend notification types with our custom fields
+export interface ExtendedNotificationInsert extends NotificationInsert {
+  scheduled_for?: string;
+  status?: string;
+  related_entity_id?: string;
+  related_entity_type?: string;
+  deep_link_url?: string;
+}
+
+export interface ExtendedNotificationUpdate extends NotificationUpdate {
+  scheduled_for?: string;
+  status?: string;
+  related_entity_id?: string;
+  related_entity_type?: string;
+  deep_link_url?: string;
+}
+
 // Dark Pattern-related types
 export type DarkPattern = Database['public']['Tables']['dark_patterns']['Row'];
 export type DarkPatternInsert = Database['public']['Tables']['dark_patterns']['Insert'];

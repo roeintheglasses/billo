@@ -7,7 +7,13 @@
  */
 
 import { supabase } from './supabase';
-import { Notification, NotificationInsert, NotificationUpdate } from '../types/supabase';
+import {
+  Notification,
+  NotificationInsert,
+  NotificationUpdate,
+  ExtendedNotificationInsert,
+  ExtendedNotificationUpdate,
+} from '../types/supabase';
 
 /**
  * Enum for notification types
@@ -18,6 +24,7 @@ export enum NotificationType {
   SUBSCRIPTION_UPDATED = 'subscription_updated',
   PAYMENT_REMINDER = 'payment_reminder',
   PRICE_CHANGE = 'price_change',
+  CANCELLATION_DEADLINE = 'cancellation_deadline',
   SYSTEM = 'system',
 }
 
@@ -36,6 +43,16 @@ export enum NotificationPriority {
 export interface NotificationWithMeta extends Notification {
   relatedEntityData?: Record<string, any>;
   actionButtons?: Array<{ label: string; action: string }>;
+}
+
+/**
+ * Extended notification interface with scheduling and relationship data
+ */
+export interface NotificationExtended extends Notification {
+  scheduledFor?: string | null;
+  relatedEntityId?: string | null;
+  relatedEntityType?: 'subscription' | 'payment' | 'other' | null;
+  deepLinkUrl?: string | null;
 }
 
 /**
@@ -459,6 +476,297 @@ export const createSystemNotification = async (
   });
 };
 
+/**
+ * Schedule a notification for future delivery
+ *
+ * @param notification The notification data to insert
+ * @returns Promise resolving to the created Notification
+ */
+export const scheduleNotification = async (
+  notification: ExtendedNotificationInsert
+): Promise<Notification> => {
+  // Validate the scheduled time is in the future
+  if (notification.scheduled_for) {
+    const scheduledTime = new Date(notification.scheduled_for);
+    if (scheduledTime <= new Date()) {
+      throw new Error('Scheduled time must be in the future');
+    }
+  }
+
+  // Set default status if not provided
+  const status = notification.status || 'pending';
+
+  // Build metadata object safely
+  const existingMetadata =
+    typeof notification.metadata === 'object' && notification.metadata !== null
+      ? notification.metadata
+      : {};
+
+  const metadataObject = {
+    ...(existingMetadata as Record<string, any>),
+    status,
+    scheduled_for: notification.scheduled_for,
+    related_entity_id: notification.related_entity_id,
+    related_entity_type: notification.related_entity_type,
+    deep_link_url: notification.deep_link_url,
+  };
+
+  // Create a clean notification object with only the fields we know exist in NotificationInsert
+  const notificationToCreate: NotificationInsert = {
+    user_id: notification.user_id,
+    title: notification.title,
+    message: notification.message,
+    type: notification.type,
+    is_read: notification.is_read,
+    priority: notification.priority,
+    link_url: notification.link_url,
+    metadata: metadataObject,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  return createNotification(notificationToCreate);
+};
+
+/**
+ * Get notifications by related entity
+ *
+ * @param entityId The ID of the related entity
+ * @param entityType The type of the related entity
+ * @param userId The user ID to get notifications for
+ * @param options Optional query options
+ * @returns Promise resolving to an array of Notification objects
+ */
+export const getNotificationsByRelatedEntity = async (
+  entityId: string,
+  entityType: string,
+  userId: string,
+  options: {
+    limit?: number;
+    includeRead?: boolean;
+  } = {}
+): Promise<Notification[]> => {
+  try {
+    const { limit, includeRead = true } = options;
+
+    let query = supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('related_entity_id', entityId)
+      .eq('related_entity_type', entityType)
+      .order('created_at', { ascending: false });
+
+    if (!includeRead) {
+      query = query.eq('is_read', false);
+    }
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error: any) {
+    console.error('Error fetching notifications by related entity:', error.message);
+    throw new Error(`Failed to fetch notifications by related entity: ${error.message}`);
+  }
+};
+
+/**
+ * Create a cancellation deadline notification
+ *
+ * @param userId The user ID to create the notification for
+ * @param subscriptionId The ID of the subscription
+ * @param subscriptionName The name of the subscription
+ * @param deadlineDate The cancellation deadline date
+ * @param priority The priority of the notification
+ * @returns Promise resolving to the created Notification
+ */
+export const createCancellationDeadlineNotification = async (
+  userId: string,
+  subscriptionId: string,
+  subscriptionName: string,
+  deadlineDate: Date,
+  priority: NotificationPriority = NotificationPriority.MEDIUM
+): Promise<Notification> => {
+  const daysUntilDeadline = Math.ceil(
+    (deadlineDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24)
+  );
+
+  const deepLinkUrl = `/subscriptions/${subscriptionId}`;
+
+  return createNotification({
+    user_id: userId,
+    title: 'Cancellation Deadline Approaching',
+    message: `You have ${daysUntilDeadline} days left to cancel your ${subscriptionName} subscription before renewal.`,
+    type: NotificationType.CANCELLATION_DEADLINE,
+    is_read: false,
+    priority,
+    metadata: {
+      related_entity_id: subscriptionId,
+      related_entity_type: 'subscription',
+      deep_link_url: deepLinkUrl,
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+};
+
+/**
+ * Create a payment reminder notification
+ *
+ * @param userId The user ID to create the notification for
+ * @param paymentId The ID of the payment
+ * @param subscriptionName The name of the subscription
+ * @param dueDate The payment due date
+ * @param amount The payment amount
+ * @param priority The priority of the notification
+ * @returns Promise resolving to the created Notification
+ */
+export const createPaymentReminderNotification = async (
+  userId: string,
+  paymentId: string,
+  subscriptionName: string,
+  dueDate: Date,
+  amount: number,
+  priority: NotificationPriority = NotificationPriority.MEDIUM
+): Promise<Notification> => {
+  const daysUntilDue = Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+
+  const deepLinkUrl = `/payments/${paymentId}`;
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+
+  const message =
+    daysUntilDue > 0
+      ? `Your payment of ${formattedAmount} for ${subscriptionName} is due in ${daysUntilDue} days.`
+      : `Your payment of ${formattedAmount} for ${subscriptionName} is due today.`;
+
+  return createNotification({
+    user_id: userId,
+    title: 'Payment Reminder',
+    message,
+    type: NotificationType.PAYMENT_REMINDER,
+    is_read: false,
+    priority,
+    metadata: {
+      related_entity_id: paymentId,
+      related_entity_type: 'payment',
+      deep_link_url: deepLinkUrl,
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+};
+
+/**
+ * Create a price change notification
+ *
+ * @param userId The user ID to create the notification for
+ * @param subscriptionId The ID of the subscription
+ * @param subscriptionName The name of the subscription
+ * @param oldPrice The old price
+ * @param newPrice The new price
+ * @param effectiveDate The date the price change takes effect
+ * @param priority The priority of the notification
+ * @returns Promise resolving to the created Notification
+ */
+export const createPriceChangeNotification = async (
+  userId: string,
+  subscriptionId: string,
+  subscriptionName: string,
+  oldPrice: number,
+  newPrice: number,
+  effectiveDate: Date,
+  priority: NotificationPriority = NotificationPriority.HIGH
+): Promise<Notification> => {
+  const deepLinkUrl = `/subscriptions/${subscriptionId}`;
+
+  const formattedOldPrice = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(oldPrice);
+
+  const formattedNewPrice = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(newPrice);
+
+  const effectiveDateFormatted = effectiveDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const priceChangePercent = Math.round(((newPrice - oldPrice) / oldPrice) * 100);
+  const priceChangeDirection = newPrice > oldPrice ? 'increase' : 'decrease';
+
+  return createNotification({
+    user_id: userId,
+    title: `Price Change for ${subscriptionName}`,
+    message: `Your subscription price will ${priceChangeDirection} from ${formattedOldPrice} to ${formattedNewPrice} (${Math.abs(priceChangePercent)}%) effective ${effectiveDateFormatted}.`,
+    type: NotificationType.PRICE_CHANGE,
+    is_read: false,
+    priority,
+    metadata: {
+      related_entity_id: subscriptionId,
+      related_entity_type: 'subscription',
+      deep_link_url: deepLinkUrl,
+      old_price: oldPrice,
+      new_price: newPrice,
+      effective_date: effectiveDate.toISOString(),
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+};
+
+/**
+ * Process due notifications - called by a scheduler or cron job
+ *
+ * @returns Promise resolving to the number of notifications processed
+ */
+export const processScheduledNotifications = async (): Promise<number> => {
+  try {
+    const now = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .lte('scheduled_for', now)
+      .eq('status', 'pending')
+      .limit(100);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      return 0;
+    }
+
+    // In a real implementation, this would send push notifications, emails, etc.
+    // For now, just mark them as sent
+    const notificationIds = data.map(n => n.id);
+
+    const { error: updateError } = await supabase
+      .from('notifications')
+      .update({ status: 'sent', updated_at: now })
+      .in('id', notificationIds);
+
+    if (updateError) throw updateError;
+
+    return data.length;
+  } catch (error: any) {
+    console.error('Error processing scheduled notifications:', error.message);
+    throw new Error(`Failed to process scheduled notifications: ${error.message}`);
+  }
+};
+
 export default {
   getNotifications,
   getNotificationsPaginated,
@@ -473,4 +781,10 @@ export default {
   groupNotificationsByDate,
   createSubscriptionDueNotification,
   createSystemNotification,
+  scheduleNotification,
+  getNotificationsByRelatedEntity,
+  createCancellationDeadlineNotification,
+  createPaymentReminderNotification,
+  createPriceChangeNotification,
+  processScheduledNotifications,
 };

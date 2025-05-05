@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AppNavigator } from './src/navigation';
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { StorageProvider } from './src/contexts/StorageContext';
 import { PermissionsProvider } from './src/contexts/PermissionsContext';
 import { SessionTimeoutDialog } from './src/components';
+import { initializeApp } from './src/services/initializeApp';
 
 /**
  * Main App component
@@ -20,6 +21,14 @@ import { SessionTimeoutDialog } from './src/components';
  * @returns {React.ReactElement} The root App component
  */
 export default function App() {
+  // Initialize app services
+  useEffect(() => {
+    // Initialize notification scheduler and other services
+    initializeApp().catch(error => {
+      console.error('Failed to initialize app:', error);
+    });
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>
