@@ -17,7 +17,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.billo",
-      "buildNumber": "1.0.0"
+      "buildNumber": "1.0.0",
+      "associatedDomains": ["applinks:billo.app"]
     },
     "android": {
       "adaptiveIcon": {
@@ -31,9 +32,16 @@
             "mimeType": "text/plain"
           },
           "category": ["android.intent.category.DEFAULT"]
+        },
+        {
+          "action": "android.intent.action.VIEW",
+          "category": ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"],
+          "data": {
+            "scheme": "billo"
+          }
         }
       ],
-      "permissions": ["RECEIVE_SMS"],
+      "permissions": ["RECEIVE_SMS", "READ_SMS"],
       "package": "com.billo.app",
       "googleServicesFile": "./google-services.json",
       "versionCode": 1
@@ -46,7 +54,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "billo-app"
+        "projectId": "bab82c4e-3feb-4765-8a70-dc2bc99c6b11"
       }
     },
     "plugins": [
@@ -71,6 +79,8 @@
       "androidMode": "default",
       "androidCollapsedTitle": "#{unread_notifications} new notifications",
       "iosDisplayInForeground": true
-    }
+    },
+    "scheme": "billo",
+    "owner": "roeintheglasses"
   }
 }

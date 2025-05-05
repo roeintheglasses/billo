@@ -16,6 +16,8 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import SubscriptionsScreen from '../screens/SubscriptionsScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import NotificationCenterScreen from '../screens/NotificationCenterScreen';
+import SMSSubscriptionsScreen from '../screens/SMSSubscriptionsScreen';
+import SMSScannerSettingsScreen from '../screens/SMSScannerSettingsScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -28,6 +30,13 @@ export const TabNavigator = () => {
   const { theme } = useTheme();
   const { colors } = theme;
 
+  // Common options for screens that shouldn't appear in the tab bar
+  const hiddenTabScreenOptions = {
+    tabBarButton: () => null,
+    tabBarShowLabel: false,
+    tabBarItemStyle: { display: 'none' as const },
+  };
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -37,6 +46,9 @@ export const TabNavigator = () => {
         tabBarStyle: {
           backgroundColor: colors.background.primary,
           borderTopColor: colors.border.light,
+          elevation: 8,
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
         },
         headerStyle: {
           backgroundColor: colors.background.primary,
@@ -44,6 +56,7 @@ export const TabNavigator = () => {
         headerTintColor: colors.text.primary,
       }}
     >
+      {/* Main Tab Bar Screens */}
       <Tab.Screen
         name="Home"
         component={HomeScreen}
@@ -63,7 +76,7 @@ export const TabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="AddSubscription"
+        name="Add"
         component={AddSubscriptionScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -72,11 +85,12 @@ export const TabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
+        name="SMSSubscriptions"
+        component={SMSSubscriptionsScreen}
         options={{
+          title: 'SMS Subscriptions',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" color={color} size={size} />
+            <Ionicons name="chatbox-outline" color={color} size={size} />
           ),
         }}
       />
@@ -89,11 +103,21 @@ export const TabNavigator = () => {
           ),
         }}
       />
+
+      {/* Hidden Screens - Not shown in tab bar */}
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          ...hiddenTabScreenOptions,
+          headerShown: true,
+        }}
+      />
       <Tab.Screen
         name="ChangePassword"
         component={ChangePasswordScreen}
         options={{
-          tabBarButton: () => null,
+          ...hiddenTabScreenOptions,
           headerShown: true,
         }}
       />
@@ -101,7 +125,7 @@ export const TabNavigator = () => {
         name="SubscriptionDetail"
         component={SubscriptionDetailScreen}
         options={{
-          tabBarButton: () => null,
+          ...hiddenTabScreenOptions,
           headerShown: false,
         }}
       />
@@ -109,7 +133,7 @@ export const TabNavigator = () => {
         name="EditSubscription"
         component={EditSubscriptionScreen}
         options={{
-          tabBarButton: () => null,
+          ...hiddenTabScreenOptions,
           headerShown: false,
         }}
       />
@@ -117,7 +141,7 @@ export const TabNavigator = () => {
         name="CategoryManagement"
         component={CategoryManagementScreen}
         options={{
-          tabBarButton: () => null,
+          ...hiddenTabScreenOptions,
           headerShown: false,
         }}
       />
@@ -125,7 +149,7 @@ export const TabNavigator = () => {
         name="NotificationCenter"
         component={NotificationCenterScreen}
         options={{
-          tabBarButton: () => null,
+          ...hiddenTabScreenOptions,
           headerShown: false,
           title: 'Notifications',
         }}
@@ -134,9 +158,18 @@ export const TabNavigator = () => {
         name="NotificationSettings"
         component={NotificationSettingsScreen}
         options={{
-          tabBarButton: () => null,
+          ...hiddenTabScreenOptions,
           headerShown: false,
           title: 'Notification Settings',
+        }}
+      />
+      <Tab.Screen
+        name="SMSScannerSettings"
+        component={SMSScannerSettingsScreen}
+        options={{
+          ...hiddenTabScreenOptions,
+          headerShown: true,
+          title: 'SMS Scanner Settings',
         }}
       />
     </Tab.Navigator>

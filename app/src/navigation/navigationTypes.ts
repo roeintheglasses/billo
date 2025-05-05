@@ -18,7 +18,7 @@ export type AuthStackParamList = {
 export type TabParamList = {
   Home: undefined;
   Subscriptions: undefined;
-  AddSubscription: undefined;
+  Add: undefined;
   Calendar: undefined;
   Profile: undefined;
   Settings: undefined;
@@ -28,11 +28,14 @@ export type TabParamList = {
   CategoryManagement: undefined;
   NotificationCenter: undefined;
   NotificationSettings: undefined;
+  SMSSubscriptions: undefined;
+  SMSScannerSettings: undefined;
 };
 
 // Root navigator types that includes both Auth and Tabs
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
+  Tabs: NavigatorScreenParams<TabParamList>;
   Main: NavigatorScreenParams<TabParamList>;
 };
 

@@ -45,7 +45,7 @@ const CategoryManagementScreen = () => {
     };
 
     loadCategories();
-  }, [fetchCategories]);
+  }, []);
 
   const handleAddCategory = () => {
     setSelectedCategory(null);

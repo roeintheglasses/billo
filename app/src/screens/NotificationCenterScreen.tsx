@@ -9,12 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 
 import NotificationCenter from '../components/organisms/NotificationCenter';
 import { useTheme } from '../contexts/ThemeContext';
-import { Notification } from '../types/supabase';
-import { TabParamList } from '../navigation/navigationTypes';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-// Define the navigation prop type
-type NotificationCenterNavigationProp = NativeStackNavigationProp<TabParamList>;
+import { NotificationCenterNavigationProp } from '../navigation/navigationTypes';
+import { ExtendedNotification } from '../types/supabase';
+import { DeepLinkService } from '../services/DeepLinkService';
 
 /**
  * NotificationCenterScreen component
@@ -28,24 +25,35 @@ const NotificationCenterScreen: React.FC = () => {
    * Handle notification press to navigate to the relevant screen
    */
   const handleNotificationPress = useCallback(
-    (notification: Notification) => {
-      // Handle navigation based on notification type and deep link
+    (notification: ExtendedNotification) => {
+      // If the notification has a link URL, use DeepLinkService to handle it
       if (notification.link_url) {
-        // Example: Parse deep link URL and navigate accordingly
-        // This would be expanded in a real implementation to handle various deep link formats
-
-        // Example: link_url format: "/subscriptions/{id}"
-        if (notification.link_url.startsWith('/subscriptions/')) {
-          const subscriptionId = notification.link_url.split('/subscriptions/')[1];
-          if (subscriptionId) {
-            navigation.navigate('SubscriptionDetail', { subscriptionId });
-            return;
-          }
-        }
-
-        // Add more deep link handling as needed
-        console.log(`Deep link not handled: ${notification.link_url}`);
+        DeepLinkService.handleDeepLink(notification.link_url);
+        return;
       }
+
+      // For backward compatibility, if no link_url but we have entity references
+      if (notification.related_entity_type && notification.related_entity_id) {
+        switch (notification.related_entity_type) {
+          case 'subscription':
+            navigation.navigate('SubscriptionDetail', {
+              subscriptionId: notification.related_entity_id,
+            });
+            return;
+          case 'payment':
+            // Navigate to payment detail when implemented
+            console.log(
+              `Should navigate to payment detail for ID: ${notification.related_entity_id}`
+            );
+            return;
+          default:
+            console.log(`Unknown entity type: ${notification.related_entity_type}`);
+            return;
+        }
+      }
+
+      // If no navigation info, just stay on current screen
+      console.log('No navigation info in notification:', notification);
     },
     [navigation]
   );

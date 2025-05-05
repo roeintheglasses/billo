@@ -126,17 +126,20 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
         <TouchableOpacity
           style={[styles.option, { borderBottomColor: colors.border.light }]}
-          onPress={() => navigation.navigate('Profile' as never)}
+          onPress={() => navigation.navigate('Profile')}
         >
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Profile</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.option, { borderBottomColor: colors.border.light }]}
-          onPress={() => navigation.navigate('ChangePassword' as never)}
+          onPress={() => navigation.navigate('ChangePassword')}
         >
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Change Password</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>
+        <TouchableOpacity
+          style={[styles.option, { borderBottomColor: colors.border.light }]}
+          onPress={() => navigation.navigate('SubscriptionPlan')}
+        >
           <Text style={[styles.optionText, { color: colors.text.primary }]}>Subscription Plan</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border.light }]}>

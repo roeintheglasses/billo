@@ -10,15 +10,8 @@ import { initializeApp } from './src/services/initializeApp';
 /**
  * Main App component
  *
- * Wraps the application with necessary providers:
- * - ThemeProvider: For theming and dark/light mode support
- * - AuthProvider: For authentication state management
- * - StorageProvider: For subscription data storage management (local/remote)
- * - PermissionsProvider: For handling app permissions, including SMS access
- *
- * Also includes the SessionTimeoutDialog for handling expiring sessions.
- *
- * @returns {React.ReactElement} The root App component
+ * Sets up the application with necessary providers, navigation,
+ * and initializes required services.
  */
 export default function App() {
   // Initialize app services

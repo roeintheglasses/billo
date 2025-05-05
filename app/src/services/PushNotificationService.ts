@@ -16,13 +16,42 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
 import { NotificationType, NotificationPriority } from './notificationService';
+import DeepLinkService from './DeepLinkService';
 
 // Define a notification channel for Android
 const DEFAULT_CHANNEL_ID = 'default';
 // The channel for high priority notifications
 const HIGH_PRIORITY_CHANNEL_ID = 'high-priority';
 // Project ID from app.json
-const PROJECT_ID = Constants?.expoConfig?.extra?.eas?.projectId || 'billo-app';
+const PROJECT_ID =
+  Constants?.expoConfig?.extra?.eas?.projectId || 'bab82c4e-3feb-4765-8a70-dc2bc99c6b11';
+
+// Notification category identifiers
+export enum NotificationCategory {
+  PAYMENT_REMINDER = 'payment_reminder',
+  SUBSCRIPTION_RENEWAL = 'subscription_renewal',
+  PRICE_CHANGE = 'price_change',
+  GENERAL = 'general',
+}
+
+// Notification action identifiers
+export enum NotificationAction {
+  MARK_PAID = 'mark_paid',
+  SNOOZE = 'snooze',
+  VIEW = 'view',
+  DISMISS = 'dismiss',
+}
+
+// Payload structure for push notification
+export interface PushNotificationPayload {
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+  badge?: number;
+  sound?: boolean;
+  channelId?: string;
+  categoryId?: string;
+}
 
 /**
  * Default notification behavior handler
@@ -36,16 +65,6 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
-
-export interface PushNotificationPayload {
-  title: string;
-  body: string;
-  data?: Record<string, any>;
-  badge?: number;
-  sound?: boolean | string;
-  channelId?: string;
-  categoryId?: string;
-}
 
 /**
  * Class to handle all push notification functionality
@@ -63,7 +82,7 @@ export class PushNotificationService {
   private constructor() {}
 
   /**
-   * Get the singleton instance of PushNotificationService
+   * Get or create the singleton instance
    */
   public static getInstance(): PushNotificationService {
     if (!PushNotificationService.instance) {
@@ -88,6 +107,9 @@ export class PushNotificationService {
       if (Platform.OS === 'android') {
         await this.createNotificationChannels();
       }
+
+      // Set up notification categories for actions
+      await this.createNotificationCategories();
 
       // Set up notification listeners
       this.setupNotificationListeners();
@@ -140,6 +162,90 @@ export class PushNotificationService {
   }
 
   /**
+   * Set up notification categories with action buttons
+   */
+  private async createNotificationCategories(): Promise<void> {
+    try {
+      // Payment reminder category with actions
+      await this.createNotificationCategory(NotificationCategory.PAYMENT_REMINDER, [
+        {
+          identifier: NotificationAction.MARK_PAID,
+          buttonTitle: 'Mark Paid',
+          options: {
+            isDestructive: false,
+            isAuthenticationRequired: false,
+          },
+        },
+        {
+          identifier: NotificationAction.SNOOZE,
+          buttonTitle: 'Snooze',
+          options: {
+            isDestructive: false,
+            isAuthenticationRequired: false,
+          },
+        },
+      ]);
+
+      // Subscription renewal category with actions
+      await this.createNotificationCategory(NotificationCategory.SUBSCRIPTION_RENEWAL, [
+        {
+          identifier: NotificationAction.VIEW,
+          buttonTitle: 'View',
+          options: {
+            isDestructive: false,
+            isAuthenticationRequired: false,
+          },
+        },
+        {
+          identifier: NotificationAction.SNOOZE,
+          buttonTitle: 'Snooze',
+          options: {
+            isDestructive: false,
+            isAuthenticationRequired: false,
+          },
+        },
+      ]);
+
+      // Price change category with actions
+      await this.createNotificationCategory(NotificationCategory.PRICE_CHANGE, [
+        {
+          identifier: NotificationAction.VIEW,
+          buttonTitle: 'View Details',
+          options: {
+            isDestructive: false,
+            isAuthenticationRequired: false,
+          },
+        },
+        {
+          identifier: NotificationAction.DISMISS,
+          buttonTitle: 'Dismiss',
+          options: {
+            isDestructive: true,
+            isAuthenticationRequired: false,
+          },
+        },
+      ]);
+
+      // General category with basic actions
+      await this.createNotificationCategory(NotificationCategory.GENERAL, [
+        {
+          identifier: NotificationAction.VIEW,
+          buttonTitle: 'View',
+          options: {
+            isDestructive: false,
+            isAuthenticationRequired: false,
+          },
+        },
+      ]);
+
+      console.log('Notification categories created');
+    } catch (error) {
+      console.error('Failed to create notification categories:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Set up notification listeners for receiving and responding to notifications
    */
   private setupNotificationListeners(): void {
@@ -161,18 +267,136 @@ export class PushNotificationService {
     this.responseListener = Notifications.addNotificationResponseReceivedListener(
       (response: Notifications.NotificationResponse) => {
         console.log('Notification response received:', response);
-        const { notification } = response;
-        const data = notification.request.content.data as Record<string, any>;
 
-        // Handle the notification tap based on deepLink or type
-        if (data?.deepLink) {
-          // Navigation would be handled here
-          console.log(`Should navigate to: ${data.deepLink}`);
-        } else if (data?.type) {
-          this.handleNotificationByType(data.type as NotificationType, data);
+        // Check if this is an action button press or a regular tap
+        if (response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) {
+          // Handle action button press
+          this.handleNotificationAction(response);
+        } else {
+          // Handle regular notification tap (deep link)
+          DeepLinkService.handleNotificationResponse(response);
         }
       }
     );
+  }
+
+  /**
+   * Handle notification action button press
+   */
+  private async handleNotificationAction(
+    response: Notifications.NotificationResponse
+  ): Promise<void> {
+    const { notification } = response;
+    const { data } = notification.request.content;
+    const actionId = response.actionIdentifier;
+
+    console.log(`Handling notification action: ${actionId}`, data);
+
+    switch (actionId) {
+      case NotificationAction.MARK_PAID:
+        await this.handleMarkAsPaidAction(data);
+        break;
+      case NotificationAction.SNOOZE:
+        await this.handleSnoozeAction(data);
+        break;
+      case NotificationAction.VIEW:
+        // Use the deep link handler to navigate
+        DeepLinkService.handleNotificationResponse(response);
+        break;
+      case NotificationAction.DISMISS:
+        // Just dismiss the notification - no additional action needed
+        break;
+      default:
+        console.log(`Unknown action identifier: ${actionId}`);
+    }
+  }
+
+  /**
+   * Handle the "Mark as Paid" action
+   */
+  private async handleMarkAsPaidAction(data: Record<string, any>): Promise<void> {
+    try {
+      // Get necessary identifiers from notification data
+      const { subscriptionId, paymentId } = data;
+
+      // Implement the mark as paid logic
+      if (paymentId) {
+        console.log(`Marking payment ${paymentId} as paid`);
+        // Call the payment service to mark as paid
+        // This would be implemented when the payment system is built
+      } else if (subscriptionId) {
+        console.log(`Marking latest payment for subscription ${subscriptionId} as paid`);
+        // Find the latest payment for this subscription and mark it as paid
+        // This would be implemented when the payment system is built
+      }
+
+      // Show a success notification
+      await this.scheduleLocalNotification({
+        title: 'Payment Recorded',
+        body: 'Your payment has been marked as paid.',
+        categoryId: NotificationCategory.GENERAL,
+      });
+    } catch (error) {
+      console.error('Failed to mark payment as paid:', error);
+
+      // Show an error notification
+      await this.scheduleLocalNotification({
+        title: 'Action Failed',
+        body: 'Failed to mark payment as paid. Please try again.',
+        categoryId: NotificationCategory.GENERAL,
+      });
+    }
+  }
+
+  /**
+   * Handle the "Snooze" action
+   */
+  private async handleSnoozeAction(data: Record<string, any>): Promise<void> {
+    try {
+      // Get necessary identifiers from notification data
+      const { notificationId, type, relatedEntityId, title, body } = data;
+
+      console.log(`Snoozing notification: ${notificationId} for ${type}`);
+
+      // Default snooze time: 1 day (in milliseconds)
+      const snoozeTime = 24 * 60 * 60 * 1000;
+      const snoozeUntil = new Date(Date.now() + snoozeTime);
+
+      // Reschedule the notification for later
+      await this.scheduleLocalNotification({
+        title: title || 'Reminder',
+        body: body || `You have a snoozed ${type} reminder`,
+        data: {
+          ...data,
+          snoozeCount: (data.snoozeCount || 0) + 1,
+        },
+        categoryId: data.categoryId || NotificationCategory.GENERAL,
+      });
+
+      // Show a confirmation
+      await this.scheduleLocalNotification({
+        title: 'Reminder Snoozed',
+        body: "We'll remind you again tomorrow.",
+        categoryId: NotificationCategory.GENERAL,
+      });
+    } catch (error) {
+      console.error('Failed to snooze notification:', error);
+
+      // Show an error notification
+      await this.scheduleLocalNotification({
+        title: 'Action Failed',
+        body: 'Failed to snooze reminder. Please try again.',
+        categoryId: NotificationCategory.GENERAL,
+      });
+    }
+  }
+
+  /**
+   * Handle notification by type
+   */
+  private handleNotificationByType(type: NotificationType, data: Record<string, any>): void {
+    console.log(`Handling notification of type: ${type}`, data);
+    // Add type-specific handling if needed
   }
 
   /**
@@ -203,7 +427,7 @@ export class PushNotificationService {
         return undefined;
       }
 
-      // Get the Expo push token
+      // Get the Expo push token - using only projectId, not experienceId
       this.expoPushToken = await Notifications.getExpoPushTokenAsync({
         projectId: PROJECT_ID,
       });
@@ -225,47 +449,67 @@ export class PushNotificationService {
    */
   private async savePushToken(token: string): Promise<void> {
     try {
-      // Get current authenticated user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (userError || !userData.user) {
         console.log('No authenticated user to save push token for');
         return;
       }
 
+      const userId = userData.user.id;
+
       // Check if token already exists
-      const { data, error } = await supabase
+      const { data: existingToken, error: queryError } = await supabase
         .from('user_push_tokens')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('token', token);
+        .eq('token', token)
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      if (error) {
-        throw error;
+      if (queryError) {
+        // Table might not exist, log the error but don't fail
+        console.log('Error querying user_push_tokens table:', queryError.message);
+        return;
       }
 
-      // If token doesn't exist, save it
-      if (!data || data.length === 0) {
+      if (!existingToken) {
+        // Insert new token
         const { error: insertError } = await supabase.from('user_push_tokens').insert({
-          user_id: user.id,
-          token,
+          user_id: userId,
+          token: token,
           device_type: Platform.OS,
-          is_active: true,
+          device_id: Device.deviceName || 'unknown',
+          device_name: Device.modelName || 'unknown',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         });
 
         if (insertError) {
-          throw insertError;
+          // Table might not exist, log the error but don't fail
+          console.log('Error inserting device token:', insertError.message);
+          return;
         }
 
         console.log('Push token saved to database');
       } else {
-        console.log('Push token already exists in database');
+        // Update last_used_at timestamp
+        const { error: updateError } = await supabase
+          .from('user_push_tokens')
+          .update({
+            updated_at: new Date().toISOString(),
+            last_used_at: new Date().toISOString(),
+          })
+          .eq('id', existingToken.id);
+
+        if (updateError) {
+          console.log('Error updating token last used time:', updateError.message);
+        } else {
+          console.log('Push token last used time updated');
+        }
       }
     } catch (error) {
+      // Log the error but don't rethrow, to prevent app crashes
       console.error('Failed to save push token:', error);
-      throw error;
     }
   }
 
@@ -303,6 +547,32 @@ export class PushNotificationService {
   }
 
   /**
+   * Schedule a notification with deep link and quick actions
+   */
+  public async scheduleNotificationWithActions(
+    notification: PushNotificationPayload,
+    categoryId: NotificationCategory,
+    deepLink?: string
+  ): Promise<string> {
+    try {
+      // Add deep link and category to the notification data
+      const enhancedData = {
+        ...(notification.data || {}),
+        deepLink,
+      };
+
+      return await this.scheduleLocalNotification({
+        ...notification,
+        data: enhancedData,
+        categoryId,
+      });
+    } catch (error) {
+      console.error('Failed to schedule notification with actions:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Create a notification category with action buttons
    */
   public async createNotificationCategory(
@@ -319,82 +589,37 @@ export class PushNotificationService {
   }
 
   /**
-   * Handle notification based on notification type
+   * Cancel a scheduled notification
    */
-  private handleNotificationByType(type: NotificationType, data: Record<string, any>): void {
-    switch (type) {
-      case NotificationType.SUBSCRIPTION_DUE:
-        console.log('Handling subscription due notification');
-        // Additional handling for subscription due
-        break;
-      case NotificationType.PAYMENT_REMINDER:
-        console.log('Handling payment reminder notification');
-        // Additional handling for payment reminder
-        break;
-      case NotificationType.PRICE_CHANGE:
-        console.log('Handling price change notification');
-        // Additional handling for price change
-        break;
-      case NotificationType.CANCELLATION_DEADLINE:
-        console.log('Handling cancellation deadline notification');
-        // Additional handling for cancellation deadline
-        break;
-      case NotificationType.SYSTEM:
-        console.log('Handling system notification');
-        // Additional handling for system notifications
-        break;
-      default:
-        console.log(`Handling notification of type: ${type}`);
-        break;
-    }
-  }
-
-  /**
-   * Send push notification to a user
-   */
-  public async sendPushNotification(
-    userId: string,
-    notification: PushNotificationPayload
-  ): Promise<boolean> {
+  public async cancelScheduledNotification(notificationId: string): Promise<void> {
     try {
-      // Get user's push tokens
-      const { data: tokens, error } = await supabase
-        .from('user_push_tokens')
-        .select('token')
-        .eq('user_id', userId)
-        .eq('is_active', true);
-
-      if (error) {
-        throw error;
-      }
-
-      if (!tokens || tokens.length === 0) {
-        console.log('No active push tokens found for user:', userId);
-        return false;
-      }
-
-      // This would typically be replaced with a call to your push notification service/backend
-      console.log(`Would send push notification to tokens: ${tokens.map(t => t.token).join(', ')}`);
-      console.log('Notification payload:', notification);
-
-      // For local testing, we'll send a local notification
-      await this.scheduleLocalNotification(notification);
-
-      return true;
+      await Notifications.cancelScheduledNotificationAsync(notificationId);
     } catch (error) {
-      console.error('Failed to send push notification:', error);
+      console.error('Failed to cancel scheduled notification:', error);
       throw error;
     }
   }
 
   /**
-   * Check push notification permissions
+   * Get all scheduled notifications
    */
-  public async checkPermissions(): Promise<Notifications.NotificationPermissionsStatus> {
+  public async getAllScheduledNotifications(): Promise<Notifications.NotificationRequest[]> {
     try {
-      return await Notifications.getPermissionsAsync();
+      return await Notifications.getAllScheduledNotificationsAsync();
     } catch (error) {
-      console.error('Failed to check notification permissions:', error);
+      console.error('Failed to get scheduled notifications:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Dismiss all notifications
+   */
+  public async dismissAllNotifications(): Promise<void> {
+    try {
+      await Notifications.dismissAllNotificationsAsync();
+    } catch (error) {
+      console.error('Failed to dismiss all notifications:', error);
       throw error;
     }
   }
@@ -412,7 +637,7 @@ export class PushNotificationService {
   }
 
   /**
-   * Clean up listeners when service is destroyed
+   * Cleanup function to remove listeners
    */
   public cleanup(): void {
     if (this.notificationListener) {

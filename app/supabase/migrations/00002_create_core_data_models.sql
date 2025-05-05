@@ -174,11 +174,11 @@ BEGIN
   INSERT INTO public.categories (name, icon, color, user_id, is_default)
   VALUES
     ('Entertainment', 'film', '#FF5733', NEW.id, true),
-    ('Utilities', 'utility-pole', '#33FFF6', NEW.id, true),
+    ('Utilities', 'build', '#33FFF6', NEW.id, true),
     ('Software', 'code', '#337DFF', NEW.id, true),
     ('Health', 'heart', '#FF33E6', NEW.id, true),
     ('Food', 'pizza', '#76FF33', NEW.id, true),
-    ('Other', 'question', '#A233FF', NEW.id, true);
+    ('Other', 'medical', '#A233FF', NEW.id, true);
   
   RETURN NEW;
 END;

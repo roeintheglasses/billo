@@ -31,6 +31,8 @@ module.exports = ({ config }) => {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
+      permissions: ['RECEIVE_SMS', 'READ_SMS'],
+      package: 'com.billo.app',
     },
     web: {
       favicon: './assets/favicon.png',
@@ -40,7 +42,7 @@ module.exports = ({ config }) => {
       supabaseUrl: SUPABASE_URL || defaultSupabaseUrl,
       supabaseAnonKey: SUPABASE_ANON_KEY || defaultSupabaseAnonKey,
       eas: {
-        projectId: 'your-project-id',
+        projectId: 'bab82c4e-3feb-4765-8a70-dc2bc99c6b11',
       },
     },
     plugins: [

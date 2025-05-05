@@ -428,7 +428,7 @@ const SubscriptionsScreen: React.FC = () => {
         </Text>
         {!searchQuery && !selectedCategory && !selectedBillingCycle && (
           <TouchableOpacity
-            onPress={() => navigation.navigate('AddSubscription')}
+            onPress={() => navigation.navigate('Add')}
             style={[styles.addButton, { backgroundColor: colors.primary }]}
           >
             <Text variant="caption" style={{ color: colors.text.inverted }}>
