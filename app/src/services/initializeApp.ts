@@ -7,6 +7,8 @@
 
 import notificationScheduler from './NotificationScheduler';
 import { supabase } from './supabase';
+import DeepLinkService from './DeepLinkService';
+import { PushNotificationService } from './PushNotificationService';
 
 /**
  * Initialize all app services
@@ -19,6 +21,14 @@ export const initializeApp = async (): Promise<void> => {
     // Initialize notification scheduler
     await notificationScheduler.initialize();
     console.log('Notification scheduler initialized');
+
+    // Initialize push notification service
+    await PushNotificationService.getInstance().initialize();
+    console.log('Push notification service initialized');
+
+    // Initialize deep linking
+    DeepLinkService.initializeDeepLinks();
+    console.log('Deep linking initialized');
 
     // Add additional service initializations here
 

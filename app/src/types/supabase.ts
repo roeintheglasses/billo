@@ -427,6 +427,15 @@ export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
 export type NotificationUpdate = Database['public']['Tables']['notifications']['Update'];
 
+// Extended notification type with additional fields for use in the app
+export interface ExtendedNotification extends Notification {
+  scheduled_for?: string | null;
+  status?: string | null;
+  related_entity_id?: string | null;
+  related_entity_type?: 'subscription' | 'payment' | 'other' | null;
+  deep_link_url?: string | null;
+}
+
 // Extend notification types with our custom fields
 export interface ExtendedNotificationInsert extends NotificationInsert {
   scheduled_for?: string;
